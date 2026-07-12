@@ -1,0 +1,317 @@
+{
+  "b_drone": {
+    "file": "b_drone.png",
+    "h": 4,
+    "w": 10
+  },
+  "b_fan": {
+    "file": "b_fan.png",
+    "h": 22,
+    "w": 14
+  },
+  "b_pulse": {
+    "file": "b_pulse.png",
+    "h": 3,
+    "w": 8
+  },
+  "b_rail": {
+    "file": "b_rail.png",
+    "h": 61,
+    "w": 10
+  },
+  "aegis_seg": {
+    "file": "aegis_seg.png",
+    "h": 39,
+    "w": 128
+  },
+  "asteroid": {
+    "file": "asteroid.png",
+    "h": 71,
+    "w": 72
+  },
+  "boss_aegis": {
+    "file": "boss_aegis.png",
+    "h": 427,
+    "w": 420
+  },
+  "boss_dread": {
+    "file": "boss_dread.png",
+    "h": 722,
+    "w": 420
+  },
+  "boss_gatekeeper": {
+    "file": "boss_gatekeeper.png",
+    "h": 927,
+    "w": 420
+  },
+  "boss_hive": {
+    "file": "boss_hive.png",
+    "h": 781,
+    "w": 420
+  },
+  "boss_minelayer": {
+    "file": "boss_minelayer.png",
+    "h": 839,
+    "w": 420
+  },
+  "boss_monarch": {
+    "file": "boss_monarch.png",
+    "h": 667,
+    "w": 420
+  },
+  "boss_viper": {
+    "file": "boss_viper.png",
+    "h": 427,
+    "w": 300
+  },
+  "boss_warden": {
+    "file": "boss_warden.png",
+    "h": 1033,
+    "w": 420
+  },
+  "c1_prong": {
+    "file": "c1_prong.png",
+    "h": 44,
+    "w": 26
+  },
+  "c2_saucer": {
+    "file": "c2_saucer.png",
+    "h": 28,
+    "w": 28
+  },
+  "c3_arrow": {
+    "file": "c3_arrow.png",
+    "h": 31,
+    "w": 26
+  },
+  "c4_triwing": {
+    "file": "c4_triwing.png",
+    "h": 135,
+    "w": 120
+  },
+  "c5_worm": {
+    "file": "c5_worm.png",
+    "h": 120,
+    "w": 43
+  },
+  "c6_carrier": {
+    "file": "c6_carrier.png",
+    "h": 140,
+    "w": 128
+  },
+  "crate_closed": {
+    "file": "crate_closed.png",
+    "h": 128,
+    "w": 105
+  },
+  "crate_open": {
+    "file": "crate_open.png",
+    "h": 103,
+    "w": 98
+  },
+  "d1_crab": {
+    "file": "d1_crab.png",
+    "h": 101,
+    "w": 120
+  },
+  "d2_eye": {
+    "file": "d2_eye.png",
+    "h": 24,
+    "w": 24
+  },
+  "d3_wasp": {
+    "file": "d3_wasp.png",
+    "h": 24,
+    "w": 26
+  },
+  "d4_lamprey": {
+    "file": "d4_lamprey.png",
+    "h": 120,
+    "w": 87
+  },
+  "d5_crystal": {
+    "file": "d5_crystal.png",
+    "h": 36,
+    "w": 28
+  },
+  "d6_ray": {
+    "file": "d6_ray.png",
+    "h": 110,
+    "w": 140
+  },
+  "e_diver": {
+    "file": "e_diver.png",
+    "h": 19,
+    "w": 24
+  },
+  "e_drifter": {
+    "file": "e_drifter.png",
+    "h": 26,
+    "w": 26
+  },
+  "e_elite": {
+    "file": "e_elite.png",
+    "h": 101,
+    "w": 140
+  },
+  "e_mini": {
+    "file": "e_mini.png",
+    "h": 11,
+    "w": 14
+  },
+  "e_splitter": {
+    "file": "e_splitter.png",
+    "h": 116,
+    "w": 110
+  },
+  "gate_pylon": {
+    "file": "gate_pylon.png",
+    "h": 472,
+    "w": 96
+  },
+  "mine": {
+    "file": "mine.png",
+    "h": 64,
+    "w": 64
+  },
+  "supply_ship": {
+    "file": "supply_ship.png",
+    "h": 222,
+    "w": 96
+  },
+  "e_turret": {
+    "file": "e_turret.png",
+    "h": 124,
+    "w": 120
+  },
+  "e_weaver": {
+    "file": "e_weaver.png",
+    "h": 17,
+    "w": 26
+  },
+  "eb_dart": {
+    "file": "eb_dart.png",
+    "h": 4,
+    "w": 12
+  },
+  "eb_orb": {
+    "file": "eb_orb.png",
+    "h": 17,
+    "w": 16
+  },
+  "eb_shard": {
+    "file": "eb_shard.png",
+    "h": 8,
+    "w": 14
+  },
+  "icon_armor": {
+    "file": "icon_armor.png",
+    "h": 32,
+    "w": 32
+  },
+  "icon_drone": {
+    "file": "icon_drone.png",
+    "h": 31,
+    "w": 32
+  },
+  "icon_fan": {
+    "file": "icon_fan.png",
+    "h": 31,
+    "w": 32
+  },
+  "icon_magnet": {
+    "file": "icon_magnet.png",
+    "h": 32,
+    "w": 32
+  },
+  "icon_overclock": {
+    "file": "icon_overclock.png",
+    "h": 32,
+    "w": 32
+  },
+  "icon_pause": {
+    "file": "icon_pause.png",
+    "h": 31,
+    "w": 32
+  },
+  "icon_pulse": {
+    "file": "icon_pulse.png",
+    "h": 31,
+    "w": 32
+  },
+  "icon_rail": {
+    "file": "icon_rail.png",
+    "h": 31,
+    "w": 32
+  },
+  "icon_repair": {
+    "file": "icon_repair.png",
+    "h": 32,
+    "w": 32
+  },
+  "icon_thrusters": {
+    "file": "icon_thrusters.png",
+    "h": 32,
+    "w": 32
+  },
+  "p_coin": {
+    "file": "p_coin.png",
+    "h": 14,
+    "w": 14
+  },
+  "p_gem": {
+    "file": "p_gem.png",
+    "h": 11,
+    "w": 14
+  },
+  "p_repair": {
+    "file": "p_repair.png",
+    "h": 9,
+    "w": 20
+  },
+  "part_drone": {
+    "file": "part_drone.png",
+    "h": 16,
+    "w": 16
+  },
+  "part_drone_gold": {
+    "file": "part_drone_gold.png",
+    "h": 18,
+    "w": 18
+  },
+  "part_pod": {
+    "file": "part_pod.png",
+    "h": 10,
+    "w": 14
+  },
+  "part_pod_gold": {
+    "file": "part_pod_gold.png",
+    "h": 10,
+    "w": 16
+  },
+  "part_rail": {
+    "file": "part_rail.png",
+    "h": 50,
+    "w": 12
+  },
+  "part_rail_gold": {
+    "file": "part_rail_gold.png",
+    "h": 36,
+    "w": 14
+  },
+  "ship_interceptor": {
+    "file": "ship_interceptor.png",
+    "h": 54,
+    "w": 46
+  },
+  "ship_vanguard": {
+    "file": "ship_vanguard.png",
+    "h": 45,
+    "w": 56
+  },
+  "ship_wraith": {
+    "file": "ship_wraith.png",
+    "h": 61,
+    "w": 52
+  }
+}
