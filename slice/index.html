@@ -200,6 +200,43 @@ const FW=6.0, PZ=4.6, TOPZ=-26
 function L(m){if(m.color)m.color.convertSRGBToLinear();if(m.emissive)m.emissive.convertSRGBToLinear();return m}
 const flat=(c,e,i)=>{const m=new THREE.MeshStandardMaterial({color:c,emissive:e||0,roughness:.78,metalness:.05,flatShading:true});m.emissiveIntensity=i==null?1:i;return L(m)}
 const basicM=c=>L(new THREE.MeshBasicMaterial({color:c}))
+const C=h=>new THREE.Color(h).convertSRGBToLinear()
+// prof: 8점 헥사 단면(w=반폭, ht=윗높이, hb=아랫높이, sh=어깨 비율)
+function prof(w,ht,hb,sh){sh=sh==null?.55:sh
+ return [[0,ht],[w*sh,ht*.62],[w,ht*.08],[w*.92,-hb*.5],[0,-hb],[-w*.92,-hb*.5],[-w,ht*.08],[-w*sh,ht*.62]]}
+// loft: sections=[{z,pts,ox,oy}] → 논인덱스드 지오메트리(+양끝 캡). colFn(x,y,z,minY,maxY)→[r,g,b]
+function loft(sections,colFn){
+ const P=[],Cl=[]
+ const n=sections[0].pts.length
+ let mnY=1e9,mxY=-1e9
+ for(const s of sections)for(const p of s.pts){const y=p[1]+(s.oy||0);if(y<mnY)mnY=y;if(y>mxY)mxY=y}
+ function push(a,b){P.push(a[0],a[1],a[2],b[0],b[1],b[2])}
+ function vert(s,i){const p=s.pts[i%n];return [p[0]+(s.ox||0),p[1]+(s.oy||0),s.z]}
+ function tri(a,b,c){P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2])
+  for(const v of [a,b,c]){const col=colFn(v[0],v[1],v[2],mnY,mxY);Cl.push(col[0],col[1],col[2])}}
+ for(let s=0;s<sections.length-1;s++){const A=sections[s],B=sections[s+1]
+  for(let i=0;i<n;i++){const a0=vert(A,i),a1=vert(A,i+1),b0=vert(B,i),b1=vert(B,i+1)
+   tri(a0,b0,b1);tri(a0,b1,a1)}}
+ // 캡(앞뒤): 중심 팬
+ for(const [s,flip] of [[sections[0],true],[sections[sections.length-1],false]]){
+  let cx=0,cy=0;for(const p of s.pts){cx+=p[0];cy+=p[1]}
+  const c0=[cx/n+(s.ox||0),cy/n+(s.oy||0),s.z]
+  for(let i=0;i<n;i++){const v0=vert(s,i),v1=vert(s,i+1)
+   if(flip)tri(c0,v1,v0);else tri(c0,v0,v1)}}
+ const g=new THREE.BufferGeometry()
+ g.setAttribute('position',new THREE.Float32BufferAttribute(P,3))
+ g.setAttribute('color',new THREE.Float32BufferAttribute(Cl,3))
+ g.computeVertexNormals()
+ return g}
+// 셰이딩: 영역 기본색 + 밑면 어둡게 + 뒤로 갈수록 미세 어둡게
+function shader(base,dark){const cb=C(base),cd=C(dark)
+ return (x,y,z,mnY,mxY)=>{const t=(y-mnY)/Math.max(.001,(mxY-mnY))
+  const k=.3+.58*t
+  const zk=1-Math.max(0,z)*.06
+  const r=(cd.r+(cb.r-cd.r)*k)*zk,g=(cd.g+(cb.g-cd.g)*k)*zk,b=(cd.b+(cb.b-cd.b)*k)*zk
+  return [r,g,b]}}
+const hullMat=L(new THREE.MeshStandardMaterial({vertexColors:true,roughness:.62,metalness:.14,flatShading:true}))
+
 
 /* ============ 텍스처/스프라이트 ============ */
 function radialTex(stops,size){const s=size||128,c=document.createElement('canvas');c.width=c.height=s
@@ -232,39 +269,86 @@ function glowSprite(hex,scale,op){const m=L(new THREE.SpriteMaterial({map:glowTe
  scene.add(s1);scene.add(s2);window.__stars=[s1,s2]
 })()
 
-/* ============ 플레이어 함선 v2 — 인터셉터(오너 피드백: 기체 리디자인) ============ */
+/* ============ 플레이어 함선 v3 — TWIN PRONG(로프트 연속 선체, 오너 선택 B) ============ */
 function buildPlayer(){
  const g=new THREE.Group()
- const mHull=flat(0x2fd8f8,0x0f86b0,1.45)
- const mPanel=flat(0x11506e,0x083248,1.15)
- const mAcc=flat(0x8bf3ff,0x35e6ff,1.6)
- const ng=new THREE.ConeGeometry(.3,1.7,6);ng.rotateX(-Math.PI/2)
- const nose=new THREE.Mesh(ng,mHull);nose.scale.set(1,.6,1);nose.position.z=-.75;g.add(nose)
- const tg=new THREE.ConeGeometry(.32,1.15,6);tg.rotateX(Math.PI/2)
- const tail=new THREE.Mesh(tg,mPanel);tail.scale.set(1,.62,1);tail.position.z=.62;g.add(tail)
- const spine=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,2.0),mAcc);spine.position.set(0,.14,0);g.add(spine)
- const can=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),L(new THREE.MeshStandardMaterial({color:0x8bf3ff,emissive:0x35e6ff,emissiveIntensity:1.6,roughness:.2,flatShading:true})))
- can.scale.set(1,.7,1.5);can.position.set(0,.17,-.35);g.add(can)
- const ws=new THREE.Shape()
- ws.moveTo(.14,-.35);ws.lineTo(1.8,.85);ws.lineTo(1.8,1.02);ws.lineTo(.55,.72);ws.lineTo(.14,.55);ws.closePath()
- const wg=new THREE.ExtrudeGeometry(ws,{depth:.06,bevelEnabled:false});wg.rotateX(Math.PI/2)
- const wR=new THREE.Mesh(wg,mPanel);wR.position.set(0,0,-.15);g.add(wR)
- const wgL=wg.clone();wgL.scale(-1,1,1)
- const wL=new THREE.Mesh(wgL,mPanel);wL.position.set(0,0,-.15);g.add(wL)
+ const shCyan=shader(0x37d8f5,0x0b3752)   // 프롱/포드: 시안 도색
+ const shSteel=shader(0x1d6f96,0x092a40)  // 윙: 다크 스틸
+ // ── 프롱 헐 ×2: 뾰족코 → 동체 → 엔진 하우징까지 한 덩어리
+ function prong(sx){
+  const S=[
+   {z:-1.6,pts:prof(.018,.014,.01)},
+   {z:-1.2,pts:prof(.07,.05,.04),oy:.01},
+   {z:-.6,pts:prof(.11,.08,.06),oy:.015},
+   {z:.1,pts:prof(.13,.1,.08),oy:.015},
+   {z:.55,pts:prof(.16,.13,.11),oy:.01},   // 엔진 하우징
+   {z:.9,pts:prof(.15,.11,.1)},
+   {z:1.0,pts:prof(.1,.07,.07)},           // 노즐 조임
+  ]
+  const m=new THREE.Mesh(loft(S,shCyan),hullMat);m.position.x=sx*.78;g.add(m)
+  const gl=glowSprite(0x8bf3ff,.36,.95);gl.position.set(sx*.78,0,1.1);g.add(gl)
+  const gl2=glowSprite(0x35e6ff,.68,.35);gl2.position.set(sx*.78,0,1.28);g.add(gl2)
+  g.userData.engs=g.userData.engs||[];g.userData.engs.push(gl,gl2)}
+ prong(-1);prong(1)
+ // ── 메인 윙: 좌익단→우익단 한 장(x축 로프트) — 프롱 사이를 관통해 연결
+ function wsec(x,ch,th,zoff){ // ch=시위(앞뒤 길이), th=두께, zoff=후퇴
+  const pts=[[ -ch*.5,0],[ -ch*.2,th*.55],[ ch*.28,th*.4],[ ch*.5,0],[ ch*.28,-th*.4],[ -ch*.2,-th*.55],[ -ch*.35,-th*.3],[ -ch*.45,-th*.1]]
+  return {z:0,pts,ox:zoff,oy:0,__x:x}}
+ // x축 로프트를 위해 좌표 스왑 빌드: 단면은 (z,y)평면, 진행축 x
+ function loftX(secs,colFn){
+  const conv=secs.map(s=>({z:s.__x,pts:s.pts.map(p=>[p[0]+ (s.ox||0),p[1]+(s.oy||0)]),}))
+  const geo=loft(conv,(zz,y,x)=>colFn(x,y,zz)) // 반환 후 축 교환
+  const pos=geo.getAttribute('position')
+  for(let i=0;i<pos.count;i++){const zz=pos.getX(i),y=pos.getY(i),x=pos.getZ(i)
+   pos.setXYZ(i,x,y,zz)}
+  geo.computeVertexNormals();return geo}
+ const wingSecs=[
+  wsec(-1.8,.42,.05,.4),
+  wsec(-1.2,.72,.09,.22),
+  wsec(-.78,1.0,.13,.1),
+  wsec(0,1.1,.15,.08),
+  wsec(.78,1.0,.13,.1),
+  wsec(1.2,.72,.09,.22),
+  wsec(1.8,.42,.05,.4),
+ ]
+ const wcol=shader(0x1d6f96,0x092a40)
+ const wing=new THREE.Mesh(loftX(wingSecs,(x,y,z)=>wcol(x,y,z,-.1,.1)),hullMat)
+ wing.position.set(0,-.03,.42);g.add(wing)
+ // ── 중앙 포드(콕핏 모함): 티어드롭 로프트
+ const podS=[
+  {z:-.75,pts:prof(.05,.03,.02)},
+  {z:-.42,pts:prof(.2,.11,.07),oy:.02},
+  {z:0,pts:prof(.3,.15,.1),oy:.04},
+  {z:.4,pts:prof(.27,.13,.09),oy:.035},
+  {z:.75,pts:prof(.16,.07,.06),oy:.015},
+  {z:.9,pts:prof(.07,.035,.03),oy:.005},
+ ]
+ const pod=new THREE.Mesh(loft(podS,shCyan),hullMat);pod.position.y=.06;g.add(pod)
+ // 캐노피(유리): 작은 로프트 버블
+ const canS=[
+  {z:-.42,pts:prof(.025,.012,.005)},
+  {z:-.18,pts:prof(.11,.11,.012)},
+  {z:.12,pts:prof(.12,.11,.014)},
+  {z:.4,pts:prof(.06,.05,.009)},
+ ]
+ const canMat=L(new THREE.MeshStandardMaterial({color:0x9ff4ff,emissive:0x35e6ff,emissiveIntensity:1.2,roughness:.15,metalness:.1,flatShading:true}))
+ const can=new THREE.Mesh(loft(canS,(x,y,z)=>[1,1,1]),canMat);can.position.y=.21;g.add(can)
+ // 발광 액센트: 프롱 등줄기 스트립(에미시브) — 아주 얇은 로프트
+ const accMat=L(new THREE.MeshStandardMaterial({color:0x8bf3ff,emissive:0x35e6ff,emissiveIntensity:1.7,roughness:.3,flatShading:true}))
  for(const sx of [-1,1]){
-  const edge=new THREE.Mesh(new THREE.BoxGeometry(1.62,.05,.09),mAcc)
-  edge.position.set(sx*.95,.03,.28);edge.rotation.y=sx*-.63;g.add(edge)
-  const tip=glowSprite(sx<0?0xff3d9a:0x35e6ff,.34,.95);tip.position.set(sx*1.78,0,.9);g.add(tip)
-  const cs=new THREE.Mesh(new THREE.BoxGeometry(.5,.05,.2),mHull)
-  cs.position.set(sx*.42,0,-.7);cs.rotation.y=sx*-.5;g.add(cs)
-  const fin=new THREE.Mesh(new THREE.BoxGeometry(.05,.34,.44),mPanel)
-  fin.position.set(sx*.3,.2,.75);fin.rotation.z=sx*-.22;g.add(fin)}
- const eng=new THREE.Mesh(new THREE.BoxGeometry(.78,.2,.42),mPanel);eng.position.set(0,-.02,1.02);g.add(eng)
- const engs=[]
- for(const sx of [-.24,.24]){const gl=glowSprite(0x8bf3ff,.5,.95);gl.position.set(sx,-.02,1.34);g.add(gl);engs.push(gl)}
- g.userData.engs=engs
+  const aS=[{z:-.95,pts:prof(.014,.01,.004)},{z:.1,pts:prof(.02,.014,.004)},{z:.85,pts:prof(.014,.01,.004)}]
+  const a=new THREE.Mesh(loft(aS,()=>[1,1,1]),accMat);a.position.set(sx*.74,.15,0);g.add(a)}
+// 윙렛(외측 캔트 핀)
+ for(const sx of [-1,1]){
+  const wf=[{z:-.05,pts:prof(.02,.02,.01)},{z:.3,pts:prof(.035,.2,.02)},{z:.62,pts:prof(.025,.14,.015)}]
+  const fin=new THREE.Mesh(loft(wf,shSteel),hullMat)
+  fin.position.set(sx*1.52,.06,.55);fin.rotation.z=sx*-.35;g.add(fin)}
+ // 윙팁 라이트(좌 마젠타/우 시안)
+ for(const sx of [-1,1]){const t=glowSprite(sx<0?0xff3d9a:0x35e6ff,.3,.95);t.position.set(sx*1.8,0,1.02);g.add(t)}
  return g}
-const player=buildPlayer();player.position.set(0,0,PZ);player.scale.setScalar(.98);scene.add(player)
+
+
+const player=buildPlayer();player.position.set(0,0,PZ);player.scale.setScalar(.9);scene.add(player)
 
 /* ============ 풀 ============ */
 function Pool(make,n){const free=[],all=[]
@@ -626,8 +710,8 @@ function frame(now){requestAnimationFrame(frame)
   const vx=(player.position.x-px0)/(pdt||1)
   player.rotation.z=clamp(-vx*.06,-.65,.65)
   player.rotation.x=Math.sin(now*.002)*.03
-  if(!frozen&&Math.random()<pdt*38)for(const sx of [-.24,.24])
-   trail(player.position.x+sx,0,player.position.z+1.3,0x35e6ff,rnd(.3,.5),.3)
+  if(!frozen&&Math.random()<pdt*38)for(const sx of [-.7,.7])
+   trail(player.position.x+sx,0,player.position.z+1.15,0x35e6ff,rnd(.3,.5),.3)
   S.fireT-=pdt;if(S.fireT<=0){S.fireT=S.fireRate;fire()}
   if(W.seek>0){S.seekT-=pdt
    if(S.seekT<=0){S.seekT=1.5-W.seek*.25
