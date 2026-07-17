@@ -4247,10 +4247,11 @@ const upCost=n=>Math.round(400*Math.pow(1.6,n))
 
 /* ============ 상태 ============ */
 let ST='start'
-const W={cyc:0,seek:0,arc:0,lance:0}
+const W={orbit:0,homing:0} // 보조무기 (최대 2슬롯 — 종류가 2개라 자연 충족)
 const ULV={multi:0,rapid:0,power:0,thr:0,mag:0,hull:0} // 스탯 업그레이드 레벨(만렙 캡·죽은 픽 방지)
-const E={vulcan:0,maelstrom:0,hydra:0,prism:0,judgment:0} // 진화 상태
+const E={} // (구 진화 상태 — 주무기 교체제로 대체, 참조 안전용 빈 객체)
 const S={hp:100,maxhp:100,lvl:1,xp:0,xpNext:5,kills:0,t:0,wave:1,
+ primary:'pulse',plv:1, // 주무기(교체형)·주무기 레벨
  streams:1,fireRate:.21,dmg:1,speed:1,magnet:3.4,fireT:0,seekT:0,lanceT:0,orbA:0,
  surge:0,surgeFired:0,surgeUntil:0,novaT:-1,invUntil:0,
  combo:0,comboAt:0,comboMax:0,comboPop:0,xpStep:0,xpAt:0,
@@ -4349,11 +4350,13 @@ function evolve(key){if(E[key])return
  if(key==='maelstrom'){goldify(orbPool);syncOrbs()}
  if(key==='judgment'){for(const b of [...lances]){lbPool.put(b.m)};lances.length=0}}
 const UPG=[
- {id:'cyc',w:1,ic:SVG.cyc,nm:'CYCLONE',ds:'궤도 구체 — 접촉 딜',evo:'maelstrom',max:3,ap:()=>{W.cyc=Math.min(3,W.cyc+1);syncOrbs();if(W.cyc>=3)evolve('maelstrom')}},
- {id:'seek',w:1,ic:SVG.seek,nm:'SEEKER',ds:'유도 미사일 발사',evo:'hydra',max:3,ap:()=>{W.seek=Math.min(3,W.seek+1);if(W.seek>=3)evolve('hydra')}},
- {id:'arc',w:1,ic:SVG.arc,nm:'ARC BLASTER',ds:'좌우 대각 사격',evo:'prism',max:3,ap:()=>{W.arc=Math.min(3,W.arc+1);if(W.arc>=3)evolve('prism')}},
- {id:'lance',w:1,ic:SVG.lance,nm:'LANCE',ds:'열 관통 대구경',evo:'judgment',max:3,ap:()=>{W.lance=Math.min(3,W.lance+1);if(W.lance>=3)evolve('judgment')}},
- {id:'multi',ic:SVG.multi,nm:'MULTI-SHOT',ds:'탄 스트림 +1',evo:'vulcan',max:4,ap:()=>{ULV.multi++;S.streams=Math.min(5,S.streams+1);if(ULV.multi>=4)evolve('vulcan')}},
+ {id:'pulse',prim:1,ic:SVG.multi,nm:'PULSE',ds:'주무기 → 다중 연사탄 (균형)',ap:()=>setPrimary('pulse')},
+ {id:'spread',prim:1,ic:SVG.arc,nm:'SPREAD',ds:'주무기 → 부채 산탄 (광역)',ap:()=>setPrimary('spread')},
+ {id:'laser',prim:1,ic:SVG.lance,nm:'LASER',ds:'주무기 → 관통 지속빔 (초고딜)',ap:()=>setPrimary('laser')},
+ {id:'rail',prim:1,ic:SVG.power,nm:'RAIL',ds:'주무기 → 관통 대구경 (강타)',ap:()=>setPrimary('rail')},
+ {id:'orbit',supp:1,ic:SVG.cyc,nm:'ORBIT',ds:'보조 — 궤도 블레이드 · 근접',max:3,ap:()=>{W.orbit=Math.min(3,W.orbit+1);syncOrbs()}},
+ {id:'homing',supp:1,ic:SVG.seek,nm:'HOMING',ds:'보조 — 유도 미사일',max:3,ap:()=>{W.homing=Math.min(3,W.homing+1)}},
+ {id:'multi',ic:SVG.multi,nm:'MULTI-SHOT',ds:'탄 스트림 +1 (PULSE/SPREAD)',max:4,ap:()=>{ULV.multi++;S.streams=Math.min(5,S.streams+1)}},
  {id:'rapid',ic:SVG.rapid,nm:'RAPID FIRE',ds:'연사 +25%',max:5,ap:()=>{ULV.rapid++;S.fireRate=Math.max(.07,S.fireRate*.8)}},
  {id:'power',ic:SVG.power,nm:'OVERCHARGE',ds:'데미지 +1',max:6,ap:()=>{ULV.power++;S.dmg++}},
  {id:'thr',ic:SVG.thr,nm:'THRUSTERS',ds:'이동 +20%',max:4,ap:()=>{ULV.thr++;S.speed*=1.2}},
@@ -4368,7 +4371,7 @@ const FALLBACK=[
 function maybeOffer(){if(ST!=='play'||S.pendingOffers<=0)return
  S.pendingOffers--;offer()}
 function offer(){ST='levelup';AU.lvl();buzz(30)
- let pool=UPG.filter(u=>u.w?W[u.id]<u.max:ULV[u.id]<u.max).sort(()=>Math.random()-.5).slice(0,3)
+ let pool=UPG.filter(u=>u.prim?true:(u.supp?W[u.id]<u.max:ULV[u.id]<u.max)).sort(()=>Math.random()-.5).slice(0,3)
  if(!pool.length)pool=[...FALLBACK].sort(()=>Math.random()-.5).slice(0,3)
  const el=$('cards');el.innerHTML=''
  for(const u of pool){
@@ -4376,11 +4379,10 @@ function offer(){ST='levelup';AU.lvl();buzz(30)
   const c=document.createElement('div');c.className='card'+(rar?' '+rar:'')
   if(rar==='epic')c.style.setProperty('--rc','#ffcf4a')
   else if(rar==='rare')c.style.setProperty('--rc','#35e6ff')
-  const lv=u.w?W[u.id]:(u.max?ULV[u.id]:null)
+  const lv=u.prim?(S.primary===u.id?S.plv:null):(u.supp?W[u.id]:(u.max?ULV[u.id]:null))
   const step=rar==='epic'?2:1
-  const willMax=u.max&&u.evo&&lv!=null&&(lv+step>=u.max)
-  const lvTxt=lv==null?'':(willMax?'<span style="color:#ffcf4a;font-weight:800">MAX ▸ EVOLVE</span>'
-   :(u.w&&lv===0?'<span class="new">NEW</span>':'LV '+lv+' ▸ '+Math.min(u.max,lv+step)))
+  const lvTxt=u.prim?(S.primary===u.id?'LV '+S.plv+' ▸ '+Math.min(5,S.plv+1):'<span class="new">주무기 교체 ▸</span>')
+   :(lv==null?'':(u.supp&&lv===0?'<span class="new">NEW</span>':'LV '+lv+' ▸ '+Math.min(u.max,lv+step)))
   c.innerHTML=(rar?'<div class="rr">'+rar.toUpperCase()+'</div>':'')
    +'<div class="icw">'+u.ic+'</div><div class="nm">'+u.nm+'</div>'
    +'<div class="lv">'+lvTxt+'</div><div class="ds">'+u.ds+'</div>'
@@ -4414,17 +4416,26 @@ $('salvAd').onclick=()=>{if(S.adSalvUsed)return;playAd(()=>{S.adSalvUsed=true
  ST='over'})}
 
 /* ============ 전투 ============ */
-function fire(){const n=S.streams
- for(let i=0;i<n;i++){const off=(i-(n-1)/2)*.5
-  const b=bPool.get();b.position.set(player.position.x+off*.8,0,player.position.z-1.1);b.rotation.y=0
-  bullets.push({m:b,dmg:Math.round((S.dmg+(E.vulcan?1:0))*(S.dmgMult||1)*10)/10,vx:0,pierce:E.vulcan?1:0})}
- if(W.arc>0){const angs=E.prism?[.3,.52,.74]:(W.arc>=2?[.38,.62]:[.42])
-  for(const a of angs)for(const sx of [-1,1]){
-   const b=bPool.get();b.position.set(player.position.x+sx*.5,0,player.position.z-.8)
-   b.rotation.y=-sx*a
-   bullets.push({m:b,dmg:Math.max(1,S.dmg-1+(W.arc>=3?1:0)),vx:Math.sin(a)*sx*16,pierce:E.prism?1:0})}}
- AU.shot()}
-function syncOrbs(){const target=E.maelstrom?4:W.cyc;while(orbs.length<target){const o=orbPool.get();orbs.push(o)}}
+function setPrimary(id){ // 주무기 교체: 같으면 레벨업, 다르면 스왑(레벨 1)
+ if(S.primary===id){S.plv=Math.min(5,S.plv+1)}
+ else{S.primary=id;S.plv=1;if(window.__beam)window.__beam.visible=false}
+ const nm={pulse:'PULSE',spread:'SPREAD',laser:'LASER',rail:'RAIL'}[id]
+ banner((S.plv>1?'LV'+S.plv+' · ':'')+nm,'#35e6ff');AU.pick()}
+function fire(){const px=player.position.x,pz=player.position.z
+ const dm=(S.dmg+(S.plv-1))*(S.dmgMult||1) // 데미지 = 기본+주무기레벨
+ if(S.primary==='pulse'){const n=S.streams
+  for(let i=0;i<n;i++){const off=(i-(n-1)/2)*.5
+   const b=bPool.get();b.position.set(px+off*.8,0,pz-1.1);b.rotation.y=0
+   bullets.push({m:b,dmg:Math.round(dm*10)/10,vx:0,pierce:0})}}
+ else if(S.primary==='spread'){const n=4+S.plv+(S.streams-1) // 부채 산탄: 넓지만 약함
+  for(let i=0;i<n;i++){const a=(i-(n-1)/2)*.17
+   const b=bPool.get();b.position.set(px,0,pz-1);b.rotation.y=-a
+   bullets.push({m:b,dmg:Math.max(1,Math.round(dm*.55*10)/10),vx:Math.sin(a)*15,pierce:0})}}
+ else if(S.primary==='rail'){const b=lbPool.get();b.position.set(px,0,pz-2) // 관통 대구경(느림·강함)
+  lances.push({m:b,dmg:6+S.plv*4,hit:new Set()});AU.tone(200,.16,'sawtooth',.07,90);return}
+ AU.shot()} // laser는 연속빔이라 fire()에서 처리 안 함
+function syncOrbs(){const target=W.orbit;while(orbs.length<target){const o=orbPool.get();orbs.push(o)}
+ while(orbs.length>target){orbPool.put(orbs.pop())}}
 function spawnFoe(type,x,z){if(foes.length>90)return null
  const c=FOE[type],g=ePool[type].get()
  g.position.set(x,0,z==null?TOPZ-rnd(0,4):z);g.rotation.set(0,0,0)
@@ -4572,39 +4583,29 @@ function frame(now){requestAnimationFrame(frame)
   player.rotation.x=Math.sin(now*.002)*.03
   if(!frozen&&Math.random()<pdt*38)for(const sx of TRAIL_XS)
    trail(player.position.x+sx,0,player.position.z+1.15,0x35e6ff,rnd(.3,.5),.3)
-  S.fireT-=pdt;if(S.fireT<=0){S.fireT=S.fireRate;fire()}
-  if(W.seek>0){S.seekT-=pdt
-   if(S.seekT<=0){S.seekT=1.5-W.seek*.25
-    const vol=E.hydra?4:W.seek
-    for(let i=0;i<vol;i++){if(missiles.length>(E.hydra?14:9))break
-     const m=msPool.get();m.position.set(player.position.x+(i-(vol-1)/2)*.4,0,player.position.z-.6)
+  if(S.primary!=='laser'){S.fireT-=pdt // 레이저는 연속빔 → 타이머 발사 스킵
+   if(S.fireT<=0){S.fireT=(S.primary==='rail')?Math.max(.42,S.fireRate*2.4):S.fireRate;fire()}}
+  if(S.primary==='laser'){ // LASER 주무기 — 연속 관통 빔(narrow, 고 단일딜)
+   if(!window.__beam){const bg=new THREE.Group()
+    const core=new THREE.Mesh(new THREE.BoxGeometry(.26,.08,34),basicM(0xcdf6ff));bg.add(core)
+    const glow=new THREE.Mesh(new THREE.BoxGeometry(.7,.06,34),L(new THREE.MeshBasicMaterial({color:0x35e6ff,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})));bg.add(glow)
+    scene.add(bg);window.__beam=bg}
+   window.__beam.visible=true;window.__beam.position.set(player.position.x,0,player.position.z-18)
+   const w=1+Math.sin(now*.02)*.14;window.__beam.scale.x=w
+   S.beamTick-=pdt
+   if(S.beamTick<=0){S.beamTick=.1;const bd=3+S.plv*2 // 틱 데미지(레벨 스케일)
+    for(let i=foes.length-1;i>=0;i--){const f=foes[i]
+     if(Math.abs(f.m.position.x-player.position.x)<.7&&f.m.position.z<player.position.z){
+      f.hp-=bd;if(f.hp<=0)kill(f);else if(Math.random()<.3)hitFX(f,bd,now)}}
+    if(Math.random()<.5)AU.tone(1800+Math.random()*400,.05,'sine',.02,1600)}}
+  else if(window.__beam)window.__beam.visible=false
+  if(W.homing>0){S.seekT-=pdt // 보조: 유도 미사일
+   if(S.seekT<=0){S.seekT=1.5-W.homing*.25
+    for(let i=0;i<W.homing;i++){if(missiles.length>9)break
+     const m=msPool.get();m.position.set(player.position.x+(i-(W.homing-1)/2)*.4,0,player.position.z-.6)
      missiles.push({m,vx:rnd(-2,2),vz:-9,life:2.6,dmg:3})}}}
-  if(W.lance>0&&!E.judgment){S.lanceT-=pdt
-   if(S.lanceT<=0){S.lanceT=2.4-W.lance*.4
-    const b=lbPool.get();b.position.set(player.position.x,0,player.position.z-2)
-    lances.push({m:b,dmg:5+W.lance*2,hit:new Set()});AU.tone(240,.18,'sawtooth',.07,80)}}
-  if(E.judgment){ // 저지먼트 레이저 — 3.2s 주기 1.1s 지속 빔(열 전체 지짐)
-   S.beamT+=pdt
-   if(!S.beamOn&&S.beamT>=3.2){S.beamOn=1;S.beamT=0;S.beamTick=0
-    AU.tone(180,.6,'sawtooth',.1,900);AU.tone(2400,.5,'sine',.05,400);buzz(40)}
-   if(S.beamOn){
-    if(!window.__beam){const bg=new THREE.Group()
-     const core=new THREE.Mesh(new THREE.BoxGeometry(.3,.08,34),basicM(0xfff3c9));bg.add(core)
-     const glow=new THREE.Mesh(new THREE.BoxGeometry(.8,.06,34),L(new THREE.MeshBasicMaterial({color:0xffcf4a,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})));bg.add(glow)
-     scene.add(bg);window.__beam=bg}
-    window.__beam.visible=true
-    window.__beam.position.set(player.position.x,0,player.position.z-18)
-    S.beamT+=0 // 지속 시간은 별도 카운트
-    S.beamHold=(S.beamHold||0)+pdt;S.beamTick-=pdt
-    if(S.beamTick<=0){S.beamTick=.12
-     for(let i=foes.length-1;i>=0;i--){const f=foes[i]
-      if(Math.abs(f.m.position.x-player.position.x)<.65&&f.m.position.z<player.position.z){
-       f.hp-=4
-       if(f.hp<=0)kill(f);else if(Math.random()<.3)hitFX(f,4,now)}}}
-    if(S.beamHold>=1.1){S.beamOn=0;S.beamHold=0;window.__beam.visible=false}}
-   else if(window.__beam)window.__beam.visible=false}
-  if(orbs.length){S.orbA+=pdt*(2.6+W.cyc*.5+(E.maelstrom?1.4:0))
-   const orad=E.maelstrom?2.3:1.7
+  if(orbs.length){S.orbA+=pdt*(2.6+W.orbit*.5) // 보조: 궤도 블레이드
+   const orad=1.7+W.orbit*.2
    for(let i=0;i<orbs.length;i++){const a=S.orbA+i*(6.283/orbs.length)
     orbs[i].position.set(player.position.x+Math.cos(a)*orad,0,player.position.z+Math.sin(a)*orad)}}
   director(wdt)
@@ -4734,8 +4735,8 @@ function frame(now){requestAnimationFrame(frame)
    if(killed)continue
    if(orbs.length&&f.cycCd<=now){for(const o of orbs){
     if(Math.abs(o.position.x-m.position.x)<f.r+.3&&Math.abs(o.position.z-m.position.z)<f.r+.3){
-     f.cycCd=now+320;f.hp-=(E.maelstrom?6:2+W.cyc)
-     if(f.hp<=0){kill(f);killed=true}else hitFX(f,2+W.cyc,now)
+     f.cycCd=now+320;const od=2+W.orbit;f.hp-=od
+     if(f.hp<=0){kill(f);killed=true}else hitFX(f,od,now)
      break}}}
    if(killed)continue}
   if(S.novaT>=0){S.novaT+=rdt
@@ -4799,7 +4800,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(let i=rings.length-1;i>=0;i--){rPool.put(rings[i].m)};rings.length=0
  for(let i=trails.length-1;i>=0;i--){tPool.put(trails[i].sp)};trails.length=0
  NUM.length=0;SPARK.length=0;BANNER=null
- W.cyc=0;W.seek=0;W.arc=0;W.lance=0
+ W.orbit=0;W.homing=0
  for(const k in ULV)ULV[k]=0
  for(const k in E)E[k]=0
  // 진화 골드 틴트 복원
@@ -4809,6 +4810,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
   else if(o.isSprite)o.material.color.setHex(0x35e6ff).convertSRGBToLinear()})
  if(window.__beam)window.__beam.visible=false
  Object.assign(S,{hp:100,maxhp:100,lvl:1,xp:0,xpNext:5,kills:0,t:0,wave:1,
+  primary:'pulse',plv:1,beamTick:0,
   streams:1,fireRate:.21,dmg:1,speed:1,magnet:3.4,fireT:0,seekT:0,lanceT:0,orbA:0,
   surge:0,surgeUntil:0,novaT:-1,invUntil:0,
   combo:0,comboAt:0,comboMax:0,comboPop:0,xpStep:0,xpAt:0,
@@ -4913,9 +4915,10 @@ window.__begin=begin
 window.__surge=fireSurge
 if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공개 데모 치팅 방지)
  setEliteAt:t=>{S.eliteAt=t},
- setWeapon:(id,lv)=>{const u=UPG.find(x=>x.id===id);if(!u)return;const cur=u.w?W[id]:ULV[id];for(let i=cur;i<lv;i++)u.ap()},
- maxAllWeapons:()=>{['multi','cyc','seek','arc','lance'].forEach(id=>{const u=UPG.find(x=>x.id===id);const mx=u.max;const cur=u.w?W[id]:ULV[id];for(let i=cur;i<mx;i++)u.ap()})},
- evoFlags:()=>({...E}),
+ setPrimary:(id,lv)=>{for(let i=0;i<(lv||1);i++)setPrimary(id)},
+ setWeapon:(id,lv)=>{const u=UPG.find(x=>x.id===id);if(!u)return;if(u.prim){for(let i=0;i<(lv||1);i++)u.ap();return}const cur=u.supp?W[id]:ULV[id];for(let i=cur;i<(lv||u.max);i++)u.ap()},
+ maxAllWeapons:()=>{['orbit','homing','multi','rapid','power'].forEach(id=>{const u=UPG.find(x=>x.id===id);const mx=u.max;const cur=u.supp?W[id]:ULV[id];for(let i=cur;i<mx;i++)u.ap()})},
+ primaryState:()=>({primary:S.primary,plv:S.plv,orbit:W.orbit,homing:W.homing}),
  setSalv:n=>{META.salv=n;saveMeta()},
  hp:()=>S.hp, maxhp:()=>S.maxhp, kill:()=>{S.hp=0}
 }
