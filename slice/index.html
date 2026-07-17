@@ -4006,7 +4006,7 @@ function recolorTex(tex){try{
  nt.needsUpdate=true;return nt}catch(e){return tex}}
 let TRAIL_XS=[-.7,.7]
 if(window.THREE&&THREE.GLTFLoader)try{
- new THREE.GLTFLoader().load('ship.gltf',gltf=>{try{
+ new THREE.GLTFLoader().load('ship.glb',gltf=>{try{
   const o=gltf.scene,done=new Set()
   o.traverse(n=>{if(n.isMesh&&n.material){if(n.material.map&&!done.has(n.material)){n.material.map=recolorTex(n.material.map);done.add(n.material)}n.material.needsUpdate=true}})
   const box=new THREE.Box3().setFromObject(o)
