@@ -4132,11 +4132,21 @@ function mkElite(){const g=new THREE.Group()
   sp.lookAt(Math.cos(a)*4,0,Math.sin(a)*4);g.add(sp)}
  const core=glowSprite(0xb779ff,2.6,.5);g.add(core)
  tagMats(g);scene.add(g);return g}
-const ePool={chaff:Pool(mkChaff,14),drone:Pool(mkDrone,16),lancer:Pool(mkLancer,8),big:Pool(mkBig,3),stinger:Pool(mkStinger,3),diver:Pool(mkDiver,5),elite:Pool(mkElite,1)}
+function mkSplitter(){const g=new THREE.Group() // 분열체 — 3조각 클러스터(파괴 시 분열 암시)
+ for(let i=0;i<3;i++){const o=new THREE.Mesh(new THREE.OctahedronGeometry(.4,0),flat(0xc74bff,0x6a1fb0,1.4))
+  const a=i/3*6.283;o.position.set(Math.cos(a)*.34,0,Math.sin(a)*.34);g.add(o)}
+ const gl=glowSprite(0xc74bff,.75,.5);g.add(gl);tagMats(g);scene.add(g);return g}
+function mkWeaver(){const g=new THREE.Group() // 회피형 — 가로로 납작한 다이아(민첩)
+ const geo=new THREE.OctahedronGeometry(.5,0);geo.scale(1.6,.4,.75)
+ g.add(new THREE.Mesh(geo,flat(0xff6a4d,0xc23a1a,1.5)))
+ const gl=glowSprite(0xff8a5d,.55,.45);g.add(gl);tagMats(g);scene.add(g);return g}
+const ePool={chaff:Pool(mkChaff,14),drone:Pool(mkDrone,16),lancer:Pool(mkLancer,8),big:Pool(mkBig,3),stinger:Pool(mkStinger,3),diver:Pool(mkDiver,5),elite:Pool(mkElite,1),
+ splitter:Pool(mkSplitter,5),weaver:Pool(mkWeaver,8),shard:Pool(mkChaff,10)}
 const foes=[]
 const FOE={chaff:{hp:1,r:.55,dmg:6,xp:1,num:'+10'},drone:{hp:2,r:.8,dmg:12,xp:1,num:'+12'},
  lancer:{hp:2,r:.75,dmg:10,xp:1,num:'+15'},big:{hp:14,r:1.3,dmg:26,xp:3,num:'+30'},
- stinger:{hp:6,r:.9,dmg:14,xp:2,num:'+18'},diver:{hp:2,r:.6,dmg:14,xp:1,num:'+14'},elite:{hp:420,r:1.9,dmg:30,xp:14,num:'+200'}}
+ stinger:{hp:6,r:.9,dmg:14,xp:2,num:'+18'},diver:{hp:2,r:.6,dmg:14,xp:1,num:'+14'},elite:{hp:420,r:1.9,dmg:30,xp:14,num:'+200'},
+ splitter:{hp:7,r:.9,dmg:14,xp:2,num:'+20'},weaver:{hp:3,r:.7,dmg:11,xp:1,num:'+14'},shard:{hp:1,r:.45,dmg:8,xp:1,num:'+8'}}
 
 /* ============ 탄·젬·이펙트 풀 ============ */
 const bGeo=new THREE.CylinderGeometry(.07,.07,1.35,6);bGeo.rotateX(Math.PI/2)
@@ -4449,6 +4459,9 @@ function spawnFoe(type,x,z){if(foes.length>90)return null
  if(type==='big'){f.spd=rnd(1.5,1.9)*Math.min(sMul,1.3);S.bigAlive++}
  if(type==='stinger'){f.spd=rnd(3.4,4)*Math.min(sMul,1.3);S.stAlive++}
  if(type==='diver'){f.spd=rnd(3.6,4.2)*sMul;f.phase='enter';f.hp=Math.round(4*wMul)}
+ if(type==='splitter')f.spd=rnd(2.6,3.2)*Math.min(sMul,1.4)
+ if(type==='weaver'){f.spd=rnd(3.6,4.4)*sMul;f.sway=rnd(0,6.28)}
+ if(type==='shard'){f.spd=rnd(5,6.5);f.hp=1}
  if(type==='elite'){f.spd=2.2;f.hp=Math.round(c.hp*Math.pow(1.5,S.elitesKilled));f.max=f.hp
   f.phase='enter';f.pt=0;f.rad=0;S.elite={hp:f.hp,max:f.hp}}
  foes.push(f);return f}
@@ -4464,6 +4477,8 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
  const drop=f.type==='elite'?14:c.xp
  for(let i=0;i<drop;i++){if(gems.length>40)break
   const g=gemPool.get();g.position.set(x+rnd(-1,1),0,z+rnd(-1,1));gems.push({m:g})}
+ if(f.type==='splitter'&&z<PZ){for(let k=0;k<2;k++){const sh=spawnFoe('shard',x+((k?1:-1)*.5),z) // 분열: 2조각 확산
+  if(sh)sh.vx=(k?1:-1)*rnd(2.5,4)}}
  const big=f.type==='big'||f.type==='stinger'||f.type==='elite'
  burst(x,z,(f.type==='big'||f.type==='elite')?0xb98cff:0xff5fae,f.type==='elite'?20:(big?12:7))
  if(big)ring(x,z,0xffd9f0,f.type==='elite'?5:3.2,f.type==='elite'?.5:.32)
@@ -4547,6 +4562,11 @@ function director(wdt){
     if(!S.grazeToastDone){S.grazeToastDone=true;toast('적탄을 아슬하게 스치면 SURGE 충전!',3000)}}}}
  if(S.t>=50){S.spBig-=wdt
   if(S.spBig<=0){S.spBig=12;if(S.bigAlive<2)spawnFoe('big',rnd(-FW*.8,FW*.8))}}
+ if(S.wave>=4){S.spWeaver=(S.spWeaver||0)-wdt // 회피형 — 웨이브4부터
+  if(S.spWeaver<=0){S.spWeaver=Math.max(3,5.5-S.wave*.12);const n=1+(S.wave>=8?1:0)
+   for(let i=0;i<n;i++)spawnFoe('weaver',rnd(-FW,FW),TOPZ-rnd(0,4))}}
+ if(S.wave>=6){S.spSplitter=(S.spSplitter||0)-wdt // 분열체 — 웨이브6부터
+  if(S.spSplitter<=0){S.spSplitter=Math.max(5,9-S.wave*.2);spawnFoe('splitter',rnd(-FW*.8,FW*.8))}}
  if(!S.elite&&!S.eliteWarned&&S.t>=S.eliteAt-10){S.eliteWarned=true;banner('⚠ ELITE APPROACHING','#ff5d6c');AU.warn();buzz(60)}
  if(!S.elite&&S.t>=S.eliteAt){spawnFoe('elite',0,TOPZ-2);banner('DREAD CROWN','#b779ff');AU.boss()}
  const w=1+(S.t/20|0)
@@ -4649,6 +4669,13 @@ function frame(now){requestAnimationFrame(frame)
    else if(f.type==='drone'){m.position.z+=f.spd*wdt
     m.position.x+=Math.sign(player.position.x-m.position.x)*.55*wdt
     m.rotation.y+=wdt*2.4;m.rotation.x+=wdt*1.2}
+   else if(f.type==='splitter'){m.position.z+=f.spd*wdt // 분열체 — 추적 하강, 파괴 시 분열(kill에서)
+    m.position.x+=Math.sign(player.position.x-m.position.x)*.4*wdt
+    m.rotation.z+=wdt*1.6;for(const c of m.children)if(c.isMesh)c.rotation.y+=wdt*3}
+   else if(f.type==='weaver'){m.position.z+=f.spd*wdt // 회피형 — 강한 사인 기동(조준 방해)
+    m.position.x=clamp(m.position.x+Math.cos(S.t*3.4+f.sway)*3.4*wdt,-FW-1,FW+1)
+    m.rotation.z+=wdt*3}
+   else if(f.type==='shard'){m.position.z+=f.spd*wdt;m.position.x+=(f.vx||0)*wdt;m.rotation.z+=wdt*6}
    else if(f.type==='lancer'){m.position.z+=f.spd*wdt;m.position.x+=f.vx*wdt
     m.rotation.y=Math.atan2(f.vx,f.spd)
     if(Math.abs(m.position.x)>FW+2.5&&((f.vx>0&&m.position.x>0)||(f.vx<0&&m.position.x<0))){releaseFoe(f);continue}}
@@ -4815,7 +4842,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
   surge:0,surgeUntil:0,novaT:-1,invUntil:0,
   combo:0,comboAt:0,comboMax:0,comboPop:0,xpStep:0,xpAt:0,
   nextReward:20,revived:false,shake:0,freezeUntil:0,hsCd:0,
-  spDrone:0,spChaff:6,spLancer:25,spSting:30,spBig:50,stAlive:0,bigAlive:0,
+  spDrone:0,spChaff:6,spLancer:25,spSting:30,spBig:50,stAlive:0,bigAlive:0,spWeaver:0,spSplitter:0,
   eliteAt:180,eliteWarned:false,elite:null,elitesKilled:0,grazeToastDone:false,pendingOffers:0,
   salvRun:0,adSalvUsed:false,leaks:0,spDiver:70,beamT:0,beamOn:0,beamHold:0})
  player.position.set(0,0,PZ);tx=0;novaRing=null;metReset()}
@@ -4920,6 +4947,8 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  maxAllWeapons:()=>{['orbit','homing','multi','rapid','power'].forEach(id=>{const u=UPG.find(x=>x.id===id);const mx=u.max;const cur=u.supp?W[id]:ULV[id];for(let i=cur;i<mx;i++)u.ap()})},
  primaryState:()=>({primary:S.primary,plv:S.plv,orbit:W.orbit,homing:W.homing}),
  setSalv:n=>{META.salv=n;saveMeta()},
+ spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
+ foeTypes:()=>foes.map(f=>f.type),
  hp:()=>S.hp, maxhp:()=>S.maxhp, kill:()=>{S.hp=0}
 }
 })()
