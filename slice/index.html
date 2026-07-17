@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Nova Surge 2.0</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBhMTUyNiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjEyLjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM1ZTZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4yMiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cGF0aCBkPSJNMTYgNSBMMjQuNiAyNS41IEwxNiAyMC44IEw3LjQgMjUuNSBaIiBmaWxsPSIjMzVlNmZmIi8+PHBhdGggZD0iTTE2IDUgTDE2IDIwLjggTDcuNCAyNS41IFoiIGZpbGw9IiMxNDk3YzQiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjEzLjUiIHI9IjEuNSIgZmlsbD0iI2VhZjlmZiIvPjwvc3ZnPg==">
@@ -122,12 +122,12 @@
   <div id="toast"></div>
   <div class="tagmini">NOVA SURGE 2.0</div>
 
-  <div class="modal" id="modal"><h2>LEVEL UP</h2><div class="sub">하나를 선택하세요</div><div class="cards" id="cards"></div></div>
+  <div class="modal" id="modal"><h2>LEVEL UP</h2><div class="sub">Choose one</div><div class="cards" id="cards"></div></div>
 
   <div class="reward" id="reward">
-    <div class="crate" id="crateIc"></div><h2>SUPPLY DROP</h2><div class="got">수리 +30 · 보급 XP</div>
-    <div class="btn ad" id="rwAd">▶ 광고 보고 → ×2 보상<small>선물 · 무료</small></div>
-    <div class="btn skip" id="rwSkip">그냥 받기 ▶</div>
+    <div class="crate" id="crateIc"></div><h2>SUPPLY DROP</h2><div class="got">Repair +30 · Bonus XP</div>
+    <div class="btn ad" id="rwAd">▶ Watch Ad → ×2 Reward<small>Gift · Free</small></div>
+    <div class="btn skip" id="rwSkip">Claim ▶</div>
   </div>
 
   <div class="adplay" id="adplay"><div class="big">▶</div><div id="adTxt">AD · 3</div></div>
@@ -135,8 +135,8 @@
   <div class="center" id="start">
     <h1>NOVA SURGE</h1><div class="tag">graze the swarm. become the storm.</div>
     <div class="play" id="playBtn">▶ PLAY</div>
-    <div class="hbtn" id="hangarBtn">⬢ HANGAR — 함대</div>
-    <div class="hint">드래그 · <b>←→</b> 이동 · 자동 사격 · 게이지 차면 <b style="color:#35e6ff">SURGE</b> <b>(Space)</b></div>
+    <div class="hbtn" id="hangarBtn">⬢ HANGAR</div>
+    <div class="hint">Drag · <b>←→</b> Move · Auto-fire · <b style="color:#35e6ff">SURGE</b> when full <b>(Space)</b></div>
   </div>
 
   <div class="center off" id="hangar">
@@ -148,18 +148,18 @@
       <div class="hpass" id="hPass"></div>
       <div class="hstats" id="hStats"></div>
       <div class="hups" id="hUps"></div>
-      <div class="hact"><div class="b buy" id="hBuy">◆ 6,000 — 구매</div><div class="b sel" id="hSel">출격 기체로 선택</div></div>
-      <div class="hbal" id="hBal">보유 ◆ 0</div>
-      <div class="hback" id="hBack">← 타이틀로</div>
+      <div class="hact"><div class="b buy" id="hBuy">◆ 6,000 — BUY</div><div class="b sel" id="hSel">Select Ship</div></div>
+      <div class="hbal" id="hBal">Balance ◆ 0</div>
+      <div class="hback" id="hBack">← Back</div>
     </div>
   </div>
 
   <div class="center off" id="over">
     <h1 style="color:#ff5d6c;text-shadow:0 0 24px rgba(255,93,108,.6)">GAME OVER</h1>
     <div class="ovst" id="overStats"></div>
-    <div class="btn ad" id="reviveAd" style="margin-bottom:12px">▶ 광고 보고 → 부활<small>선물 · 무료 · 1회</small></div>
-    <div class="btn ad" id="salvAd" style="margin-bottom:12px;display:none">▶ 광고 보고 → 샐비지 ×2<small>선물 · 무료</small></div>
-    <div class="play" id="retryBtn" style="background:#35e6ff">다시 시작</div>
+    <div class="btn ad" id="reviveAd" style="margin-bottom:12px">▶ Watch Ad → Revive<small>Gift · Free · Once</small></div>
+    <div class="btn ad" id="salvAd" style="margin-bottom:12px;display:none">▶ Watch Ad → Salvage ×2<small>Gift · Free</small></div>
+    <div class="play" id="retryBtn" style="background:#35e6ff">Restart</div>
   </div>
 </div>
 <script>/**
@@ -4254,13 +4254,13 @@ function saveMeta(){try{localStorage.setItem('ns2_meta',JSON.stringify(META))}ca
 /* ============ 함대(행어) ============ */
 const SHIPS={
  A:{nm:'NOVA WRAITH',role:'BALANCED STRIKER',glb:'ship.glb',price:0,
-   mods:{hp:1,dmg:1,spd:1,srg:1,mag:1,salv:1},pass:'정석 — 전 스탯 균형'},
+   mods:{hp:1,dmg:1,spd:1,srg:1,mag:1,salv:1},pass:'Standard — balanced stats'},
  B:{nm:'PRISM SHARD',role:'GLASS CANNON',glb:'ship-B.glb',price:6000,
-   mods:{hp:.8,dmg:1.15,spd:1.05,srg:1.2,mag:1,salv:1},pass:'공명 결정 — 화력 +15% · 서지 +20% / HP −20%'},
+   mods:{hp:.8,dmg:1.15,spd:1.05,srg:1.2,mag:1,salv:1},pass:'Resonant Crystal — DMG +15% · Surge +20% / HP −20%'},
  C:{nm:'VOID RAY',role:'VOID HARVESTER',glb:'ship-C.glb',price:20000,
-   mods:{hp:1.25,dmg:.95,spd:.9,srg:1,mag:1.3,salv:1.15},pass:'심연 수확 — HP +25% · 자석 +30% · 샐비지 +15% / 이속 −10%'}}
-const UPDEF={hull:{nm:'HULL',max:5,eff:'최대 HP +10'},thr:{nm:'THRUST',max:5,eff:'이동 +4%'},
- ars:{nm:'ARSENAL',max:3,eff:'시작 데미지 +1'},srg:{nm:'SURGE CORE',max:5,eff:'서지 충전 +8%'}}
+   mods:{hp:1.25,dmg:.95,spd:.9,srg:1,mag:1.3,salv:1.15},pass:'Void Harvest — HP +25% · Magnet +30% · Salvage +15% / Speed −10%'}}
+const UPDEF={hull:{nm:'HULL',max:5,eff:'Max HP +10'},thr:{nm:'THRUST',max:5,eff:'Move +4%'},
+ ars:{nm:'ARSENAL',max:3,eff:'Start damage +1'},srg:{nm:'SURGE CORE',max:5,eff:'Surge charge +8%'}}
 const upCost=n=>Math.round(400*Math.pow(1.6,n))
 
 /* ============ 상태 ============ */
@@ -4368,23 +4368,23 @@ function evolve(key){if(E[key])return
  if(key==='maelstrom'){goldify(orbPool);syncOrbs()}
  if(key==='judgment'){for(const b of [...lances]){lbPool.put(b.m)};lances.length=0}}
 const UPG=[
- {id:'pulse',prim:1,ic:SVG.multi,nm:'PULSE',ds:'주무기 → 다중 연사탄 (균형)',ap:()=>setPrimary('pulse')},
- {id:'spread',prim:1,ic:SVG.arc,nm:'SPREAD',ds:'주무기 → 부채 산탄 (광역)',ap:()=>setPrimary('spread')},
- {id:'laser',prim:1,ic:SVG.lance,nm:'LASER',ds:'주무기 → 관통 지속빔 (초고딜)',ap:()=>setPrimary('laser')},
- {id:'rail',prim:1,ic:SVG.power,nm:'RAIL',ds:'주무기 → 관통 대구경 (강타)',ap:()=>setPrimary('rail')},
- {id:'orbit',supp:1,ic:SVG.cyc,nm:'ORBIT',ds:'보조 — 궤도 블레이드 · 근접',max:3,ap:()=>{W.orbit=Math.min(3,W.orbit+1);syncOrbs()}},
- {id:'homing',supp:1,ic:SVG.seek,nm:'HOMING',ds:'보조 — 유도 미사일',max:3,ap:()=>{W.homing=Math.min(3,W.homing+1)}},
- {id:'multi',ic:SVG.multi,nm:'MULTI-SHOT',ds:'탄 스트림 +1 (PULSE/SPREAD)',max:4,ap:()=>{ULV.multi++;S.streams=Math.min(5,S.streams+1)}},
- {id:'rapid',ic:SVG.rapid,nm:'RAPID FIRE',ds:'연사 +25%',max:5,ap:()=>{ULV.rapid++;S.fireRate=Math.max(.07,S.fireRate*.8)}},
- {id:'power',ic:SVG.power,nm:'OVERCHARGE',ds:'데미지 +1',max:6,ap:()=>{ULV.power++;S.dmg++}},
- {id:'thr',ic:SVG.thr,nm:'THRUSTERS',ds:'이동 +20%',max:4,ap:()=>{ULV.thr++;S.speed*=1.2}},
- {id:'mag',ic:SVG.mag,nm:'MAGNET',ds:'수집 범위 +40%',max:4,ap:()=>{ULV.mag++;S.magnet*=1.4}},
- {id:'hull',ic:SVG.hull,nm:'HULL',ds:'최대 HP +25 · 회복',max:6,ap:()=>{ULV.hull++;S.maxhp+=25;S.hp=Math.min(S.maxhp,S.hp+25)}},
+ {id:'pulse',prim:1,ic:SVG.multi,nm:'PULSE',ds:'Primary → multi pulse (balanced)',ap:()=>setPrimary('pulse')},
+ {id:'spread',prim:1,ic:SVG.arc,nm:'SPREAD',ds:'Primary → spread shot (wide)',ap:()=>setPrimary('spread')},
+ {id:'laser',prim:1,ic:SVG.lance,nm:'LASER',ds:'Primary → piercing beam (high DPS)',ap:()=>setPrimary('laser')},
+ {id:'rail',prim:1,ic:SVG.power,nm:'RAIL',ds:'Primary → piercing cannon (heavy)',ap:()=>setPrimary('rail')},
+ {id:'orbit',supp:1,ic:SVG.cyc,nm:'ORBIT',ds:'Support — orbit blades · melee',max:3,ap:()=>{W.orbit=Math.min(3,W.orbit+1);syncOrbs()}},
+ {id:'homing',supp:1,ic:SVG.seek,nm:'HOMING',ds:'Support — homing missiles',max:3,ap:()=>{W.homing=Math.min(3,W.homing+1)}},
+ {id:'multi',ic:SVG.multi,nm:'MULTI-SHOT',ds:'+1 stream (PULSE/SPREAD)',max:4,ap:()=>{ULV.multi++;S.streams=Math.min(5,S.streams+1)}},
+ {id:'rapid',ic:SVG.rapid,nm:'RAPID FIRE',ds:'Fire rate +25%',max:5,ap:()=>{ULV.rapid++;S.fireRate=Math.max(.07,S.fireRate*.8)}},
+ {id:'power',ic:SVG.power,nm:'OVERCHARGE',ds:'Damage +1',max:6,ap:()=>{ULV.power++;S.dmg++}},
+ {id:'thr',ic:SVG.thr,nm:'THRUSTERS',ds:'Move speed +20%',max:4,ap:()=>{ULV.thr++;S.speed*=1.2}},
+ {id:'mag',ic:SVG.mag,nm:'MAGNET',ds:'Pickup range +40%',max:4,ap:()=>{ULV.mag++;S.magnet*=1.4}},
+ {id:'hull',ic:SVG.hull,nm:'HULL',ds:'Max HP +25 · heal',max:6,ap:()=>{ULV.hull++;S.maxhp+=25;S.hp=Math.min(S.maxhp,S.hp+25)}},
 ]
 const FALLBACK=[
- {ic:SVG.hull,nm:'긴급 수리',ds:'HP +40',ap:()=>S.hp=Math.min(S.maxhp,S.hp+40)},
- {ic:SVG.crate,nm:'샐비지 회수',ds:'◆ +300',ap:()=>{S.salvRun+=300}},
- {ic:SVG.power,nm:'서지 충전',ds:'서지 +50%',ap:()=>S.surge=clamp(S.surge+50,0,100)},
+ {ic:SVG.hull,nm:'Emergency Repair',ds:'HP +40',ap:()=>S.hp=Math.min(S.maxhp,S.hp+40)},
+ {ic:SVG.crate,nm:'Salvage Cache',ds:'◆ +300',ap:()=>{S.salvRun+=300}},
+ {ic:SVG.power,nm:'Surge Charge',ds:'Surge +50%',ap:()=>S.surge=clamp(S.surge+50,0,100)},
 ]
 function maybeOffer(){if(ST!=='play'||S.pendingOffers<=0)return
  S.pendingOffers--;offer()}
@@ -4399,7 +4399,7 @@ function offer(){ST='levelup';AU.lvl();buzz(30)
   else if(rar==='rare')c.style.setProperty('--rc','#35e6ff')
   const lv=u.prim?(S.primary===u.id?S.plv:null):(u.supp?W[u.id]:(u.max?ULV[u.id]:null))
   const step=rar==='epic'?2:1
-  const lvTxt=u.prim?(S.primary===u.id?'LV '+S.plv+' ▸ '+Math.min(5,S.plv+1):'<span class="new">주무기 교체 ▸</span>')
+  const lvTxt=u.prim?(S.primary===u.id?'LV '+S.plv+' ▸ '+Math.min(5,S.plv+1):'<span class="new">SWAP ▸</span>')
    :(lv==null?'':(u.supp&&lv===0?'<span class="new">NEW</span>':'LV '+lv+' ▸ '+Math.min(u.max,lv+step)))
   c.innerHTML=(rar?'<div class="rr">'+rar.toUpperCase()+'</div>':'')
    +'<div class="icw">'+u.ic+'</div><div class="nm">'+u.nm+'</div>'
@@ -4430,7 +4430,7 @@ $('reviveAd').onclick=()=>{if(S.revived)return;playAd(()=>{S.revived=true;S.hp=S
 $('salvAd').onclick=()=>{if(S.adSalvUsed)return;playAd(()=>{S.adSalvUsed=true
  META.salv+=(S.lastEarned||0);saveMeta();AU.epic()
  $('salvAd').style.display='none'
- $('overStats').innerHTML+='<br><span style="color:#b4ff39">광고 보너스 ◆ +'+(S.lastEarned||0)+' — 보유 ◆ '+META.salv+'</span>'
+ $('overStats').innerHTML+='<br><span style="color:#b4ff39">Ad bonus ◆ +'+(S.lastEarned||0)+' — Balance ◆ '+META.salv+'</span>'
  ST='over'})}
 
 /* ============ 전투 ============ */
@@ -4515,7 +4515,7 @@ function die(){S.hp=0;ST='over'
  S.lastEarned=earned;S.salvRun=0 // 이중 정산 방지(부활 후 재사망)
  META.salv+=earned;saveMeta()
  $('overStats').innerHTML='WAVE '+S.wave+' · KILLS '+S.kills+' · MAX COMBO <b>×'+S.comboMax+'</b> · '+($('time').textContent)
-  +'<br>SALVAGE <b>◆ +'+earned+'</b> · 보유 ◆ '+META.salv
+  +'<br>SALVAGE <b>◆ +'+earned+'</b> · Balance ◆ '+META.salv
  $('reviveAd').style.display=S.revived?'none':'block'
  $('salvAd').style.display=(earned>0&&!S.adSalvUsed)?'block':'none'
  if(window.__hangarRefresh)window.__hangarRefresh()
@@ -4572,7 +4572,7 @@ function director(wdt){
  if(S.t>=30){S.spSting-=wdt
   if(S.spSting<=0){S.spSting=Math.max(5.5,7.5-S.wave*.15);const cap=Math.min(5,2+((S.wave/5)|0))
    if(S.stAlive<cap){spawnFoe('stinger',rnd(-FW*.7,FW*.7))
-    if(!S.grazeToastDone){S.grazeToastDone=true;toast('적탄을 아슬하게 스치면 SURGE 충전!',3000)}}}}
+    if(!S.grazeToastDone){S.grazeToastDone=true;toast('Graze enemy shots to charge SURGE!',3000)}}}}
  if(S.t>=50){S.spBig-=wdt
   if(S.spBig<=0){S.spBig=12;if(S.bigAlive<2)spawnFoe('big',rnd(-FW*.8,FW*.8))}}
  if(S.wave>=4){S.spWeaver=(S.spWeaver||0)-wdt // 회피형 — 웨이브4부터
@@ -4585,8 +4585,8 @@ function director(wdt){
  const w=1+(S.t/20|0)
  if(w!==S.wave){S.wave=w
   banner('WAVE '+w,'#35e6ff')
-  const intro={4:'WEAVER — 회피 기동체',6:'SPLITTER — 분열체',8:'랜서 협공 강화',11:'고밀도 물량'}[w]
-  if(intro)toast('⚠ '+intro+' 등장',2800)
+  const intro={4:'WEAVER — evasive fliers',6:'SPLITTER — splitting foes',8:'Lancer pincer attacks',11:'High-density swarm'}[w]
+  if(intro)toast('⚠ '+intro+' incoming',2800)
   pulse();S.salvRun+=10+w*2}}
 
 /* ============ 메인 루프 ============ */
@@ -4679,7 +4679,7 @@ function frame(now){requestAnimationFrame(frame)
     const was=S.surge;S.surge=clamp(S.surge+6*(S.srgMult||1),0,100)
     spark(player.position.x+dx*.5,player.position.z+dz*.5);AU.graze();buzz(10)
     num(player.position.x,player.position.z-1,'GRAZE','#8bf3ff',11)
-    if(was<100&&S.surge>=100){AU.ready();toast('SURGE READY — 버튼을 누르세요!',2000)}}
+    if(was<100&&S.surge>=100){AU.ready();toast('SURGE READY — press the button!',2000)}}
    if(b.m.position.z>PZ+3||Math.abs(b.m.position.x)>FW+4){ebPool.put(b.m);ebullets.splice(i,1)}}
   for(let i=foes.length-1;i>=0;i--){const f=foes[i],m=f.m
    if(f.type==='chaff'){m.position.z+=f.spd*wdt;m.position.x+=Math.sin(S.t*3+f.sway)*1.2*wdt;m.rotation.z+=wdt*4}
@@ -4937,12 +4937,12 @@ function hgRefresh(){const key=HG.cur,sh=SHIPS[key]
   META.salv-=cost;up[k2]=lv+1;saveMeta();AU.pick();buzz(20);hgRefresh()}
  // 구매/선택
  if(owned){$('hBuy').style.display='none'}
- else{$('hBuy').style.display='block';$('hBuy').textContent='◆ '+fmt(sh.price)+' — 구매'
+ else{$('hBuy').style.display='block';$('hBuy').textContent='◆ '+fmt(sh.price)+' — BUY'
   $('hBuy').style.opacity=META.salv>=sh.price?1:.4}
  const isSel=META.ships.sel===key
  $('hSel').classList.toggle('on',isSel)
- $('hSel').textContent=isSel?'✓ 출격 기체':(owned?'출격 기체로 선택':'미보유')
- $('hBal').textContent='보유 ◆ '+fmt(META.salv)}
+ $('hSel').textContent=isSel?'✓ Active Ship':(owned?'Select Ship':'Locked')
+ $('hBal').textContent='Balance ◆ '+fmt(META.salv)}
 window.__hangarRefresh=()=>{if(ST==='hangar')hgRefresh()}
 window.__hangarClose=()=>{$('hangar').classList.add('off')}
 function hgOpen(){AU.unlock();ST='hangar'
@@ -4959,7 +4959,7 @@ $('hNext').onclick=()=>{const i=ORDER.indexOf(HG.cur);hgShow(ORDER[(i+1)%3]);hgR
 $('hBuy').onclick=()=>{const sh=SHIPS[HG.cur]
  if(META.ships.owned.includes(HG.cur)||META.salv<sh.price)return
  META.salv-=sh.price;META.ships.owned.push(HG.cur);saveMeta()
- AU.epic();buzz(60);banner('함대 합류 — '+sh.nm,'#ffcf4a');hgRefresh()}
+ AU.epic();buzz(60);banner('Joined fleet — '+sh.nm,'#ffcf4a');hgRefresh()}
 $('hSel').onclick=()=>{if(!META.ships.owned.includes(HG.cur))return
  META.ships.sel=HG.cur;saveMeta();AU.pick();hgRefresh();loadGameShip()}
 window.__hangar={open:hgOpen,state:()=>({cur:HG.cur,owned:[...META.ships.owned],sel:META.ships.sel,salv:META.salv,up:JSON.parse(JSON.stringify(META.ships.up))}),grant:n=>{META.salv+=n;saveMeta();hgRefresh()}}
