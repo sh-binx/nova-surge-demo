@@ -23,7 +23,8 @@
   .xp>i{background:linear-gradient(90deg,#35e6ff,#8be9ff)}
   .lvl{min-width:44px;text-align:center;color:#35e6ff}
   .stats{position:absolute;top:calc(env(safe-area-inset-top,0) + 58px);left:0;right:0;display:flex;justify-content:center;gap:18px;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:15px;text-shadow:0 2px 4px #000}
-  .stats .k{color:#ff6fb0}.stats .t{color:#ffcf4a}.stats .w{color:#b4ff39}
+  .stats .k{color:#ff6fb0}.stats .t{color:#ffcf4a}
+  .stats .w{color:#35e6ff;font-size:17px;background:rgba(53,230,255,.13);border:1px solid rgba(53,230,255,.45);border-radius:7px;padding:0 11px;box-shadow:0 0 12px rgba(53,230,255,.25)}
   #ebar{position:absolute;top:calc(env(safe-area-inset-top,0) + 86px);left:14%;right:14%;height:14px;border-radius:8px;background:rgba(0,0,0,.55);border:1px solid rgba(183,121,255,.5);display:none;overflow:hidden}
   #ebar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#b779ff,#ff3d9a);transition:width .1s linear}
   #ebar>span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:800;letter-spacing:2px;color:#fff;text-shadow:0 1px 2px #000}
@@ -4167,9 +4168,10 @@ function mkMissile(){const g=new THREE.Group()
  const gl=glowSprite(0x35e6ff,.6,.9);g.add(gl)
  scene.add(g);return g}
 const msPool=Pool(mkMissile,10),missiles=[]
-function mkOrb(){const g=new THREE.Group()
- g.add(new THREE.Mesh(new THREE.OctahedronGeometry(.28,0),L(new THREE.MeshStandardMaterial({color:0x35e6ff,emissive:0x10d6ff,emissiveIntensity:1.6,flatShading:true}))))
- const gl=glowSprite(0x35e6ff,.9,.8);g.add(gl)
+function mkOrb(){const g=new THREE.Group() // 궤도 블레이드 — 바이올렛(XP 시안과 구분)
+ const geo=new THREE.BoxGeometry(.16,.12,.62)
+ g.add(new THREE.Mesh(geo,L(new THREE.MeshStandardMaterial({color:0xc98bff,emissive:0xb779ff,emissiveIntensity:1.9,flatShading:true}))))
+ const gl=glowSprite(0xb779ff,.85,.7);g.add(gl)
  scene.add(g);return g}
 const orbPool=Pool(mkOrb,3),orbs=[]
 function mkEB(){const g=new THREE.Group()
@@ -4181,7 +4183,13 @@ function mkGem(){const g=new THREE.Group()
  g.add(new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),L(new THREE.MeshStandardMaterial({color:0x18b5e8,emissive:0x10d6ff,emissiveIntensity:1.5,flatShading:true}))))
  const gl=glowSprite(0x35e6ff,.8,.75);g.add(gl)
  scene.add(g);return g}
+function mkCoin(){const g=new THREE.Group() // 골드 코인 — 기체 구매 화폐(XP 시안·궤도 바이올렛과 구분)
+ const geo=new THREE.CylinderGeometry(.28,.28,.08,12);geo.rotateX(Math.PI/2)
+ g.add(new THREE.Mesh(geo,L(new THREE.MeshStandardMaterial({color:0xffcf4a,emissive:0xe0a814,emissiveIntensity:1.0,flatShading:true}))))
+ const gl=glowSprite(0xffcf4a,.78,.65);g.add(gl)
+ scene.add(g);return g}
 const gemPool=Pool(mkGem,28),gems=[]
+const coinPool=Pool(mkCoin,16),coins=[]
 const dGeo=new THREE.TetrahedronGeometry(.14,0)
 function mkDeb(){const m=new THREE.Mesh(dGeo,basicM(0xff5fae));scene.add(m);return m}
 const dPool=Pool(mkDeb,70),debris=[]
@@ -4483,8 +4491,13 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
  burst(x,z,(f.type==='big'||f.type==='elite')?0xb98cff:0xff5fae,f.type==='elite'?20:(big?12:7))
  if(big)ring(x,z,0xffd9f0,f.type==='elite'?5:3.2,f.type==='elite'?.5:.32)
  num(x,z,c.num,big?'#ffcf4a':'#ffffff',big?16:13)
- const SALV={chaff:1,drone:2,lancer:2,stinger:4,big:6,diver:2,elite:150}
- S.salvRun+=Math.ceil((SALV[f.type]||1)*(1+Math.min(S.combo,40)*.02)*(S.salvMult||1))
+ const SALV={chaff:1,drone:2,lancer:2,stinger:4,big:6,diver:2,elite:150,splitter:5,weaver:2,shard:1}
+ const val=Math.ceil((SALV[f.type]||1)*(1+Math.min(S.combo,40)*.02)*(S.salvMult||1))
+ if((f.type==='big'||f.type==='stinger'||f.type==='splitter'||f.type==='elite')&&z<PZ){ // 강적 = 보이는 골드 코인
+  const n=f.type==='elite'?6:1
+  for(let i=0;i<n;i++){if(coins.length>30)break;const cm=coinPool.get()
+   cm.position.set(x+rnd(-1.2,1.2),0,z+rnd(-1,1));coins.push({m:cm,v:Math.max(1,Math.round(val/n))})}}
+ else S.salvRun+=val // 잡몹 = 추상 샐비지(기존)
  if(f.type==='chaff')AU.pop(S.combo);else AU.kill(S.combo)
  buzz(big?35:15)
  S.shake=Math.min(S.shake+(big?5:2),10)
@@ -4570,8 +4583,11 @@ function director(wdt){
  if(!S.elite&&!S.eliteWarned&&S.t>=S.eliteAt-10){S.eliteWarned=true;banner('⚠ ELITE APPROACHING','#ff5d6c');AU.warn();buzz(60)}
  if(!S.elite&&S.t>=S.eliteAt){spawnFoe('elite',0,TOPZ-2);banner('DREAD CROWN','#b779ff');AU.boss()}
  const w=1+(S.t/20|0)
- if(w!==S.wave){S.wave=w;banner('WAVE '+w);pulse()
-  S.salvRun+=10+w*2}}
+ if(w!==S.wave){S.wave=w
+  banner('WAVE '+w,'#35e6ff')
+  const intro={4:'WEAVER — 회피 기동체',6:'SPLITTER — 분열체',8:'랜서 협공 강화',11:'고밀도 물량'}[w]
+  if(intro)toast('⚠ '+intro+' 등장',2800)
+  pulse();S.salvRun+=10+w*2}}
 
 /* ============ 메인 루프 ============ */
 const clock={last:performance.now()}
@@ -4627,7 +4643,8 @@ function frame(now){requestAnimationFrame(frame)
   if(orbs.length){S.orbA+=pdt*(2.6+W.orbit*.5) // 보조: 궤도 블레이드
    const orad=1.7+W.orbit*.2
    for(let i=0;i<orbs.length;i++){const a=S.orbA+i*(6.283/orbs.length)
-    orbs[i].position.set(player.position.x+Math.cos(a)*orad,0,player.position.z+Math.sin(a)*orad)}}
+    orbs[i].position.set(player.position.x+Math.cos(a)*orad,0,player.position.z+Math.sin(a)*orad)
+    orbs[i].rotation.y=-a+Math.PI/2}} // 접선 방향 블레이드
   director(wdt)
   for(let i=bullets.length-1;i>=0;i--){const b=bullets[i]
    b.m.position.z-=30*pdt;b.m.position.x+=b.vx*pdt
@@ -4789,6 +4806,15 @@ function frame(now){requestAnimationFrame(frame)
     S.xpStep=(nw-S.xpAt<1000)?S.xpStep+1:0;S.xpAt=nw
     AU.xp(S.xpStep);gainXP(1);S.surge=clamp(S.surge+.6*(S.srgMult||1),0,100);continue}
    if(g.m.position.z>PZ+3){gemPool.put(g.m);gems.splice(i,1)}}
+  for(let i=coins.length-1;i>=0;i--){const c=coins[i] // 골드 코인 수집 → 기체 구매 화폐
+   const dx=player.position.x-c.m.position.x,dz=player.position.z-c.m.position.z,d=Math.hypot(dx,dz)
+   c.m.rotation.y+=rdt*3.5
+   if(d<S.magnet*1.15){c.m.position.x+=dx/d*13*pdt;c.m.position.z+=dz/d*13*pdt}
+   else c.m.position.z+=2*wdt
+   if(d<.85){coinPool.put(c.m);coins.splice(i,1)
+    S.salvRun+=c.v;AU.tone(680,.09,'triangle',.06,920);AU.tone(1040,.07,'sine',.04);buzz(12)
+    num(player.position.x,player.position.z-1.3,'◆+'+c.v,'#ffcf4a',13);continue}
+   if(c.m.position.z>PZ+3){coinPool.put(c.m);coins.splice(i,1)}}
   if(S.t>=S.nextReward){S.nextReward+=40;showReward()}
  }
  for(let i=debris.length-1;i>=0;i--){const d=debris[i]
@@ -4823,6 +4849,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(let i=orbs.length-1;i>=0;i--){orbPool.put(orbs[i])};orbs.length=0
  for(let i=ebullets.length-1;i>=0;i--){ebPool.put(ebullets[i].m)};ebullets.length=0
  for(let i=gems.length-1;i>=0;i--){gemPool.put(gems[i].m)};gems.length=0
+ for(let i=coins.length-1;i>=0;i--){coinPool.put(coins[i].m)};coins.length=0
  for(let i=debris.length-1;i>=0;i--){dPool.put(debris[i].m)};debris.length=0
  for(let i=rings.length-1;i>=0;i--){rPool.put(rings[i].m)};rings.length=0
  for(let i=trails.length-1;i>=0;i--){tPool.put(trails[i].sp)};trails.length=0
@@ -4833,8 +4860,8 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  // 진화 골드 틴트 복원
  for(const g of bPool.all)g.traverse(o=>{if(o.isMesh&&o.material.color)o.material.color.setHex(0x9beeff).convertSRGBToLinear()
   else if(o.isSprite)o.material.color.setHex(0x35e6ff).convertSRGBToLinear()})
- for(const g of orbPool.all)g.traverse(o=>{if(o.isMesh&&o.material.color)o.material.color.setHex(0x35e6ff).convertSRGBToLinear()
-  else if(o.isSprite)o.material.color.setHex(0x35e6ff).convertSRGBToLinear()})
+ for(const g of orbPool.all)g.traverse(o=>{if(o.isMesh&&o.material.color)o.material.color.setHex(0xc98bff).convertSRGBToLinear()
+  else if(o.isSprite)o.material.color.setHex(0xb779ff).convertSRGBToLinear()})
  if(window.__beam)window.__beam.visible=false
  Object.assign(S,{hp:100,maxhp:100,lvl:1,xp:0,xpNext:5,kills:0,t:0,wave:1,
   primary:'pulse',plv:1,beamTick:0,
