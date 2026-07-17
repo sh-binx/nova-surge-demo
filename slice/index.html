@@ -135,7 +135,7 @@
     <h1>NOVA SURGE</h1><div class="tag">graze the swarm. become the storm.</div>
     <div class="play" id="playBtn">▶ PLAY</div>
     <div class="hbtn" id="hangarBtn">⬢ HANGAR — 함대</div>
-    <div class="hint">드래그 이동 · 자동 사격 · 게이지 차면 <b style="color:#35e6ff">SURGE</b></div>
+    <div class="hint">드래그 · <b>←→</b> 이동 · 자동 사격 · 게이지 차면 <b style="color:#35e6ff">SURGE</b> <b>(Space)</b></div>
   </div>
 
   <div class="center off" id="hangar">
@@ -4325,6 +4325,15 @@ let tx=0
 function toField(cx){return ((cx/VW)*2-1)*FW*1.18}
 cv.addEventListener('pointerdown',e=>{AU.unlock();tx=toField(e.clientX)})
 addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')tx=toField(e.clientX)})
+// 키보드 조작(데스크톱) — ←→ / A·D 좌우 이동 + Space 서지
+const keyMove={l:false,r:false}
+addEventListener('keydown',e=>{const k=e.code;AU.unlock()
+ if(k==='ArrowLeft'||k==='KeyA'){keyMove.l=true;e.preventDefault()}
+ else if(k==='ArrowRight'||k==='KeyD'){keyMove.r=true;e.preventDefault()}
+ else if(k==='Space'){if(ST==='play')fireSurge();e.preventDefault()}})
+addEventListener('keyup',e=>{const k=e.code
+ if(k==='ArrowLeft'||k==='KeyA')keyMove.l=false
+ else if(k==='ArrowRight'||k==='KeyD')keyMove.r=false})
 sbtn.addEventListener('pointerdown',e=>{e.stopPropagation();AU.unlock();fireSurge()})
 
 /* ============ 업그레이드(무기 4 + 스탯 6) + 희귀도 ============ */
@@ -4554,6 +4563,7 @@ function frame(now){requestAnimationFrame(frame)
   S.t+=wdt
   if(S.t-MET._ht>=.5){MET._ht=S.t;if(MET.hp.length<2000)MET.hp.push({t:Math.round(S.t*10)/10,hp:Math.round(S.hp),mhp:S.maxhp,foes:foes.length,eb:ebullets.length,k:S.kills,lvl:S.lvl,dps:0})}
   if(AILVL)aiStep(pdt)
+  if(keyMove.l||keyMove.r)tx=clamp(tx+((keyMove.r?1:0)-(keyMove.l?1:0))*15*pdt,-FW*1.05,FW*1.05) // 키보드 좌우
   const targX=clamp(tx,-FW,FW)
   const px0=player.position.x
   player.position.x+=(targX-player.position.x)*Math.min(1,pdt*11*S.speed)
