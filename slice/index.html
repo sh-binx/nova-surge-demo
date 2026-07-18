@@ -4146,12 +4146,23 @@ function mkWeaver(){const g=new THREE.Group() // 회피형 — 가로로 납작�
  const geo=new THREE.OctahedronGeometry(.5,0);geo.scale(1.6,.4,.75)
  g.add(new THREE.Mesh(geo,flat(0xff6a4d,0xc23a1a,1.5)))
  const gl=glowSprite(0xff8a5d,.55,.45);g.add(gl);tagMats(g);scene.add(g);return g}
+function mkBomber(){const g=new THREE.Group() // 폭탄병 — 둥근 중장갑 + 폭탄 페이로드(앰버)
+ g.add(new THREE.Mesh(new THREE.DodecahedronGeometry(.7,0),flat(0xffb020,0xb87410,1.35)))
+ const bomb=new THREE.Mesh(new THREE.SphereGeometry(.3,8,6),flat(0xff5a2e,0x8a2810,1.6));bomb.position.z=.5;g.add(bomb)
+ const gl=glowSprite(0xffb84d,.85,.5);g.add(gl);tagMats(g);scene.add(g);return g}
+function mkShielded(){const g=new THREE.Group() // 방패병 — 본체 + 전방 에너지 실드(시안 아크)
+ g.add(new THREE.Mesh(new THREE.OctahedronGeometry(.74,0),flat(0xd93d6a,0x8a1a3a,1.4)))
+ const sg=new THREE.TorusGeometry(.98,.1,8,18,Math.PI);sg.rotateX(Math.PI/2)
+ const sh=new THREE.Mesh(sg,L(new THREE.MeshBasicMaterial({color:0x35e6ff,transparent:true,opacity:.65,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})))
+ sh.position.z=.35;sh.rotation.z=0;g.add(sh);g.userData.shield=sh
+ const gl=glowSprite(0xff5d8a,.7,.5);g.add(gl);tagMats(g);scene.add(g);return g}
 const ePool={chaff:Pool(mkChaff,14),drone:Pool(mkDrone,16),lancer:Pool(mkLancer,8),big:Pool(mkBig,3),stinger:Pool(mkStinger,3),diver:Pool(mkDiver,5),elite:Pool(mkElite,1),
- splitter:Pool(mkSplitter,5),weaver:Pool(mkWeaver,8),shard:Pool(mkChaff,10)}
+ splitter:Pool(mkSplitter,5),weaver:Pool(mkWeaver,8),shard:Pool(mkChaff,10),bomber:Pool(mkBomber,3),shielded:Pool(mkShielded,3)}
 const foes=[]
 const FOE={chaff:{hp:1,r:.55,dmg:6,xp:1,num:'+10'},drone:{hp:2,r:.8,dmg:12,xp:1,num:'+12'},
  lancer:{hp:2,r:.75,dmg:10,xp:1,num:'+15'},big:{hp:14,r:1.3,dmg:26,xp:3,num:'+30'},
  stinger:{hp:6,r:.9,dmg:14,xp:2,num:'+18'},diver:{hp:2,r:.6,dmg:14,xp:1,num:'+14'},elite:{hp:420,r:1.9,dmg:30,xp:14,num:'+200'},
+ bomber:{hp:9,r:.95,dmg:16,xp:3,num:'+24'},shielded:{hp:20,r:1.0,dmg:18,xp:3,num:'+26'},
  splitter:{hp:7,r:.9,dmg:14,xp:2,num:'+20'},weaver:{hp:3,r:.7,dmg:11,xp:1,num:'+14'},shard:{hp:1,r:.45,dmg:8,xp:1,num:'+8'}}
 
 /* ============ 탄·젬·이펙트 풀 ============ */
@@ -4478,6 +4489,8 @@ function spawnFoe(type,x,z){if(foes.length>90)return null
  if(type==='splitter')f.spd=rnd(2.6,3.2)*Math.min(sMul,1.4)
  if(type==='weaver'){f.spd=rnd(3.6,4.4)*sMul;f.sway=rnd(0,6.28)}
  if(type==='shard'){f.spd=rnd(5,6.5);f.hp=1}
+ if(type==='bomber'){f.spd=rnd(2.8,3.4)*Math.min(sMul,1.3);f.stopZ=rnd(-13,-8);f.bombT=rnd(1.4,2.2)}
+ if(type==='shielded')f.spd=rnd(1.4,1.9)*Math.min(sMul,1.3)
  if(type==='elite'){f.spd=2.2;f.hp=Math.round(c.hp*Math.pow(1.5,S.elitesKilled));f.max=f.hp
   f.phase='enter';f.pt=0;f.rad=0;S.elite={hp:f.hp,max:f.hp}}
  foes.push(f);return f}
@@ -4495,13 +4508,13 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
   const g=gemPool.get();g.position.set(x+rnd(-1,1),0,z+rnd(-1,1));gems.push({m:g})}
  if(f.type==='splitter'&&z<PZ){for(let k=0;k<2;k++){const sh=spawnFoe('shard',x+((k?1:-1)*.5),z) // 분열: 2조각 확산
   if(sh)sh.vx=(k?1:-1)*rnd(2.5,4)}}
- const big=f.type==='big'||f.type==='stinger'||f.type==='elite'
+ const big=f.type==='big'||f.type==='stinger'||f.type==='elite'||f.type==='bomber'||f.type==='shielded'
  burst(x,z,(f.type==='big'||f.type==='elite')?0xb98cff:0xff5fae,f.type==='elite'?20:(big?12:7))
  if(big)ring(x,z,0xffd9f0,f.type==='elite'?5:3.2,f.type==='elite'?.5:.32)
  num(x,z,c.num,big?'#ffcf4a':'#ffffff',big?16:13)
- const SALV={chaff:1,drone:2,lancer:2,stinger:4,big:6,diver:2,elite:150,splitter:5,weaver:2,shard:1}
+ const SALV={chaff:1,drone:2,lancer:2,stinger:4,big:6,diver:2,elite:150,splitter:5,weaver:2,shard:1,bomber:6,shielded:8}
  const val=Math.ceil((SALV[f.type]||1)*(1+Math.min(S.combo,40)*.02)*(S.salvMult||1))
- if((f.type==='big'||f.type==='stinger'||f.type==='splitter'||f.type==='elite')&&z<PZ){ // 강적 = 보이는 골드 코인
+ if((f.type==='big'||f.type==='stinger'||f.type==='splitter'||f.type==='elite'||f.type==='bomber'||f.type==='shielded')&&z<PZ){ // 강적 = 보이는 골드 코인
   const n=f.type==='elite'?6:1
   for(let i=0;i<n;i++){if(coins.length>30)break;const cm=coinPool.get()
    cm.position.set(x+rnd(-1.2,1.2),0,z+rnd(-1,1));coins.push({m:cm,v:Math.max(1,Math.round(val/n))})}}
@@ -4588,6 +4601,10 @@ function director(wdt){
    for(let i=0;i<n;i++)spawnFoe('weaver',rnd(-FW,FW),TOPZ-rnd(0,4))}}
  if(S.wave>=6){S.spSplitter=(S.spSplitter||0)-wdt // 분열체 — 웨이브6부터
   if(S.spSplitter<=0){S.spSplitter=Math.max(5,9-S.wave*.2);spawnFoe('splitter',rnd(-FW*.8,FW*.8))}}
+ if(S.wave>=8){S.spShield=(S.spShield||0)-wdt // 방패병 — 웨이브8부터
+  if(S.spShield<=0){S.spShield=Math.max(7,12-S.wave*.2);spawnFoe('shielded',rnd(-FW*.7,FW*.7))}}
+ if(S.wave>=10){S.spBomber=(S.spBomber||0)-wdt // 폭탄병 — 웨이브10부터
+  if(S.spBomber<=0){S.spBomber=Math.max(6,12-S.wave*.2);spawnFoe('bomber',rnd(-FW*.7,FW*.7))}}
  if(!S.elite&&!S.eliteWarned&&S.t>=S.eliteAt-10){S.eliteWarned=true;banner('⚠ ELITE APPROACHING','#ff5d6c');AU.warn();buzz(60)}
  if(!S.elite&&S.t>=S.eliteAt){spawnFoe('elite',0,TOPZ-2);banner('DREAD CROWN','#b779ff');AU.boss()}
  const w=1+(S.t/20|0)
@@ -4702,6 +4719,20 @@ function frame(now){requestAnimationFrame(frame)
     m.position.x=clamp(m.position.x+Math.cos(S.t*3.4+f.sway)*3.4*wdt,-FW-1,FW+1)
     m.rotation.z+=wdt*3}
    else if(f.type==='shard'){m.position.z+=f.spd*wdt;m.position.x+=(f.vx||0)*wdt;m.rotation.z+=wdt*6}
+   else if(f.type==='bomber'){ // 폭탄병 — 정지 후 방사 폭발(지역 거부)
+    if(m.position.z<f.stopZ)m.position.z+=f.spd*wdt
+    else{m.position.x+=Math.sin(S.t*.7+f.sway)*.7*wdt
+     f.bombT-=wdt
+     if(f.bombT<.45&&!f.flashOn){f.flashOn=true;setFlash(m,true);f.flashUntil=now+600} // 폭발 텔레그래프
+     if(f.bombT<=0){f.bombT=rnd(2.4,3.4);f.flashOn=false;setFlash(m,false)
+      ring(m.position.x,m.position.z,0xffb84d,4.6,.45);AU.tone(78,.32,'sawtooth',.13,44);buzz(30)
+      for(let k=0;k<10;k++){if(ebullets.length>=60)break
+       const a=k/10*6.283+rnd(-.08,.08),eb=ebPool.get();eb.position.set(m.position.x,0,m.position.z)
+       ebullets.push({m:eb,vx:Math.cos(a)*5.6,vz:Math.sin(a)*5.6,grazed:false})}}}
+    m.rotation.z+=wdt*.6}
+   else if(f.type==='shielded'){m.position.z+=f.spd*wdt // 방패병 — 저속 탱크·전방 장갑(정면 탄 감쇠)
+    m.position.x+=Math.sign(player.position.x-m.position.x)*.3*wdt;m.rotation.y+=wdt*.5
+    if(m.userData.shield)m.userData.shield.material.opacity=.45+Math.abs(Math.sin(now*.006))*.3}
    else if(f.type==='lancer'){m.position.z+=f.spd*wdt;m.position.x+=f.vx*wdt
     m.rotation.y=Math.atan2(f.vx,f.spd)
     if(Math.abs(m.position.x)>FW+2.5&&((f.vx>0&&m.position.x>0)||(f.vx<0&&m.position.x<0))){releaseFoe(f);continue}}
@@ -4767,13 +4798,13 @@ function frame(now){requestAnimationFrame(frame)
    if(f.flashOn&&now>f.flashUntil&&!(f.type==='elite'&&f.phase==='tele')){f.flashOn=false;setFlash(m,false)}
    const pdx=m.position.x-player.position.x,pdz=m.position.z-player.position.z
    if(Math.hypot(pdx,pdz)<f.r+.55){hurt(FOE[f.type].dmg)
-    if(f.type!=='elite'&&f.type!=='big'){burst(m.position.x,m.position.z,0xff8fc4,6);releaseFoe(f);continue}}
+    if(f.type!=='elite'&&f.type!=='big'&&f.type!=='bomber'&&f.type!=='shielded'){burst(m.position.x,m.position.z,0xff8fc4,6);releaseFoe(f);continue}}
    if(f.type!=='elite'&&m.position.z>PZ+3){leak(f);releaseFoe(f);continue}
    let killed=false
    for(let j=bullets.length-1;j>=0;j--){const b=bullets[j]
     const bdx=b.m.position.x-m.position.x,bdz=b.m.position.z-m.position.z
     if(Math.abs(bdx)<f.r&&Math.abs(bdz)<f.r+.5){
-     const red=(f.type==='elite'&&f.phase!=='hover')?.4:1
+     const red=(f.type==='elite'&&f.phase!=='hover')?.4:(f.type==='shielded'?.35:1) // 방패병 정면 장갑
      f.hp-=b.dmg*red
      if(b.pierce>0)b.pierce--
      else{bPool.put(b.m);bullets.splice(j,1)}
@@ -4878,7 +4909,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
   surge:0,surgeUntil:0,novaT:-1,invUntil:0,
   combo:0,comboAt:0,comboMax:0,comboPop:0,xpStep:0,xpAt:0,
   nextReward:20,revived:false,shake:0,freezeUntil:0,hsCd:0,
-  spDrone:0,spChaff:6,spLancer:25,spSting:30,spBig:50,stAlive:0,bigAlive:0,spWeaver:0,spSplitter:0,
+  spDrone:0,spChaff:6,spLancer:25,spSting:30,spBig:50,stAlive:0,bigAlive:0,spWeaver:0,spSplitter:0,spShield:0,spBomber:0,
   eliteAt:180,eliteWarned:false,elite:null,elitesKilled:0,grazeToastDone:false,pendingOffers:0,
   salvRun:0,adSalvUsed:false,leaks:0,spDiver:70,beamT:0,beamOn:0,beamHold:0})
  player.position.set(0,0,PZ);tx=0;novaRing=null;metReset()}
