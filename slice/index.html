@@ -19,6 +19,10 @@
   .barwrap{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:13px;text-shadow:0 1px 3px #000}
   .bar{flex:1;height:12px;border-radius:6px;background:rgba(0,0,0,.5);overflow:hidden;border:1px solid rgba(255,255,255,.18)}
   .bar>i{display:block;height:100%;transition:width .12s linear}
+  .bar.wave{height:9px}
+  .wave>i{background:linear-gradient(90deg,#5fd657,#b4ff39)}
+  .wtag{color:#b4ff39;min-width:60px;font-size:12px}
+  .wrem{min-width:32px;text-align:right;color:#9fb8c9;font-size:11px;font-family:ui-monospace,Menlo,monospace}
   .hp>i{background:linear-gradient(90deg,#ff5d6c,#ff3d9a)}
   .xp>i{background:linear-gradient(90deg,#35e6ff,#8be9ff)}
   .lvl{min-width:44px;text-align:center;color:#35e6ff}
@@ -82,7 +86,7 @@
   #hangar .hwrap{width:min(94vw,430px);display:flex;flex-direction:column;align-items:center}
   #hcv{width:100%;aspect-ratio:4/3;display:block;border-radius:16px;background:radial-gradient(80% 70% at 50% 45%,rgba(53,230,255,.07),transparent 70%)}
   .hnav{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:2px}
-  .hnav button{pointer-events:auto;font-family:ui-monospace,Menlo,monospace;font-size:22px;background:none;border:none;color:#35e6ff;cursor:pointer;padding:6px 14px}
+  .hnav button{pointer-events:auto;font-family:ui-monospace,Menlo,monospace;font-size:22px;background:rgba(53,230,255,.08);border:1px solid rgba(53,230,255,.25);border-radius:10px;color:#35e6ff;cursor:pointer;padding:11px 20px;min-width:52px;min-height:46px} /* 모바일 터치 히트영역 */
   .hname{font-family:'Arial Black',sans-serif;font-size:22px;color:#eaf0ff}
   .hrole{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:2px;color:#35e6ff}
   .hpass{font-size:12px;color:#a7b4d6;margin-top:6px;text-align:center;max-width:340px;min-height:32px}
@@ -97,7 +101,7 @@
   .hup .dots{display:flex;gap:4px;flex:1}
   .hup .dt{width:14px;height:8px;border-radius:3px;background:rgba(120,150,220,.18)}
   .hup .dt.on{background:#ffcf4a}
-  .hup button{pointer-events:auto;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:800;background:rgba(255,207,74,.12);border:1px solid rgba(255,207,74,.45);color:#ffcf4a;border-radius:7px;padding:4px 9px;cursor:pointer}
+  .hup button{pointer-events:auto;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:800;background:rgba(255,207,74,.12);border:1px solid rgba(255,207,74,.45);color:#ffcf4a;border-radius:8px;padding:10px 13px;min-height:38px;cursor:pointer} /* 모바일 터치 히트영역 */
   .hup button:disabled{opacity:.35;cursor:default}
   .hact{display:flex;gap:10px;margin-top:14px}
   .hact .b{pointer-events:auto;cursor:pointer;font-family:'Arial Black',sans-serif;font-size:14px;border-radius:11px;padding:12px 22px}
@@ -105,7 +109,7 @@
   .hact .sel{background:rgba(53,230,255,.12);border:1px solid #35e6ff;color:#35e6ff}
   .hact .sel.on{background:#35e6ff;color:#04212b}
   .hbal{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#ffcf4a;margin-top:12px}
-  .hback{pointer-events:auto;cursor:pointer;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#6b779c;margin-top:12px}
+  .hback{pointer-events:auto;cursor:pointer;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#8b97b9;margin-top:8px;padding:15px 26px;display:inline-block} /* 모바일 터치 히트영역 ≥44 */
 </style></head>
 <body>
 <canvas id="c"></canvas>
@@ -115,8 +119,9 @@
   <div class="top">
     <div class="barwrap"><span class="ic24" id="icHp"></span><div class="bar hp"><i id="hpb" style="width:100%"></i></div></div>
     <div class="barwrap"><span class="lvl" id="lvl">LV 1</span><div class="bar xp"><i id="xpb" style="width:0%"></i></div></div>
+    <div class="barwrap"><span class="lvl wtag" id="wtag">WAVE 1</span><div class="bar wave"><i id="wpb" style="width:0%"></i></div><span class="wrem" id="wrem">20s</span></div>
   </div>
-  <div class="stats"><span class="w" id="wave">WAVE 1</span><span class="k" id="kills">0</span><span class="t" id="time">0:00</span><span class="t" id="salv">◆0</span></div>
+  <div class="stats"><span class="k" id="kills">0</span><span class="t" id="time">0:00</span><span class="t" id="salv">◆0</span></div>
   <div id="ebar"><i></i><span>ELITE — DREAD CROWN</span></div>
   <div id="sbtn"><div class="in"><span>SURGE</span></div></div>
   <div id="toast"></div>
@@ -135,7 +140,7 @@
   <div class="center" id="start">
     <h1>NOVA SURGE</h1><div class="tag">graze the swarm. become the storm.</div>
     <div class="play" id="playBtn">▶ PLAY</div>
-    <div class="hbtn" id="hangarBtn">⬢ HANGAR</div>
+    <div class="hbtn" id="hangarBtn">⬢ SHIPS &amp; UPGRADES</div>
     <div class="hint">Drag · <b>←→</b> Move · Auto-fire · <b style="color:#35e6ff">SURGE</b> when full <b>(Space)</b></div>
   </div>
 
@@ -4101,10 +4106,10 @@ function mkDrone(){const g=new THREE.Group()
  const eye=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),L(new THREE.MeshStandardMaterial({color:0xff77b8,emissive:0xff2e8e,emissiveIntensity:1.2,flatShading:true})))
  eye.position.set(0,0,.42);g.add(eye)
  tagMats(g);scene.add(g);return g}
-function mkLancer(){const g=new THREE.Group()
+function mkLancer(){const g=new THREE.Group() // 레드 다트 — 측면 강습(마젠타 계열과 색 분화)
  const geo=new THREE.OctahedronGeometry(.5,0);geo.scale(.5,.5,1.7)
- g.add(new THREE.Mesh(geo,flat(0xff5fae,0xb01a63,1.4)))
- const gl=glowSprite(0xff6fb0,.5,.5);g.add(gl)
+ g.add(new THREE.Mesh(geo,flat(0xff5236,0x9a2612,1.5)))
+ const gl=glowSprite(0xff6a45,.5,.5);g.add(gl)
  tagMats(g);scene.add(g);return g}
 function mkBig(){const g=new THREE.Group()
  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.0,0),flat(0xa66bff,0x5526a8,1.35)))
@@ -4268,7 +4273,7 @@ let ST='start'
 const W={orbit:0,homing:0} // 보조무기 (최대 2슬롯 — 종류가 2개라 자연 충족)
 const ULV={multi:0,rapid:0,power:0,thr:0,mag:0,hull:0} // 스탯 업그레이드 레벨(만렙 캡·죽은 픽 방지)
 const E={} // (구 진화 상태 — 주무기 교체제로 대체, 참조 안전용 빈 객체)
-const S={hp:100,maxhp:100,lvl:1,xp:0,xpNext:5,kills:0,t:0,wave:1,
+const S={hp:100,maxhp:100,lvl:1,xp:0,xpNext:7,kills:0,t:0,wave:1,
  primary:'pulse',plv:1, // 주무기(교체형)·주무기 레벨
  streams:1,fireRate:.18,dmg:1,speed:1,magnet:3.4,fireT:0,seekT:0,lanceT:0,orbA:0,
  surge:0,surgeFired:0,surgeUntil:0,novaT:-1,invUntil:0,
@@ -4328,7 +4333,10 @@ function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
  $('xpb').style.width=clamp(S.xp/S.xpNext*100,0,100)+'%'
  $('lvl').textContent='LV '+S.lvl
  $('kills').lastChild.textContent=' '+S.kills
- $('wave').textContent='WAVE '+S.wave
+ const WD=20,wt=S.t%WD // 웨이브 진행바(20s/웨이브)
+ $('wpb').style.width=(wt/WD*100)+'%'
+ $('wtag').textContent='WAVE '+S.wave
+ $('wrem').textContent=Math.max(0,Math.ceil(WD-wt))+'s'
  const s=S.t|0;$('time').textContent=(s/60|0)+':'+('0'+(s%60)).slice(-2)
  $('salv').textContent='◆'+S.salvRun
  sbtn.style.setProperty('--p',clamp(S.surge,0,100))
@@ -4411,7 +4419,7 @@ function offer(){ST='levelup';AU.lvl();buzz(30)
   el.appendChild(c)}
  $('modal').classList.add('on')}
 function gainXP(n){S.xp+=n
- while(S.xp>=S.xpNext){S.xp-=S.xpNext;S.lvl++;S.xpNext=Math.round(S.xpNext*1.4+2);S.pendingOffers++;MET.lvls.push(S.t)}
+ while(S.xp>=S.xpNext){S.xp-=S.xpNext;S.lvl++;S.xpNext=Math.round(S.xpNext*1.5+2);S.pendingOffers++;MET.lvls.push(S.t)} // 초반 완만화(×1.4→1.5, 시작 5→7) — 레벨업 모달 빈도↓
  maybeOffer()}
 
 /* ============ 보상/광고 ============ */
@@ -4583,10 +4591,11 @@ function director(wdt){
  if(!S.elite&&!S.eliteWarned&&S.t>=S.eliteAt-10){S.eliteWarned=true;banner('⚠ ELITE APPROACHING','#ff5d6c');AU.warn();buzz(60)}
  if(!S.elite&&S.t>=S.eliteAt){spawnFoe('elite',0,TOPZ-2);banner('DREAD CROWN','#b779ff');AU.boss()}
  const w=1+(S.t/20|0)
- if(w!==S.wave){S.wave=w
-  banner('WAVE '+w,'#35e6ff')
+ if(w!==S.wave){const prev=S.wave;S.wave=w
+  banner('◆ WAVE '+prev+' CLEAR','#b4ff39') // 이산 클리어 순간
+  S.hp=Math.min(S.maxhp,S.hp+15);AU.ready() // 클리어 = 소량 정비 회복
   const intro={4:'WEAVER — evasive fliers',6:'SPLITTER — splitting foes',8:'Lancer pincer attacks',11:'High-density swarm'}[w]
-  if(intro)toast('⚠ '+intro+' incoming',2800)
+  toast('▸ WAVE '+w+(intro?' — '+intro:''),2600)
   pulse();S.salvRun+=10+w*2}}
 
 /* ============ 메인 루프 ============ */
@@ -4863,7 +4872,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(const g of orbPool.all)g.traverse(o=>{if(o.isMesh&&o.material.color)o.material.color.setHex(0xc98bff).convertSRGBToLinear()
   else if(o.isSprite)o.material.color.setHex(0xb779ff).convertSRGBToLinear()})
  if(window.__beam)window.__beam.visible=false
- Object.assign(S,{hp:100,maxhp:100,lvl:1,xp:0,xpNext:5,kills:0,t:0,wave:1,
+ Object.assign(S,{hp:100,maxhp:100,lvl:1,xp:0,xpNext:7,kills:0,t:0,wave:1,
   primary:'pulse',plv:1,beamTick:0,
   streams:1,fireRate:.18,dmg:1,speed:1,magnet:3.4,fireT:0,seekT:0,lanceT:0,orbA:0,
   surge:0,surgeUntil:0,novaT:-1,invUntil:0,
@@ -4976,6 +4985,8 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  setSalv:n=>{META.salv=n;saveMeta()},
  spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
  foeTypes:()=>foes.map(f=>f.type),
+ setSurge:n=>{S.surge=n}, ebCount:()=>ebullets.length,
+ foeCount:()=>foes.length,
  hp:()=>S.hp, maxhp:()=>S.maxhp, kill:()=>{S.hp=0}
 }
 })()
