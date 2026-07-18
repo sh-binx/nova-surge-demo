@@ -4710,7 +4710,7 @@ function frame(now){requestAnimationFrame(frame)
   for(let i=2;i<arr.length;i+=3){arr[i]+=spd*rdt;if(arr[i]>14)arr[i]-=74}
   st.geometry.attributes.position.needsUpdate=true}
  player.visible=SHIP_READY&&!(performance.now()<S.invUntil&&((performance.now()/70|0)%2===0)) // 매 프레임: GLB 로드 전엔 기체 숨김(타이틀 로프트 플래시 제거)
- $('ui').classList.toggle('playing',ST!=='start'&&ST!=='over') // 인게임 HUD는 플레이 중에만(startBal은 스코프 문제로 saveMeta/startup에서 갱신)
+ $('ui').classList.toggle('playing',ST==='play'||ST==='levelup'||ST==='reward') // 인게임 HUD는 인런(플레이·레벨업·보급) 상태에만 — 행어/타이틀/광고엔 숨김(startBal은 스코프 문제로 saveMeta/startup에서 갱신)
  for(const r of window.__roids){r.position.z+=r.userData.vz*rdt;r.rotation.x+=r.userData.vr*rdt;r.rotation.y+=r.userData.vr*.7*rdt
   if(r.position.z>12)r.position.z=-42}
  for(const e of player.userData.engs)e.material.opacity=.55+Math.abs(Math.sin(now*.012))*.4
