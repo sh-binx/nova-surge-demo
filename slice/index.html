@@ -8,15 +8,54 @@
 <meta property="og:title" content="Nova Surge 2.0"><meta property="og:description" content="Auto-fire space survivor — build up, evolve, survive.">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{width:100%;height:100%;overflow:hidden;background:#04060d;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
-  #c,#fx{position:fixed;inset:0;width:100%;height:100%;display:block}
+  html,body{width:100%;height:100%;overflow:hidden;background:radial-gradient(ellipse 90% 70% at 50% 22%,#0b1834 0%,#070c1e 46%,#03050c 100%);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none} /* 레터박스 여백=은은한 우주 배경 */
+  #c,#fx{position:fixed;inset:0;width:100%;height:100%;display:block} /* 가로모드: 창 전체 채움 */
   #fx{pointer-events:none}
   .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 75% at 50% 45%,transparent 55%,rgba(2,4,10,.5) 100%)}
-  #ui{position:fixed;inset:0;pointer-events:none;color:#eaf0ff}
+  #ui{position:fixed;inset:0;pointer-events:none;color:#eaf0ff} /* 가로모드: 창 전체 — 좌우 UI 패널 포함 */
+  /* 인게임 HUD(.side)는 아래 .side 규칙에서 playing일 때만 표시 */
+  .startbal{margin-top:14px;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:15px;color:#ffcf4a;letter-spacing:.5px}
+  .startbal small{color:#8792b5;font-weight:600;font-size:11px;letter-spacing:1px;display:block;margin-bottom:2px}
   .ic24{width:22px;height:22px;display:inline-block;vertical-align:-4px}
   .ic24 svg{width:100%;height:100%}
-  .top{position:absolute;top:calc(env(safe-area-inset-top,0) + 10px);left:12px;right:12px;display:flex;flex-direction:column;gap:6px}
+  .top{position:absolute;top:calc(env(safe-area-inset-top,0) + 10px);left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 24px));display:flex;flex-direction:column;gap:6px} /* 폭 제한+중앙 — 와이드 화면에서 전체 폭 스프롤 방지 */
   .barwrap{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:13px;text-shadow:0 1px 3px #000}
+  /* ===== 가로모드 좌우 UI 패널 ===== */
+  .side{position:absolute;top:0;bottom:0;width:clamp(148px,15vw,208px);display:flex;flex-direction:column;gap:11px;padding:calc(env(safe-area-inset-top,0) + 18px) 15px 16px;pointer-events:none}
+  .side.left{left:0;background:linear-gradient(90deg,rgba(6,10,22,.86),rgba(6,10,22,.5) 78%,transparent)}
+  .side.right{right:0;background:linear-gradient(270deg,rgba(6,10,22,.86),rgba(6,10,22,.5) 78%,transparent);text-align:right}
+  .side .barwrap{gap:7px}
+  .side .bar{flex:1}
+  .ptitle{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:12px;letter-spacing:2.5px;color:#35e6ff;opacity:.92;margin-bottom:2px;text-shadow:0 0 12px rgba(53,230,255,.5)}
+  .pcard{background:rgba(53,230,255,.06);border:1px solid rgba(120,150,220,.26);border-radius:10px;padding:8px 11px;display:flex;flex-direction:column;gap:3px}
+  .plabel{font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:1.5px;color:#7a89b0}
+  .pcard .wpn{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:16px;color:#35e6ff;letter-spacing:.3px}
+  .pcard.gcard{background:rgba(255,207,74,.09);border-color:rgba(255,207,74,.42)}
+  .pcard .gold{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:20px;color:#ffcf4a;background:none;border:none;padding:0;box-shadow:none}
+  .prow{display:flex;gap:15px;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:14px}
+  .side.right .prow{justify-content:flex-end}
+  .side.right .barwrap{flex-direction:row-reverse}
+  .lolabel{margin-top:2px}
+  .loadout{display:flex;flex-direction:column;gap:5px;overflow-y:auto;min-height:0}
+  .loi{display:flex;align-items:center;gap:8px;background:rgba(120,150,220,.07);border:1px solid rgba(120,150,220,.16);border-radius:8px;padding:5px 8px}
+  .loi.cur{background:rgba(53,230,255,.1);border-color:rgba(53,230,255,.38)}
+  .loic{width:20px;height:20px;flex:none;display:flex;align-items:center;justify-content:center}
+  .loic svg{width:20px;height:20px}
+  .lonm{flex:1;font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:10.5px;letter-spacing:.2px;color:#c3cde8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+  .loi.cur .lonm{color:#eaf3ff}
+  .lolv{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:11px;color:#35e6ff}
+  .wselrow{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px}
+  .wmastery{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:12px;color:#35e6ff}
+  .wsel{display:flex;gap:6px;pointer-events:auto}
+  .wchip{flex:1;aspect-ratio:1;max-width:44px;border-radius:9px;background:rgba(120,150,220,.08);border:1px solid rgba(120,150,220,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.1s}
+  .wchip svg{width:22px;height:22px;opacity:.65}
+  .wchip:hover{background:rgba(53,230,255,.12)}
+  .wchip.cur{background:rgba(53,230,255,.18);border-color:#35e6ff;box-shadow:0 0 10px rgba(53,230,255,.3)}
+  .wchip.cur svg{opacity:1}
+  .loempty{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#66708f;padding:3px 2px}
+  #ui:not(.playing) .side{display:none}
+  .stats .wpn{color:#35e6ff;font-weight:800;letter-spacing:.3px}
+  .stats .gold{color:#ffcf4a;font-weight:800;font-size:16px;background:rgba(255,207,74,.15);border:1px solid rgba(255,207,74,.5);border-radius:7px;padding:0 10px;box-shadow:0 0 12px rgba(255,207,74,.3)}
   .bar{flex:1;height:12px;border-radius:6px;background:rgba(0,0,0,.5);overflow:hidden;border:1px solid rgba(255,255,255,.18)}
   .bar>i{display:block;height:100%;transition:width .12s linear}
   .bar.wave{height:9px}
@@ -26,13 +65,13 @@
   .hp>i{background:linear-gradient(90deg,#ff5d6c,#ff3d9a)}
   .xp>i{background:linear-gradient(90deg,#35e6ff,#8be9ff)}
   .lvl{min-width:44px;text-align:center;color:#35e6ff}
-  .stats{position:absolute;top:calc(env(safe-area-inset-top,0) + 58px);left:0;right:0;display:flex;justify-content:center;gap:18px;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:15px;text-shadow:0 2px 4px #000}
+  .stats{display:flex;justify-content:flex-start;align-items:center;gap:15px;margin-top:3px;padding:0 2px;font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:14px;text-shadow:0 2px 4px #000} /* .top 컬럼 안 한 줄(바 아래) — 붕 뜬 중앙배치 제거 */
   .stats .k{color:#ff6fb0}.stats .t{color:#ffcf4a}
   .stats .w{color:#35e6ff;font-size:17px;background:rgba(53,230,255,.13);border:1px solid rgba(53,230,255,.45);border-radius:7px;padding:0 11px;box-shadow:0 0 12px rgba(53,230,255,.25)}
   #ebar{position:absolute;top:calc(env(safe-area-inset-top,0) + 86px);left:14%;right:14%;height:14px;border-radius:8px;background:rgba(0,0,0,.55);border:1px solid rgba(183,121,255,.5);display:none;overflow:hidden}
   #ebar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#b779ff,#ff3d9a);transition:width .1s linear}
   #ebar>span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:800;letter-spacing:2px;color:#fff;text-shadow:0 1px 2px #000}
-  #sbtn{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0) + 16px);width:86px;height:86px;border-radius:50%;pointer-events:auto;cursor:pointer;--p:0;
+  #sbtn{position:relative;margin:auto auto 6px;align-self:center;width:78px;height:78px;border-radius:50%;pointer-events:auto;cursor:pointer;--p:0;
     background:conic-gradient(#35e6ff calc(var(--p)*1%), rgba(53,230,255,.13) 0);padding:4px;transition:filter .2s}
   #sbtn .in{width:100%;height:100%;border-radius:50%;background:rgba(7,12,24,.88);display:flex;align-items:center;justify-content:center;border:1px solid rgba(53,230,255,.25)}
   #sbtn span{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:12px;letter-spacing:1px;color:#7a92b8}
@@ -47,7 +86,7 @@
   .cards{display:flex;gap:12px;padding:0 14px;max-width:540px;width:100%;justify-content:center}
   .card{flex:1;max-width:164px;background:linear-gradient(180deg,#101833,#0b1120);border:1px solid rgba(120,150,220,.3);border-radius:14px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:transform .08s;position:relative}
   .card:active{transform:scale(.96)}
-  .card::before{content:"";display:block;height:3px;border-radius:3px;background:var(--rc,#8ba0c0);margin:-4px -4px 12px}
+  .card::before{content:"";display:block;height:4px;background:var(--rc,#8ba0c0);margin:-14px -10px 14px;border-radius:14px 14px 0 0} /* 카드 최상단에 딱 붙는 희귀도 스트립(뱃지와 겹침 제거) */
   .card.rare{border-color:rgba(53,230,255,.55)}
   .card.epic{border-color:rgba(255,207,74,.75);box-shadow:0 0 22px rgba(255,207,74,.25)}
   .card .rr{position:absolute;top:8px;right:8px;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 6px;border-radius:5px}
@@ -116,14 +155,22 @@
 <canvas id="fx"></canvas>
 <div class="vig"></div>
 <div id="ui">
-  <div class="top">
+  <div class="side left" id="sideL">
+    <div class="ptitle">NOVA SURGE</div>
     <div class="barwrap"><span class="ic24" id="icHp"></span><div class="bar hp"><i id="hpb" style="width:100%"></i></div></div>
     <div class="barwrap"><span class="lvl" id="lvl">LV 1</span><div class="bar xp"><i id="xpb" style="width:0%"></i></div></div>
-    <div class="barwrap"><span class="lvl wtag" id="wtag">WAVE 1</span><div class="bar wave"><i id="wpb" style="width:0%"></i></div><span class="wrem" id="wrem">20s</span></div>
+    <div class="wselrow"><span class="plabel">WEAPON</span><span class="wmastery" id="wmastery">LV 1</span></div>
+    <div class="wsel" id="wsel"></div>
+    <div class="prow"><span class="k" id="kills">0</span><span class="t" id="time">0:00</span></div>
+    <div class="plabel lolabel">UPGRADES</div>
+    <div class="loadout" id="loadout"></div>
   </div>
-  <div class="stats"><span class="k" id="kills">0</span><span class="t" id="time">0:00</span><span class="t" id="salv">◆0</span></div>
+  <div class="side right" id="sideR">
+    <div class="pcard gcard"><span class="plabel">SALVAGE</span><span class="gold" id="salv">◆0</span></div>
+    <div class="barwrap wv"><span class="lvl wtag" id="wtag">WAVE 1</span><div class="bar wave"><i id="wpb" style="width:0%"></i></div><span class="wrem" id="wrem">20s</span></div>
+    <div id="sbtn"><div class="in"><span>SURGE</span></div></div>
+  </div>
   <div id="ebar"><i></i><span>ELITE — DREAD CROWN</span></div>
-  <div id="sbtn"><div class="in"><span>SURGE</span></div></div>
   <div id="toast"></div>
   <div class="tagmini">NOVA SURGE 2.0</div>
 
@@ -142,6 +189,7 @@
     <div class="play" id="playBtn">▶ PLAY</div>
     <div class="hbtn" id="hangarBtn">⬢ SHIPS &amp; UPGRADES</div>
     <div class="hint">Drag · <b>←→</b> Move · Auto-fire · <b style="color:#35e6ff">SURGE</b> when full <b>(Space)</b></div>
+    <div class="startbal" id="startBal"><small>YOUR SALVAGE</small><span id="startBalV">◆ 0</span></div>
   </div>
 
   <div class="center off" id="hangar">
@@ -3824,6 +3872,8 @@ const SVG={
  seek:'<svg viewBox="0 0 24 24"><path d="M14.5 3.5l6 6-9.5 3.5L14.5 3.5z" fill="#ff6fb0"/><path d="M11 13l-1.8 6.3a1.6 1.6 0 0 1-2.7.7l-2.5-2.5a1.6 1.6 0 0 1 .7-2.7L11 13z" fill="#35e6ff"/><circle cx="17.5" cy="6.5" r="1.4" fill="#eaf0ff"/></svg>',
  arc:'<svg viewBox="0 0 24 24"><path d="M4 20L10 8l2 4z" fill="#35e6ff"/><path d="M20 20L14 8l-2 4z" fill="#35e6ff" opacity=".75"/><rect x="11" y="14" width="2" height="7" rx="1" fill="#8be9ff"/></svg>',
  lance:'<svg viewBox="0 0 24 24"><path d="M12 1.5l3 6h-6z" fill="#ffcf4a"/><rect x="10.6" y="7" width="2.8" height="12" fill="#ffcf4a" opacity=".85"/><path d="M8.5 20h7l-3.5 2.5z" fill="#ffcf4a" opacity=".6"/></svg>',
+ pulse:'<svg viewBox="0 0 24 24"><circle cx="12" cy="4.4" r="2.4" fill="#35e6ff"/><rect x="10.6" y="6" width="2.8" height="9" rx="1.4" fill="#35e6ff"/><path d="M12 20.5l-3.4-5h6.8z" fill="#35e6ff"/></svg>',
+ rail:'<svg viewBox="0 0 24 24"><rect x="10.4" y="1" width="3.2" height="3" rx="1" fill="#8be9ff"/><rect x="9.3" y="3.6" width="5.4" height="12.4" rx="1.2" fill="#35e6ff"/><rect x="6.8" y="16.6" width="10.4" height="3.6" rx="1.4" fill="#35e6ff" opacity=".55"/></svg>',
 }
 
 /* ============ AUDIO ============ */
@@ -3872,8 +3922,8 @@ const cam=new THREE.PerspectiveCamera(48,1,.1,220)
 const CAMP={x:0,y:14,z:16}
 cam.position.set(CAMP.x,CAMP.y,CAMP.z);cam.lookAt(0,0,-6)
 const fx=document.getElementById('fx'),fctx=fx.getContext('2d')
-let VW=1,VH=1
-function resize(){VW=innerWidth;VH=innerHeight
+let VW=1,VH=1,OX=0,OY=0 // OX/OY=레터박스 프레임 오프셋(입력 좌표 보정용)
+function resize(){VW=innerWidth;VH=innerHeight // 가로모드: 창 전체 채움(와이드 필드) — 좌우는 UI 패널이 덮음
  renderer.setSize(VW,VH);cam.aspect=VW/VH;cam.updateProjectionMatrix()
  const d=Math.min(window.devicePixelRatio,2);fx.width=VW*d;fx.height=VH*d;fctx.setTransform(d,0,0,d,0,0)}
 addEventListener('resize',resize)
@@ -3882,7 +3932,7 @@ const key=new THREE.DirectionalLight(0xfff0dc,.5);key.position.set(-7,15,8);scen
 const rim=new THREE.DirectionalLight(0xff4fa3,.95);rim.position.set(9,5,-14);scene.add(rim)
 const cool=new THREE.DirectionalLight(0x35e6ff,.55);cool.position.set(6,3,12);scene.add(cool)
 
-const FW=6.0, PZ=4.6, TOPZ=-26
+const FW=8.5, PZ=4.6, TOPZ=-26 // 가로모드: 필드 가로폭 확대(맵 넓게) — 전역 상수라 스폰·이동·AI·보스 전부 비례
 function L(m){if(m.color)m.color.convertSRGBToLinear();if(m.emissive)m.emissive.convertSRGBToLinear();return m}
 const flat=(c,e,i)=>{const m=new THREE.MeshStandardMaterial({color:c,emissive:e||0,roughness:.78,metalness:.05,flatShading:true});m.emissiveIntensity=i==null?1:i;return L(m)}
 const basicM=c=>L(new THREE.MeshBasicMaterial({color:c}))
@@ -4035,6 +4085,7 @@ function buildPlayer(){
 
 
 const player=buildPlayer();player.position.set(0,0,PZ);player.scale.setScalar(.9);scene.add(player)
+let SHIP_READY=false // GLB 실기체 로드 완료 전엔 기체 미표시(로프트 플래시 제거) — 렌더 루프가 이 플래그로 게이트(player.visible은 무적 블링크가 매 프레임 덮어써서 직접 못 씀)
 /* 프로 3D 에셋(Quaternius Ultimate Spaceships, CC0) — 텍스처 휴 시프트로 시안/네이비 리브랜딩.
    로드 실패(file:// 등) 시 로프트 기체 폴백. */
 function recolorTex(tex){try{
@@ -4062,7 +4113,8 @@ function recolorTex(tex){try{
  nt.flipY=tex.flipY;nt.encoding=tex.encoding;nt.wrapS=tex.wrapS;nt.wrapT=tex.wrapT
  nt.needsUpdate=true;return nt}catch(e){return tex}}
 let TRAIL_XS=[-.7,.7]
-function loadGameShip(){if(!(window.THREE&&THREE.GLTFLoader))return
+function loadGameShip(){if(!(window.THREE&&THREE.GLTFLoader)){SHIP_READY=true;return} // GLTFLoader 없으면 로프트 표시
+ setTimeout(()=>{SHIP_READY=true},1600) // 안전망: 로드 지연/무응답이어도 1.6s 뒤 로프트라도 표시(영구 숨김 방지)
  const url=(SHIPS[(META.ships.sel||'A')]||SHIPS.A).glb
  try{
  new THREE.GLTFLoader().load(url,gltf=>{try{
@@ -4083,8 +4135,9 @@ function loadGameShip(){if(!(window.THREE&&THREE.GLTFLoader))return
   for(const sx of [-1,1]){const t=glowSprite(sx<0?0xff3d9a:0x35e6ff,.3,.95);t.position.set(sx*hx*.92,0,hz*.4);player.add(t)}
   player.userData.engs=engs
   player.scale.setScalar(1)
+  SHIP_READY=true // 실기체 장착 완료 → 표시(로프트 플래시 없이 GLB가 첫 표시)
   TRAIL_XS=[-hx*.35,hx*.35]
- }catch(e){console.warn('ship swap fail',e)}},undefined,()=>{/* 폴백: 로프트/기존 유지 */})
+ }catch(e){console.warn('ship swap fail',e);SHIP_READY=true}},undefined,()=>{SHIP_READY=true/* 폴백: 로드 실패 시 로프트 표시 */})
  }catch(e){}}
 
 /* ============ 풀 ============ */
@@ -4156,13 +4209,21 @@ function mkShielded(){const g=new THREE.Group() // 방패병 — 본체 + 전방
  const sh=new THREE.Mesh(sg,L(new THREE.MeshBasicMaterial({color:0x35e6ff,transparent:true,opacity:.65,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})))
  sh.position.z=.35;sh.rotation.z=0;g.add(sh);g.userData.shield=sh
  const gl=glowSprite(0xff5d8a,.7,.5);g.add(gl);tagMats(g);scene.add(g);return g}
+function mkWarden(){const g=new THREE.Group() // 빔 요새 — 넓은 장갑 + 시안 코어 + 측면 포신
+ const body=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.7,1.0,6),flat(0x2d6a9e,0x123048,1.3));body.rotation.y=Math.PI/6;g.add(body)
+ const core=new THREE.Mesh(new THREE.OctahedronGeometry(.72,0),L(new THREE.MeshStandardMaterial({color:0x9beeff,emissive:0x35e6ff,emissiveIntensity:1.8,flatShading:true})));g.add(core);g.userData.core=core
+ for(const sx of [-1,1]){const cn=new THREE.Mesh(new THREE.BoxGeometry(.5,.45,1.6),flat(0x1a4a6e,0x0d2438,1.2));cn.position.set(sx*1.75,0,.6);g.add(cn)}
+ const gl=glowSprite(0x35e6ff,3.2,.4);g.add(gl)
+ tagMats(g);scene.add(g);return g}
 const ePool={chaff:Pool(mkChaff,14),drone:Pool(mkDrone,16),lancer:Pool(mkLancer,8),big:Pool(mkBig,3),stinger:Pool(mkStinger,3),diver:Pool(mkDiver,5),elite:Pool(mkElite,1),
- splitter:Pool(mkSplitter,5),weaver:Pool(mkWeaver,8),shard:Pool(mkChaff,10),bomber:Pool(mkBomber,3),shielded:Pool(mkShielded,3)}
+ splitter:Pool(mkSplitter,5),weaver:Pool(mkWeaver,8),shard:Pool(mkChaff,10),bomber:Pool(mkBomber,3),shielded:Pool(mkShielded,3),warden:Pool(mkWarden,1)}
 const foes=[]
+const BOSSNM={elite:'DREAD CROWN',warden:'WARDEN',hive:'HIVE',twin:'TWIN VIPERS'}
 const FOE={chaff:{hp:1,r:.55,dmg:6,xp:1,num:'+10'},drone:{hp:2,r:.8,dmg:12,xp:1,num:'+12'},
  lancer:{hp:2,r:.75,dmg:10,xp:1,num:'+15'},big:{hp:14,r:1.3,dmg:26,xp:3,num:'+30'},
  stinger:{hp:6,r:.9,dmg:14,xp:2,num:'+18'},diver:{hp:2,r:.6,dmg:14,xp:1,num:'+14'},elite:{hp:420,r:1.9,dmg:30,xp:14,num:'+200'},
  bomber:{hp:9,r:.95,dmg:16,xp:3,num:'+24'},shielded:{hp:20,r:1.0,dmg:18,xp:3,num:'+26'},
+ warden:{hp:360,r:2.4,dmg:28,xp:12,num:'+180'},
  splitter:{hp:7,r:.9,dmg:14,xp:2,num:'+20'},weaver:{hp:3,r:.7,dmg:11,xp:1,num:'+14'},shard:{hp:1,r:.45,dmg:8,xp:1,num:'+8'}}
 
 /* ============ 탄·젬·이펙트 풀 ============ */
@@ -4265,7 +4326,8 @@ function loadMeta(){try{const m=JSON.parse(localStorage.getItem('ns2_meta')||'nu
  if(m&&m.ships)return m}catch(e){}
  return {salv:0,ships:{owned:['A'],sel:'A',up:{A:{hull:0,thr:0,ars:0,srg:0},B:{hull:0,thr:0,ars:0,srg:0},C:{hull:0,thr:0,ars:0,srg:0}}}}}
 const META=loadMeta()
-function saveMeta(){try{localStorage.setItem('ns2_meta',JSON.stringify(META))}catch(e){}}
+function updateStartBal(){const _b=document.getElementById('startBalV');if(_b)_b.textContent='◆ '+fmt(META.salv)} // 타이틀 보유 골드 갱신 — META와 같은 스코프(frame 루프는 별 IIFE라 META 미접근)
+function saveMeta(){try{localStorage.setItem('ns2_meta',JSON.stringify(META))}catch(e){}updateStartBal()}
 
 /* ============ 함대(행어) ============ */
 const SHIPS={
@@ -4284,8 +4346,8 @@ let ST='start'
 const W={orbit:0,homing:0} // 보조무기 (최대 2슬롯 — 종류가 2개라 자연 충족)
 const ULV={multi:0,rapid:0,power:0,thr:0,mag:0,hull:0} // 스탯 업그레이드 레벨(만렙 캡·죽은 픽 방지)
 const E={} // (구 진화 상태 — 주무기 교체제로 대체, 참조 안전용 빈 객체)
-const S={hp:100,maxhp:100,lvl:1,xp:0,xpNext:7,kills:0,t:0,wave:1,
- primary:'pulse',plv:1, // 주무기(교체형)·주무기 레벨
+const S={hp:100,maxhp:100,lvl:1,xp:0,xpNext:10,kills:0,t:0,wave:1,
+ primary:'pulse',plv:1, // 주무기 종류 + 공유 마스터리 레벨(plv)
  streams:1,fireRate:.18,dmg:1,speed:1,magnet:3.4,fireT:0,seekT:0,lanceT:0,orbA:0,
  surge:0,surgeFired:0,surgeUntil:0,novaT:-1,invUntil:0,
  combo:0,comboAt:0,comboMax:0,comboPop:0,xpStep:0,xpAt:0,
@@ -4352,7 +4414,8 @@ function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
  $('salv').textContent='◆'+S.salvRun
  sbtn.style.setProperty('--p',clamp(S.surge,0,100))
  sbtn.classList.toggle('full',S.surge>=100)
- if(S.elite){$('ebar').style.display='block';$('ebar').firstElementChild.style.width=clamp(S.elite.hp/S.elite.max*100,0,100)+'%'}
+ if(S.elite){$('ebar').style.display='block';$('ebar').firstElementChild.style.width=clamp(S.elite.hp/S.elite.max*100,0,100)+'%'
+  $('ebar').lastElementChild.textContent=S.elite.label||'BOSS'}
  else $('ebar').style.display='none'}
 let toastT=null
 function toast(txt,ms){const el=$('toast');el.textContent=txt;el.style.opacity=1
@@ -4360,7 +4423,7 @@ function toast(txt,ms){const el=$('toast');el.textContent=txt;el.style.opacity=1
 
 /* ============ 입력 ============ */
 let tx=0
-function toField(cx){return ((cx/VW)*2-1)*FW*1.18}
+function toField(cx){return ((cx/VW)*2-1)*FW*1.18} // 창 기준 → 필드 x(가로 드래그로 조종)
 cv.addEventListener('pointerdown',e=>{AU.unlock();tx=toField(e.clientX)})
 addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')tx=toField(e.clientX)})
 // 키보드 조작(데스크톱) — ←→ / A·D 좌우 이동 + Space 서지
@@ -4368,11 +4431,13 @@ const keyMove={l:false,r:false}
 addEventListener('keydown',e=>{const k=e.code;AU.unlock()
  if(k==='ArrowLeft'||k==='KeyA'){keyMove.l=true;e.preventDefault()}
  else if(k==='ArrowRight'||k==='KeyD'){keyMove.r=true;e.preventDefault()}
- else if(k==='Space'){if(ST==='play')fireSurge();e.preventDefault()}})
+ else if(k==='Space'){if(ST==='play')fireSurge();e.preventDefault()}
+ else if(/^Digit[1-4]$/.test(k)){if(ST==='play')setPrimary(['pulse','spread','laser','rail'][+k.slice(-1)-1]);e.preventDefault()}}) // 1~4 = 무기 전환
 addEventListener('keyup',e=>{const k=e.code
  if(k==='ArrowLeft'||k==='KeyA')keyMove.l=false
  else if(k==='ArrowRight'||k==='KeyD')keyMove.r=false})
 sbtn.addEventListener('pointerdown',e=>{e.stopPropagation();AU.unlock();fireSurge()})
+{const wselEl=document.getElementById('wsel');if(wselEl)wselEl.addEventListener('click',e=>{const chip=e.target.closest('.wchip');if(chip)setPrimary(chip.dataset.w)})} // 무기 아이콘 클릭 전환
 
 /* ============ 업그레이드(무기 4 + 스탯 6) + 희귀도 ============ */
 const EVONM={vulcan:'VULCAN STORM',maelstrom:'MAELSTROM',hydra:'HYDRA',prism:'PRISM',judgment:'JUDGMENT LASER'}
@@ -4386,16 +4451,14 @@ function evolve(key){if(E[key])return
  if(key==='vulcan'){S.fireRate=Math.max(.06,S.fireRate*.62);goldify(bPool)}
  if(key==='maelstrom'){goldify(orbPool);syncOrbs()}
  if(key==='judgment'){for(const b of [...lances]){lbPool.put(b.m)};lances.length=0}}
+const MAXPLV=10 // 무기 마스터리 상한(공유 — 어떤 무기를 들든 이 레벨로 발사)
+const WNAMES={pulse:'PULSE',spread:'SPREAD',laser:'LASER',rail:'RAIL'}
 const UPG=[
- {id:'pulse',prim:1,ic:SVG.multi,nm:'PULSE',ds:'Primary → multi pulse (balanced)',ap:()=>setPrimary('pulse')},
- {id:'spread',prim:1,ic:SVG.arc,nm:'SPREAD',ds:'Primary → spread shot (wide)',ap:()=>setPrimary('spread')},
- {id:'laser',prim:1,ic:SVG.lance,nm:'LASER',ds:'Primary → piercing beam (high DPS)',ap:()=>setPrimary('laser')},
- {id:'rail',prim:1,ic:SVG.power,nm:'RAIL',ds:'Primary → piercing cannon (heavy)',ap:()=>setPrimary('rail')},
+ {id:'wlv',ic:SVG.pulse,nm:'WEAPON LV',ds:'Weapon level +1 (all weapons)',max:MAXPLV-1,ap:()=>{S.plv=Math.min(MAXPLV,S.plv+1)}}, // 마스터리 — 든 무기 전부 강해짐(탄수·위력)
  {id:'orbit',supp:1,ic:SVG.cyc,nm:'ORBIT',ds:'Support — orbit blades · melee',max:3,ap:()=>{W.orbit=Math.min(3,W.orbit+1);syncOrbs()}},
  {id:'homing',supp:1,ic:SVG.seek,nm:'HOMING',ds:'Support — homing missiles',max:3,ap:()=>{W.homing=Math.min(3,W.homing+1)}},
- {id:'multi',ic:SVG.multi,nm:'MULTI-SHOT',ds:'+1 stream (PULSE/SPREAD)',max:4,ap:()=>{ULV.multi++;S.streams=Math.min(5,S.streams+1)}},
  {id:'rapid',ic:SVG.rapid,nm:'RAPID FIRE',ds:'Fire rate +25%',max:5,ap:()=>{ULV.rapid++;S.fireRate=Math.max(.07,S.fireRate*.8)}},
- {id:'power',ic:SVG.power,nm:'OVERCHARGE',ds:'Damage +1',max:6,ap:()=>{ULV.power++;S.dmg++}},
+ {id:'power',ic:SVG.power,nm:'OVERCHARGE',ds:'Damage +1 (flat)',max:6,ap:()=>{ULV.power++;S.dmg++}},
  {id:'thr',ic:SVG.thr,nm:'THRUSTERS',ds:'Move speed +20%',max:4,ap:()=>{ULV.thr++;S.speed*=1.2}},
  {id:'mag',ic:SVG.mag,nm:'MAGNET',ds:'Pickup range +40%',max:4,ap:()=>{ULV.mag++;S.magnet*=1.4}},
  {id:'hull',ic:SVG.hull,nm:'HULL',ds:'Max HP +25 · heal',max:6,ap:()=>{ULV.hull++;S.maxhp+=25;S.hp=Math.min(S.maxhp,S.hp+25)}},
@@ -4405,10 +4468,20 @@ const FALLBACK=[
  {ic:SVG.crate,nm:'Salvage Cache',ds:'◆ +300',ap:()=>{S.salvRun+=300}},
  {ic:SVG.power,nm:'Surge Charge',ds:'Surge +50%',ap:()=>S.surge=clamp(S.surge+50,0,100)},
 ]
+const SVGW={pulse:SVG.pulse,spread:SVG.arc,laser:SVG.lance,rail:SVG.rail} // 무기별 아이콘(셀렉터용)
+function renderWeaponSel(){const el=document.getElementById('wsel') // 온디맨드 무기 셀렉터(현재 강조·클릭 전환)
+ if(el)el.innerHTML=['pulse','spread','laser','rail'].map(id=>'<div class="wchip'+(id===S.primary?' cur':'')+'" data-w="'+id+'" title="'+WNAMES[id]+'">'+SVGW[id]+'</div>').join('')
+ const m=document.getElementById('wmastery');if(m)m.textContent='LV '+S.plv}
+function renderLoadout(){const el=document.getElementById('loadout');if(!el)return // 획득 업그레이드(보조·스탯) — 무기는 셀렉터에 별도
+ const out=[]
+ for(const u of UPG){if(u.id==='wlv')continue;const lv=u.supp?W[u.id]:(ULV[u.id]||0);if(lv>0)out.push({ic:u.ic,nm:u.nm,lv})}
+ el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">L'+it.lv+'</span></div>').join(''):'<div class="loempty">— 없음 —</div>'}
 function maybeOffer(){if(ST!=='play'||S.pendingOffers<=0)return
  S.pendingOffers--;offer()}
 function offer(){ST='levelup';AU.lvl();buzz(30)
- let pool=UPG.filter(u=>u.prim?true:(u.supp?W[u.id]<u.max:ULV[u.id]<u.max)).sort(()=>Math.random()-.5).slice(0,3)
+ // 카드 = 스탯·보조·마스터리(WEAPON LV)만. 주무기 전환은 온디맨드(좌측 셀렉터/1~4키)라 카드에 없음.
+ const lvOf=u=>u.id==='wlv'?S.plv:(u.supp?W[u.id]:(ULV[u.id]||0)),maxOf=u=>u.id==='wlv'?MAXPLV:u.max
+ let pool=UPG.filter(u=>lvOf(u)<maxOf(u)).sort(()=>Math.random()-.5).slice(0,3)
  if(!pool.length)pool=[...FALLBACK].sort(()=>Math.random()-.5).slice(0,3)
  const el=$('cards');el.innerHTML=''
  for(const u of pool){
@@ -4416,21 +4489,24 @@ function offer(){ST='levelup';AU.lvl();buzz(30)
   const c=document.createElement('div');c.className='card'+(rar?' '+rar:'')
   if(rar==='epic')c.style.setProperty('--rc','#ffcf4a')
   else if(rar==='rare')c.style.setProperty('--rc','#35e6ff')
-  const lv=u.prim?(S.primary===u.id?S.plv:null):(u.supp?W[u.id]:(u.max?ULV[u.id]:null))
+  const lv=u.id?lvOf(u):null
   const step=rar==='epic'?2:1
-  const lvTxt=u.prim?(S.primary===u.id?'LV '+S.plv+' ▸ '+Math.min(5,S.plv+1):'<span class="new">SWAP ▸</span>')
-   :(lv==null?'':(u.supp&&lv===0?'<span class="new">NEW</span>':'LV '+lv+' ▸ '+Math.min(u.max,lv+step)))
+  const lvTxt=(lv==null)?'':(u.supp&&lv===0?'<span class="new">NEW</span>':'LV '+lv+' ▸ '+Math.min(maxOf(u),lv+step))
   c.innerHTML=(rar?'<div class="rr">'+rar.toUpperCase()+'</div>':'')
    +'<div class="icw">'+u.ic+'</div><div class="nm">'+u.nm+'</div>'
    +'<div class="lv">'+lvTxt+'</div><div class="ds">'+u.ds+'</div>'
   c.onclick=()=>{AU.pick()
-   if(rar==='epic'){AU.epic();u.ap();u.ap()}
-   else{u.ap();if(rar==='rare')S.hp=Math.min(S.maxhp,S.hp+8)}
+   const times=(rar==='epic')?2:1
+   if(rar==='epic')AU.epic()
+   for(let t=0;t<times;t++)u.ap()
+   if(rar==='rare')S.hp=Math.min(S.maxhp,S.hp+8)
+   {const lvl=u.id==='wlv'?S.plv:(u.supp?W[u.id]:(u.max?ULV[u.id]:null));banner('✦ '+u.nm+(lvl!=null?' · LV'+lvl:'')+(rar==='epic'?' ×2':''),'#b4ff39')} // 획득 피드백
+   renderLoadout();renderWeaponSel() // 로드아웃·무기 셀렉터(마스터리) 갱신
    $('modal').classList.remove('on');ST='play';maybeOffer()}
   el.appendChild(c)}
  $('modal').classList.add('on')}
 function gainXP(n){S.xp+=n
- while(S.xp>=S.xpNext){S.xp-=S.xpNext;S.lvl++;S.xpNext=Math.round(S.xpNext*1.5+2);S.pendingOffers++;MET.lvls.push(S.t)} // 초반 완만화(×1.4→1.5, 시작 5→7) — 레벨업 모달 빈도↓
+ while(S.xp>=S.xpNext){S.xp-=S.xpNext;S.lvl++;S.xpNext=Math.round(S.xpNext*1.55+3);S.pendingOffers++;MET.lvls.push(S.t)} // 초반 완만화(시작 10·×1.55+3) — 레벨업 모달 빈도↓(오너: 초반 너무 빠름)
  maybeOffer()}
 
 /* ============ 보상/광고 ============ */
@@ -4453,22 +4529,21 @@ $('salvAd').onclick=()=>{if(S.adSalvUsed)return;playAd(()=>{S.adSalvUsed=true
  ST='over'})}
 
 /* ============ 전투 ============ */
-function setPrimary(id){ // 주무기 교체: 같으면 레벨업, 다르면 스왑(레벨 1)
- if(S.primary===id){S.plv=Math.min(5,S.plv+1)}
- else{S.primary=id;S.plv=1;if(window.__beam)window.__beam.visible=false}
- const nm={pulse:'PULSE',spread:'SPREAD',laser:'LASER',rail:'RAIL'}[id]
- banner((S.plv>1?'LV'+S.plv+' · ':'')+nm,'#35e6ff');AU.pick()}
+function setPrimary(id){ // 온디맨드 전환: 무기 종류만 교체, 마스터리(S.plv) 유지 → LV1 함정 없음
+ if(S.primary===id||!WNAMES[id])return
+ S.primary=id;if(window.__beam)window.__beam.visible=false
+ banner('▸ '+WNAMES[id]+' · LV'+S.plv,'#35e6ff');AU.pick();renderLoadout();renderWeaponSel()}
 function fire(){const px=player.position.x,pz=player.position.z
  const dm=(S.dmg+(S.plv-1))*(S.dmgMult||1) // 데미지 = 기본+주무기레벨
- if(S.primary==='pulse'){const n=S.streams
+ if(S.primary==='pulse'){const n=1+Math.floor(S.plv/2),bs=1+(S.plv-1)*.12 // 마스터리로 탄수(+1/2레벨)·크기 성장
   for(let i=0;i<n;i++){const off=(i-(n-1)/2)*.5
-   const b=bPool.get();b.position.set(px+off*.8,0,pz-1.1);b.rotation.y=0
+   const b=bPool.get();b.position.set(px+off*.8,0,pz-1.1);b.rotation.y=0;b.scale.setScalar(bs)
    bullets.push({m:b,dmg:Math.round(dm*10)/10,vx:0,pierce:0})}}
- else if(S.primary==='spread'){const n=4+S.plv+(S.streams-1) // 부채 산탄: 넓지만 약함
+ else if(S.primary==='spread'){const n=2+Math.ceil(S.plv/2),bs=1+(S.plv-1)*.06 // 부채 산탄: 마스터리로 펠릿·크기 성장
   for(let i=0;i<n;i++){const a=(i-(n-1)/2)*.17
-   const b=bPool.get();b.position.set(px,0,pz-1);b.rotation.y=-a
-   bullets.push({m:b,dmg:Math.max(1,Math.round(dm*.55*10)/10),vx:Math.sin(a)*15,pierce:0})}}
- else if(S.primary==='rail'){const b=lbPool.get();b.position.set(px,0,pz-2) // 관통 대구경(느림·강함)
+   const b=bPool.get();b.position.set(px,0,pz-1);b.rotation.y=-a;b.scale.setScalar(bs)
+   bullets.push({m:b,dmg:Math.max(1,Math.round(dm*.6*10)/10),vx:Math.sin(a)*15,pierce:0})}}
+ else if(S.primary==='rail'){const b=lbPool.get();b.position.set(px,0,pz-2);b.scale.setScalar(1+(S.plv-1)*.16) // 관통 대구경: 레벨로 굵어짐(느림·강함)
   lances.push({m:b,dmg:6+S.plv*4,hit:new Set()});AU.tone(200,.16,'sawtooth',.07,90);return}
  AU.shot()} // laser는 연속빔이라 fire()에서 처리 안 함
 function syncOrbs(){const target=W.orbit;while(orbs.length<target){const o=orbPool.get();orbs.push(o)}
@@ -4491,13 +4566,15 @@ function spawnFoe(type,x,z){if(foes.length>90)return null
  if(type==='shard'){f.spd=rnd(5,6.5);f.hp=1}
  if(type==='bomber'){f.spd=rnd(2.8,3.4)*Math.min(sMul,1.3);f.stopZ=rnd(-13,-8);f.bombT=rnd(1.4,2.2)}
  if(type==='shielded')f.spd=rnd(1.4,1.9)*Math.min(sMul,1.3)
- if(type==='elite'){f.spd=2.2;f.hp=Math.round(c.hp*Math.pow(1.5,S.elitesKilled));f.max=f.hp
-  f.phase='enter';f.pt=0;f.rad=0;S.elite={hp:f.hp,max:f.hp}}
+ if(type==='elite'||type==='warden'||type==='hive'||type==='twin'){f.spd=2.2;f.boss=1
+  f.hp=Math.round(c.hp*Math.pow(1.35,S.elitesKilled));f.max=f.hp
+  f.phase='enter';f.pt=0;f.rad=0
+  S.elite={hp:f.hp,max:f.hp,label:BOSSNM[type]}}
  foes.push(f);return f}
 function releaseFoe(f){ePool[f.type].put(f.m)
  if(f.type==='stinger')S.stAlive--
  if(f.type==='big')S.bigAlive--
- if(f.type==='elite')S.elite=null
+ if(f.boss){S.elite=null;if(window.__wbeam)window.__wbeam.visible=false}
  foes.splice(foes.indexOf(f),1)}
 function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,now=performance.now()
  S.kills++;S.fbKills++;if(MET.kills.length<6000)MET.kills.push(S.t)
@@ -4508,13 +4585,13 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
   const g=gemPool.get();g.position.set(x+rnd(-1,1),0,z+rnd(-1,1));gems.push({m:g})}
  if(f.type==='splitter'&&z<PZ){for(let k=0;k<2;k++){const sh=spawnFoe('shard',x+((k?1:-1)*.5),z) // 분열: 2조각 확산
   if(sh)sh.vx=(k?1:-1)*rnd(2.5,4)}}
- const big=f.type==='big'||f.type==='stinger'||f.type==='elite'||f.type==='bomber'||f.type==='shielded'
+ const big=f.type==='big'||f.type==='stinger'||f.type==='elite'||f.type==='bomber'||f.type==='shielded'||f.boss
  burst(x,z,(f.type==='big'||f.type==='elite')?0xb98cff:0xff5fae,f.type==='elite'?20:(big?12:7))
  if(big)ring(x,z,0xffd9f0,f.type==='elite'?5:3.2,f.type==='elite'?.5:.32)
  num(x,z,c.num,big?'#ffcf4a':'#ffffff',big?16:13)
  const SALV={chaff:1,drone:2,lancer:2,stinger:4,big:6,diver:2,elite:150,splitter:5,weaver:2,shard:1,bomber:6,shielded:8}
  const val=Math.ceil((SALV[f.type]||1)*(1+Math.min(S.combo,40)*.02)*(S.salvMult||1))
- if((f.type==='big'||f.type==='stinger'||f.type==='splitter'||f.type==='elite'||f.type==='bomber'||f.type==='shielded')&&z<PZ){ // 강적 = 보이는 골드 코인
+ if((f.type==='big'||f.type==='stinger'||f.type==='splitter'||f.type==='bomber'||f.type==='shielded'||f.boss)&&z<PZ){ // 강적 = 보이는 골드 코인
   const n=f.type==='elite'?6:1
   for(let i=0;i<n;i++){if(coins.length>30)break;const cm=coinPool.get()
    cm.position.set(x+rnd(-1.2,1.2),0,z+rnd(-1,1));coins.push({m:cm,v:Math.max(1,Math.round(val/n))})}}
@@ -4524,10 +4601,11 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
  S.shake=Math.min(S.shake+(big?5:2),10)
  if(!byNova&&now>S.hsCd){S.freezeUntil=now+(big?80:50);S.hsCd=now+260}
  S.surge=clamp(S.surge+.35*(S.srgMult||1),0,100)
- if(f.type==='elite'){S.elitesKilled++;S.eliteAt=S.t+85;S.eliteWarned=false
-  banner('ELITE DOWN','#ffcf4a');AU.boss();buzz(90)
+ if(f.boss){S.elitesKilled++
+  banner(BOSSNM[f.type]+' DOWN','#ffcf4a');AU.boss();buzz(90)
   FLASH.c=1;S.freezeUntil=now+140;S.shake=12
-  ring(x,z,0xffffff,7,.6);S.hp=Math.min(S.maxhp,S.hp+20)}
+  ring(x,z,0xffffff,7,.6);S.hp=Math.min(S.maxhp,S.hp+20)
+  if(window.__wbeam)window.__wbeam.visible=false}
  releaseFoe(f)}
 function hitFX(f,dmg,now){f.flashOn=true;f.flashUntil=now+70;setFlash(f.m,true);AU.hit()
  num(f.m.position.x,f.m.position.z,'-'+dmg,'#cfe6ff',11)}
@@ -4605,14 +4683,15 @@ function director(wdt){
   if(S.spShield<=0){S.spShield=Math.max(7,12-S.wave*.2);spawnFoe('shielded',rnd(-FW*.7,FW*.7))}}
  if(S.wave>=10){S.spBomber=(S.spBomber||0)-wdt // 폭탄병 — 웨이브10부터
   if(S.spBomber<=0){S.spBomber=Math.max(6,12-S.wave*.2);spawnFoe('bomber',rnd(-FW*.7,FW*.7))}}
- if(!S.elite&&!S.eliteWarned&&S.t>=S.eliteAt-10){S.eliteWarned=true;banner('⚠ ELITE APPROACHING','#ff5d6c');AU.warn();buzz(60)}
- if(!S.elite&&S.t>=S.eliteAt){spawnFoe('elite',0,TOPZ-2);banner('DREAD CROWN','#b779ff');AU.boss()}
  const w=1+(S.t/20|0)
  if(w!==S.wave){const prev=S.wave;S.wave=w
-  banner('◆ WAVE '+prev+' CLEAR','#b4ff39') // 이산 클리어 순간
-  S.hp=Math.min(S.maxhp,S.hp+15);AU.ready() // 클리어 = 소량 정비 회복
-  const intro={4:'WEAVER — evasive fliers',6:'SPLITTER — splitting foes',8:'Lancer pincer attacks',11:'High-density swarm'}[w]
-  toast('▸ WAVE '+w+(intro?' — '+intro:''),2600)
+  if(w%5===0&&!S.elite){ // 마일스톤 보스 — 웨5/10/15/20 (엔들리스 순환·티어 강화)
+   const kinds=['warden','elite','elite','elite'],kind=kinds[(w/5-1)%4] // hive(웨10)·twin(웨15)은 구현 후 교체
+   S.hp=Math.min(S.maxhp,S.hp+15)
+   spawnFoe(kind,0,TOPZ-2);banner('⚠ '+BOSSNM[kind]+(S.elitesKilled>=4?' ++':''),'#ff5d6c');AU.boss();buzz(70)}
+  else{banner('◆ WAVE '+prev+' CLEAR','#b4ff39');S.hp=Math.min(S.maxhp,S.hp+15);AU.ready()
+   const intro={4:'WEAVER — evasive fliers',6:'SPLITTER — splitting foes',8:'Lancer pincer attacks',11:'High-density swarm'}[w]
+   if(intro)toast('▸ WAVE '+w+' — '+intro,2600)}
   pulse();S.salvRun+=10+w*2}}
 
 /* ============ 메인 루프 ============ */
@@ -4627,7 +4706,11 @@ function frame(now){requestAnimationFrame(frame)
  const pdt=frozen?0:rdt
  if(ST==='hangar'&&HG.ready&&HG.grp){HG.grp.rotation.y+=rdt*.6;HG.grp.position.y=Math.sin(now*.0012)*.05;HG.r.render(HG.sc,HG.cam)}
  window.__envSpin&&window.__envSpin()
- for(const st of window.__stars){st.position.z=(st.position.z+rdt*(st===window.__stars[1]?3.5:1.6))%2}
+ for(let li=0;li<window.__stars.length;li++){const st=window.__stars[li],spd=(li===1?3.5:1.6),arr=st.geometry.attributes.position.array // 개별 정점 스크롤+개별 랩(z>14→뒤로 −74) — 그룹 %2 스냅백(끊김) 제거
+  for(let i=2;i<arr.length;i+=3){arr[i]+=spd*rdt;if(arr[i]>14)arr[i]-=74}
+  st.geometry.attributes.position.needsUpdate=true}
+ player.visible=SHIP_READY&&!(performance.now()<S.invUntil&&((performance.now()/70|0)%2===0)) // 매 프레임: GLB 로드 전엔 기체 숨김(타이틀 로프트 플래시 제거)
+ $('ui').classList.toggle('playing',ST!=='start'&&ST!=='over') // 인게임 HUD는 플레이 중에만(startBal은 스코프 문제로 saveMeta/startup에서 갱신)
  for(const r of window.__roids){r.position.z+=r.userData.vz*rdt;r.rotation.x+=r.userData.vr*rdt;r.rotation.y+=r.userData.vr*.7*rdt
   if(r.position.z>12)r.position.z=-42}
  for(const e of player.userData.engs)e.material.opacity=.55+Math.abs(Math.sin(now*.012))*.4
@@ -4653,12 +4736,15 @@ function frame(now){requestAnimationFrame(frame)
     const glow=new THREE.Mesh(new THREE.BoxGeometry(.7,.06,34),L(new THREE.MeshBasicMaterial({color:0x35e6ff,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})));bg.add(glow)
     scene.add(bg);window.__beam=bg}
    window.__beam.visible=true;window.__beam.position.set(player.position.x,0,player.position.z-18)
-   const w=1+Math.sin(now*.02)*.14;window.__beam.scale.x=w
+   const w=(1+(S.plv-1)*.16)*(1+Math.sin(now*.02)*.1);window.__beam.scale.x=w // 레벨로 빔 굵기 성장(시각 피드백)
    S.beamTick-=pdt
-   if(S.beamTick<=0){S.beamTick=.1;const bd=3+S.plv*2 // 틱 데미지(레벨 스케일)
+   if(S.beamTick<=0){S.beamTick=.1;const bd=3+S.plv*2,hw=.55+(S.plv-1)*.09 // 틱 데미지·판정폭 모두 레벨 스케일
     for(let i=foes.length-1;i>=0;i--){const f=foes[i]
-     if(Math.abs(f.m.position.x-player.position.x)<.7&&f.m.position.z<player.position.z){
-      f.hp-=bd;if(f.hp<=0)kill(f);else if(Math.random()<.3)hitFX(f,bd,now)}}
+     if(Math.abs(f.m.position.x-player.position.x)<hw&&f.m.position.z<player.position.z){
+      f.hp-=bd
+      if(f.hp<=0)kill(f)
+      else{f.flashOn=true;f.flashUntil=now+180;setFlash(f.m,true) // 지속 발열: 틱(100ms)보다 긴 180ms 플래시 → 빔 안에선 계속 흰색(깜박임 제거)
+       if(Math.random()<.22)num(f.m.position.x,f.m.position.z-.6,'-'+bd,'#cdf6ff',11)}}}
     if(Math.random()<.5)AU.tone(1800+Math.random()*400,.05,'sine',.02,1600)}}
   else if(window.__beam)window.__beam.visible=false
   if(W.homing>0){S.seekT-=pdt // 보조: 유도 미사일
@@ -4766,10 +4852,29 @@ function frame(now){requestAnimationFrame(frame)
        ebullets.push({m:b,vx:dx/l*sp+rnd(-.6,.6),vz:dz/l*sp,grazed:false})}}
      if(f.shots>5)m.position.z+=1.6*wdt}
     m.userData.ring.rotation.z+=wdt*3}
+   else if(f.type==='warden'){f.pt+=wdt // 빔 요새 — 입장→호버→충전→스윕빔
+    if(S.elite)S.elite.hp=f.hp
+    if(m.userData.core)m.userData.core.rotation.y+=wdt*2
+    if(f.phase==='enter'){m.position.z+=(f.spd+3.6)*wdt;if(m.position.z>=-12){f.phase='hover';f.pt=0;f.beamCd=1.2}} // 더 앞(-12)에 호버 — 멀어서 안 맞던 문제 완화
+    else{m.position.x+=(Math.sin(S.t*.2)*3.8-m.position.x)*Math.min(1,wdt*.6) // 흔들림 축소·감속(3.8, 원래 FW*.55=4.7) — 추적·명중 쉽게
+     if(f.phase==='hover'){f.beamCd-=wdt
+      if(f.beamCd<=0){f.phase='charge';f.pt=0;f.beamDir=(Math.random()<.5?1:-1);f.flashOn=true;setFlash(m,true);f.flashUntil=now+9999;AU.warn()}} // 스윕 방향 결정 → 충전 중 예고선 표시
+     else if(f.phase==='charge'){if(f.pt>1.25){f.phase='beam';f.pt=0;f.beamX=f.beamDir*(FW+1.5);f.flashOn=false;setFlash(m,false);AU.tone(110,2,'sawtooth',.13,70)}}
+     else if(f.phase==='beam'){const BDUR=1.7,sX=f.beamDir*(FW+1.5);f.beamX=sX+(f.pt/BDUR)*(0-sX) // 시작 끝→중앙 반쪽만 스윕 — 반대 절반은 항상 안전(회피 가능)
+      if(Math.abs(player.position.x-f.beamX)<.8&&player.position.z>m.position.z&&now>S.invUntil)hurt(14,700)
+      if(f.pt>BDUR){f.phase='hover';f.pt=0;f.beamCd=rnd(2.4,3.4)}}}
+    if(f.phase==='beam'||f.phase==='charge'){if(!window.__wbeam){const bg=new THREE.Group()
+      bg.add(new THREE.Mesh(new THREE.BoxGeometry(.35,.1,46),basicM(0xcdf6ff)))
+      bg.add(new THREE.Mesh(new THREE.BoxGeometry(1.1,.08,46),L(new THREE.MeshBasicMaterial({color:0x35e6ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}))))
+      scene.add(bg);window.__wbeam=bg}
+     const _tel=(f.phase==='charge'),_bx=_tel?f.beamDir*(FW+1.5):f.beamX // 충전=시작 끝에 예고선(가늘게 깜빡)
+     window.__wbeam.visible=true;window.__wbeam.position.set(_bx,0,m.position.z+20);window.__wbeam.scale.x=_tel?(0.3+Math.abs(Math.sin(now*.014))*.3):(1+Math.sin(now*.04)*.2)}
+    else if(window.__wbeam)window.__wbeam.visible=false
+    if(m.userData.core)m.userData.core.material.emissiveIntensity=(f.phase==='charge')?(2+Math.abs(Math.sin(now*.02))*2):1.8}
    else if(f.type==='elite'){f.pt+=wdt
     m.rotation.y+=wdt*.5;m.userData.ring.rotation.z+=wdt*1.2
     if(S.elite)S.elite.hp=f.hp
-    if(f.phase==='enter'){m.position.z+=f.spd*wdt;if(m.position.z>=-13){f.phase='hover';f.pt=0}}
+    if(f.phase==='enter'){m.position.z+=(f.spd+3.6)*wdt;if(m.position.z>=-13){f.phase='hover';f.pt=0}} // 입장 가속(등장 후 방치 감소)
     else if(f.phase==='hover'){
      m.position.x+=(player.position.x*.6-m.position.x)*Math.min(1,wdt*.8)
      f.rad+=wdt
@@ -4798,8 +4903,8 @@ function frame(now){requestAnimationFrame(frame)
    if(f.flashOn&&now>f.flashUntil&&!(f.type==='elite'&&f.phase==='tele')){f.flashOn=false;setFlash(m,false)}
    const pdx=m.position.x-player.position.x,pdz=m.position.z-player.position.z
    if(Math.hypot(pdx,pdz)<f.r+.55){hurt(FOE[f.type].dmg)
-    if(f.type!=='elite'&&f.type!=='big'&&f.type!=='bomber'&&f.type!=='shielded'){burst(m.position.x,m.position.z,0xff8fc4,6);releaseFoe(f);continue}}
-   if(f.type!=='elite'&&m.position.z>PZ+3){leak(f);releaseFoe(f);continue}
+    if(f.type!=='big'&&f.type!=='bomber'&&f.type!=='shielded'&&!f.boss){burst(m.position.x,m.position.z,0xff8fc4,6);releaseFoe(f);continue}}
+   if(!f.boss&&m.position.z>PZ+3){leak(f);releaseFoe(f);continue}
    let killed=false
    for(let j=bullets.length-1;j>=0;j--){const b=bullets[j]
     const bdx=b.m.position.x-m.position.x,bdz=b.m.position.z-m.position.z
@@ -4876,7 +4981,6 @@ function frame(now){requestAnimationFrame(frame)
  cam.lookAt(shx,0,-6)
  const tf=slow?43:48
  if(Math.abs(cam.fov-tf)>.05){cam.fov+=(tf-cam.fov)*Math.min(1,rdt*7);cam.updateProjectionMatrix()}
- player.visible=!(performance.now()<S.invUntil&&((performance.now()/70|0)%2===0))
  setUI();drawFX(rdt)
  renderer.render(scene,cam)}
 resize();requestAnimationFrame(frame)
@@ -4903,7 +5007,8 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(const g of orbPool.all)g.traverse(o=>{if(o.isMesh&&o.material.color)o.material.color.setHex(0xc98bff).convertSRGBToLinear()
   else if(o.isSprite)o.material.color.setHex(0xb779ff).convertSRGBToLinear()})
  if(window.__beam)window.__beam.visible=false
- Object.assign(S,{hp:100,maxhp:100,lvl:1,xp:0,xpNext:7,kills:0,t:0,wave:1,
+ if(window.__wbeam)window.__wbeam.visible=false
+ Object.assign(S,{hp:100,maxhp:100,lvl:1,xp:0,xpNext:10,kills:0,t:0,wave:1,
   primary:'pulse',plv:1,beamTick:0,
   streams:1,fireRate:.18,dmg:1,speed:1,magnet:3.4,fireT:0,seekT:0,lanceT:0,orbA:0,
   surge:0,surgeUntil:0,novaT:-1,invUntil:0,
@@ -4924,7 +5029,7 @@ function applyShip(){const sel=META.ships.sel||'A'
  S.dmgMult=sh.mods.dmg}
 function begin(){AU.unlock();reset();applyShip()
  if(window.__hangarClose)window.__hangarClose()
- $('start').classList.add('off');$('over').classList.add('off');ST='play'}
+ $('start').classList.add('off');$('over').classList.add('off');ST='play';renderLoadout();renderWeaponSel()}
 $('playBtn').onclick=begin
 $('retryBtn').onclick=begin
 /* ============ 행어(함대) ============ */
@@ -5005,19 +5110,25 @@ $('hSel').onclick=()=>{if(!META.ships.owned.includes(HG.cur))return
 window.__hangar={open:hgOpen,state:()=>({cur:HG.cur,owned:[...META.ships.owned],sel:META.ships.sel,salv:META.salv,up:JSON.parse(JSON.stringify(META.ships.up))}),grant:n=>{META.salv+=n;saveMeta();hgRefresh()}}
 
 loadGameShip() // SHIPS/META 선언 이후 시점에 초기 로드(TDZ 회피)
+updateStartBal() // 타이틀 최초 진입에도 보유 골드 표시(복귀 유저)
 window.__begin=begin
 window.__surge=fireSurge
 if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공개 데모 치팅 방지)
  setEliteAt:t=>{S.eliteAt=t},
  setPrimary:(id,lv)=>{for(let i=0;i<(lv||1);i++)setPrimary(id)},
- setWeapon:(id,lv)=>{const u=UPG.find(x=>x.id===id);if(!u)return;if(u.prim){for(let i=0;i<(lv||1);i++)u.ap();return}const cur=u.supp?W[id]:ULV[id];for(let i=cur;i<(lv||u.max);i++)u.ap()},
- maxAllWeapons:()=>{['orbit','homing','multi','rapid','power'].forEach(id=>{const u=UPG.find(x=>x.id===id);const mx=u.max;const cur=u.supp?W[id]:ULV[id];for(let i=cur;i<mx;i++)u.ap()})},
+ setWeapon:(id,lv)=>{if(id==='wlv'){S.plv=Math.min(MAXPLV,lv||MAXPLV);renderWeaponSel();return}const u=UPG.find(x=>x.id===id);if(!u)return;const cur=u.supp?W[id]:(ULV[id]||0);for(let i=cur;i<(lv||u.max);i++)u.ap()},
+ maxAllWeapons:()=>{['orbit','homing','rapid','power','thr','mag','hull'].forEach(id=>{const u=UPG.find(x=>x.id===id);if(!u)return;const cur=u.supp?W[id]:(ULV[id]||0);for(let i=cur;i<u.max;i++)u.ap()})},
  primaryState:()=>({primary:S.primary,plv:S.plv,orbit:W.orbit,homing:W.homing}),
  setSalv:n=>{META.salv=n;saveMeta()},
  spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
  foeTypes:()=>foes.map(f=>f.type),
  setSurge:n=>{S.surge=n}, ebCount:()=>ebullets.length,
  foeCount:()=>foes.length,
+ bulletCount:()=>bullets.length, streams:()=>S.streams, dmg:()=>S.dmg, plv:()=>S.plv,
+ fireRate:()=>Math.round(S.fireRate*1000)/1000, forceFire:()=>{const n=bullets.length;fire();return bullets.length-n},
+ addXP:n=>gainXP(n==null?S.xpNext:n), ulvGet:()=>({...ULV}), wGet:()=>({...W}), renderLoadout:()=>renderLoadout(),
+ setMastery:n=>{S.plv=Math.min(MAXPLV,Math.max(1,n|0));renderWeaponSel()},
+ shipVis:()=>player.visible, shipKids:()=>player.children.length, starGz:()=>Math.round(window.__stars[0].position.z*1000)/1000, starV0z:()=>Math.round(window.__stars[0].geometry.attributes.position.array[2]*100)/100,
  hp:()=>S.hp, maxhp:()=>S.maxhp, kill:()=>{S.hp=0}
 }
 })()
