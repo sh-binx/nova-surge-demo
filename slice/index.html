@@ -4262,9 +4262,9 @@ function mkLanceB(){const g=new THREE.Group()
  scene.add(g);return g}
 const lbPool=Pool(mkLanceB,4),lances=[]
 const mGeo=new THREE.ConeGeometry(.14,.5,5);mGeo.rotateX(Math.PI/2)
-function mkMissile(){const g=new THREE.Group()
- g.add(new THREE.Mesh(mGeo,basicM(0x8bf3ff)))
- const gl=glowSprite(0x35e6ff,.6,.9);g.add(gl)
+function mkMissile(){const g=new THREE.Group() // 오렌지 로켓 — XP 젬(시안)과 구분
+ g.add(new THREE.Mesh(mGeo,basicM(0xffb14d)))
+ const gl=glowSprite(0xff7a2a,.7,.95);g.add(gl)
  scene.add(g);return g}
 const msPool=Pool(mkMissile,10),missiles=[]
 function mkOrb(){const g=new THREE.Group() // 궤도 블레이드 — 바이올렛(XP 시안과 구분)
@@ -4287,8 +4287,15 @@ function mkCoin(){const g=new THREE.Group() // 골드 코인 — 기체 구매 �
  g.add(new THREE.Mesh(geo,L(new THREE.MeshStandardMaterial({color:0xffcf4a,emissive:0xe0a814,emissiveIntensity:1.0,flatShading:true}))))
  const gl=glowSprite(0xffcf4a,.78,.65);g.add(gl)
  scene.add(g);return g}
+function mkCrate(){const g=new THREE.Group() // 보급 크레이트 — 하강, 기체가 닿으면 오픈
+ g.add(new THREE.Mesh(new THREE.BoxGeometry(.72,.62,.72),L(new THREE.MeshStandardMaterial({color:0xcf9038,emissive:0x7a4e12,emissiveIntensity:.75,flatShading:true}))))
+ g.add(new THREE.Mesh(new THREE.BoxGeometry(.8,.16,.16),basicM(0xffe6b0)))
+ g.add(new THREE.Mesh(new THREE.BoxGeometry(.16,.16,.8),basicM(0xffe6b0)))
+ const gl=glowSprite(0xffd06a,1.3,.72);g.add(gl)
+ scene.add(g);g.visible=false;return g}
 const gemPool=Pool(mkGem,28),gems=[]
 const coinPool=Pool(mkCoin,16),coins=[]
+const cratePool=Pool(mkCrate,3),crates=[]
 const dGeo=new THREE.TetrahedronGeometry(.14,0)
 function mkDeb(){const m=new THREE.Mesh(dGeo,basicM(0xff5fae));scene.add(m);return m}
 const dPool=Pool(mkDeb,70),debris=[]
@@ -4392,6 +4399,7 @@ if(DEV)window.__ai=n=>{AILVL=n|0;aiT=0}
 // 측정용 가속기(DEV 전용·prod 무영향): 렌더 스킵 + 합성 performance.now로 프레임 동기 반복 → 전 웨이브 고속 시뮬(정확한 소스텝)
 if(DEV)window.__fast=(secs,dtms=25)=>{const pn=performance.now.bind(performance);let n=pn();const orig=performance.now;try{performance.now=()=>n}catch(e){}window.__manual=1;window.__norender=1;const end=S.t+secs;let g=0;while(S.t<end&&ST==='play'&&g++<400000){n+=dtms;frame(n)}try{performance.now=orig}catch(e){}window.__manual=0;window.__norender=0;requestAnimationFrame(frame);return{t:Math.round(S.t),ST,dead:ST==='over'}}
 if(DEV)window.__met=()=>MET.hp.map(h=>({t:h.t,hp:h.hp,mhp:h.mhp,foes:h.foes,eb:h.eb,k:h.k,lvl:h.lvl}))
+if(DEV)window.__crate=()=>{const g=cratePool.get();g.visible=true;g.position.set(player.position.x,0,TOPZ-2);g.rotation.set(0,0,0);crates.push({m:g})} // 측정용: 플레이어 x에 크레이트 스폰
 // 스킬티어 = 순수 회피품질 사다리. 반응속도는 전 티어 0.03s 통일 —
 // 실력 차등은 예측길이(lead)·후보해상도(N)·다이버경계(div)·젬수집(gem)·서지운용(surge)뿐.
 const AITIER={
@@ -4540,6 +4548,9 @@ function gainXP(n){S.xp+=n
  maybeOffer()}
 
 /* ============ 보상/광고 ============ */
+function spawnCrate(){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
+ g.position.set(rnd(-FW*.7,FW*.7),0,TOPZ-2);g.rotation.set(0,0,0)
+ crates.push({m:g});toast('◆ 보급 크레이트 하강 — 날아가 획득!',2200);AU.ready()}
 function showReward(){ST='reward';$('reward').classList.add('on')}
 function grantReward(m){$('reward').classList.remove('on');ST='play' // 버그 수리: 상태 복귀 먼저 → 레벨업 모달과 경합 제거
  S.hp=Math.min(S.maxhp,S.hp+30);gainXP(S.xpNext*.5*m)}
@@ -4813,7 +4824,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
     ms.vx+=(dx/l*16-ms.vx)*Math.min(1,pdt*4);ms.vz+=(dz/l*16-ms.vz)*Math.min(1,pdt*4)}
    ms.m.position.x+=ms.vx*pdt;ms.m.position.z+=ms.vz*pdt
    ms.m.rotation.y=Math.atan2(ms.vx,-ms.vz)
-   if(Math.random()<pdt*30)trail(ms.m.position.x,0,ms.m.position.z+.3,0x35e6ff,.25,.25)
+   if(Math.random()<pdt*30)trail(ms.m.position.x,0,ms.m.position.z+.3,0xff7a2a,.25,.25)
    let hitf=null
    for(const f of foes){if(Math.abs(f.m.position.x-ms.m.position.x)<f.r&&Math.abs(f.m.position.z-ms.m.position.z)<f.r){hitf=f;break}}
    if(hitf){hitf.hp-=ms.dmg
@@ -5000,7 +5011,12 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
     S.salvRun+=c.v;AU.tone(680,.09,'triangle',.06,920);AU.tone(1040,.07,'sine',.04);buzz(12)
     num(player.position.x,player.position.z-1.3,'◆+'+c.v,'#ffcf4a',13);continue}
    if(c.m.position.z>PZ+3){coinPool.put(c.m);coins.splice(i,1)}}
-  if(S.t>=S.nextReward){S.nextReward+=40;showReward()}
+  for(let i=crates.length-1;i>=0;i--){const c=crates[i] // 보급 크레이트: 하강 → 닿으면 오픈, 놓치면 사라짐
+   c.m.position.z+=2.4*wdt;c.m.rotation.y+=rdt*1.6;c.m.rotation.x+=rdt*.6
+   const d=Math.hypot(player.position.x-c.m.position.x,player.position.z-c.m.position.z)
+   if(d<1.35){cratePool.put(c.m);crates.splice(i,1);ring(c.m.position.x,c.m.position.z,0xffd06a,3.2,.45);burst(c.m.position.x,c.m.position.z,0xffe0a0,10);AU.pick();showReward();continue}
+   if(c.m.position.z>PZ+3){cratePool.put(c.m);crates.splice(i,1);toast('보급 크레이트 놓침',1100)}}
+  if(S.t>=S.nextReward){S.nextReward+=40;spawnCrate()}
  }
  for(let i=debris.length-1;i>=0;i--){const d=debris[i]
   d.m.position.x+=d.vx*rdt;d.m.position.z+=d.vz*rdt;d.m.position.y+=d.vy*rdt
@@ -5034,6 +5050,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(let i=ebullets.length-1;i>=0;i--){ebPool.put(ebullets[i].m)};ebullets.length=0
  for(let i=gems.length-1;i>=0;i--){gemPool.put(gems[i].m)};gems.length=0
  for(let i=coins.length-1;i>=0;i--){coinPool.put(coins[i].m)};coins.length=0
+ for(let i=crates.length-1;i>=0;i--){cratePool.put(crates[i].m)};crates.length=0
  for(let i=debris.length-1;i>=0;i--){dPool.put(debris[i].m)};debris.length=0
  for(let i=rings.length-1;i>=0;i--){rPool.put(rings[i].m)};rings.length=0
  for(let i=trails.length-1;i>=0;i--){tPool.put(trails[i].sp)};trails.length=0
