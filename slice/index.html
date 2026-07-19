@@ -121,7 +121,8 @@
   .dchip.on{color:#04210f;border-color:transparent}
   .dchip.e.on{background:#4ade80}.dchip.n.on{background:#35e6ff}.dchip.h.on{background:#ff5d6c;color:#fff}
   #lb .lbsub{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:#8792b5;margin:2px 0 16px}
-  .lblist{width:min(92vw,440px);display:flex;flex-direction:column;gap:3px;min-height:200px}
+  .lblist{width:min(92vw,440px);display:flex;flex-direction:column;gap:3px;min-height:200px;max-height:min(56vh,440px);overflow-y:auto;padding-right:4px}
+  .lblist::-webkit-scrollbar{width:6px}.lblist::-webkit-scrollbar-thumb{background:rgba(120,150,220,.3);border-radius:3px}
   .lbrow{display:grid;grid-template-columns:34px 1fr 50px 82px;gap:8px;align-items:center;padding:8px 12px;border-radius:8px;background:rgba(120,150,220,.05);font-family:ui-monospace,Menlo,monospace;font-size:13px}
   .lbrow .r{font-weight:800;color:#8792b5;text-align:center}
   .lbrow:nth-child(1) .r{color:#ffcf4a}.lbrow:nth-child(2) .r{color:#c8d2e8}.lbrow:nth-child(3) .r{color:#e0a060}
@@ -246,7 +247,7 @@
 
   <div class="center off" id="lb">
     <h1 style="color:#ffcf4a;font-size:30px;text-shadow:0 0 24px rgba(255,207,74,.5)">🏆 LEADERBOARD</h1>
-    <div class="lbsub" id="lbSub">GLOBAL · TOP 10</div>
+    <div class="lbsub" id="lbSub">GLOBAL · TOP 100</div>
     <div class="lblist" id="lbList"></div>
     <div class="lbname"><span>YOU</span><input id="lbName" maxlength="16" spellcheck="false"><span id="lbRank" class="lbrk"></span></div>
     <div class="play" id="lbBack" style="background:#35e6ff;margin-top:18px">← Back</div>
@@ -4404,8 +4405,8 @@ let PNAME=(localStorage.getItem('ns2_name')||('PILOT-'+Math.floor(1000+Math.rand
 try{localStorage.setItem('ns2_name',PNAME)}catch(e){}
 let PBEST=+(localStorage.getItem('ns2_best')||0)
 const _sbH={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-function submitScore(score,wave,diff){if(!(score>0))return
- fetch(SB_URL+'/rest/v1/runs',{method:'POST',headers:{..._sbH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({name:PNAME,score,wave,diff})}).catch(()=>{})}
+function submitScore(score,wave,diff,dur){if(!(score>0))return // 서버(Edge Function) 타당성 검증 경유 — 직접삽입 차단됨
+ fetch(SB_URL+'/functions/v1/submit-run',{method:'POST',headers:{..._sbH,'Content-Type':'application/json'},body:JSON.stringify({name:PNAME,score,wave,diff,dur})}).catch(()=>{})}
 function fetchBoard(){return fetch(SB_URL+'/rest/v1/runs?select=name,score,wave,diff&order=score.desc&limit=100',{headers:_sbH}).then(r=>r.ok?r.json():null).catch(()=>null)}
 
 /* ============ 함대(행어) ============ */
@@ -4706,7 +4707,7 @@ function die(){S.hp=0;ST='over'
  META.salv+=earned;saveMeta()
  const score=Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned)) // 리더보드 점수
  if(score>PBEST){PBEST=score;try{localStorage.setItem('ns2_best',PBEST)}catch(e){}}
- submitScore(score,S.wave,META.diff)
+ submitScore(score,S.wave,META.diff,Math.round(S.t))
  $('overStats').innerHTML='<div style="font-size:13px;letter-spacing:2px;color:#8792b5;font-family:ui-monospace,Menlo,monospace">SCORE</div><div style="font-size:30px;color:#35e6ff;font-weight:800;margin:2px 0 10px">'+fmt(score)+'</div>WAVE '+S.wave+' · KILLS '+S.kills+' · MAX COMBO <b>×'+S.comboMax+'</b> · '+($('time').textContent)
   +'<br>SALVAGE <b>◆ +'+earned+'</b> · Balance ◆ '+META.salv
  $('reviveAd').style.display=S.revived?'none':'block'
@@ -5152,7 +5153,7 @@ const _esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'
 function renderLB(rows){const el=$('lbList');if(!el)return
  if(rows==null){el.innerHTML='<div class="lbempty">Leaderboard offline — try again later.</div>';$('lbRank').textContent='';return}
  if(!rows.length)el.innerHTML='<div class="lbempty">No scores yet — be the first!</div>'
- else el.innerHTML=rows.slice(0,10).map((r,i)=>'<div class="lbrow'+(r.name===PNAME&&r.score===PBEST?' me':'')+'"><span class="r">'+(i+1)+'</span><span class="nm">'+_esc(r.name)+'</span><span class="wv">W'+r.wave+'</span><span class="sc">'+fmt(r.score)+'</span></div>').join('')
+ else el.innerHTML=rows.slice(0,100).map((r,i)=>'<div class="lbrow'+(r.name===PNAME&&r.score===PBEST?' me':'')+'"><span class="r">'+(i+1)+'</span><span class="nm">'+_esc(r.name)+'</span><span class="wv">W'+r.wave+'</span><span class="sc">'+fmt(r.score)+'</span></div>').join('')
  const mine=rows.findIndex(r=>r.name===PNAME&&r.score===PBEST)
  $('lbRank').textContent=PBEST>0?(mine>=0?('rank #'+(mine+1)):('best '+fmt(PBEST))):''}
 function openLB(){AU.unlock();ST='lb';$('start').classList.add('off');$('over').classList.add('off');$('lb').classList.remove('off')
