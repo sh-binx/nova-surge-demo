@@ -208,9 +208,9 @@
   <div class="modal" id="modal"><h2>LEVEL UP</h2><div class="sub">Choose one</div><div class="cards" id="cards"></div></div>
 
   <div class="reward" id="reward">
-    <div class="crate" id="crateIc"></div><h2>SUPPLY DROP</h2><div class="got">Repair +30 · Pick an upgrade</div>
+    <div class="crate" id="crateIc"></div><h2>ONE MORE?</h2><div class="got">Watch a short ad for a bonus upgrade</div>
     <div class="btn ad" id="rwAd">▶ Watch Ad → +1 Bonus<small>Gift · Free</small></div>
-    <div class="btn skip" id="rwCont">Continue ▶</div>
+    <div class="btn skip" id="rwCont">No thanks ▶</div>
   </div>
 
   <div class="adplay" id="adplay"><div class="big">▶</div><div id="adTxt">AD · 3</div></div>
@@ -4034,7 +4034,7 @@ function glowSprite(hex,scale,op){const m=L(new THREE.SpriteMaterial({map:glowTe
 
 /* ============ 환경 ============ */
 ;(function env(){
- const neb=[[0x1e6dff,-14,9,-36,44,.22],[0xff3d9a,13,3,-40,50,.16],[0x8a4fff,2,-7,-32,34,.13]]
+ const neb=[[0x1e6dff,-14,9,-36,50,.34],[0xff3d9a,13,3,-40,56,.26],[0x8a4fff,2,-8,-32,40,.22]] // 존별 색 헤이즈 강화(불투명도·크기↑)
  const nebSp=[]
  for(const [c,x,y,z,s,o] of neb){const sp=glowSprite(c,s,o);sp.position.set(x,y,z);scene.add(sp);nebSp.push(sp)}
  const planet=new THREE.Mesh(new THREE.SphereGeometry(5.6,24,18),flat(0x24549a,0x0a1d3e,1.1))
@@ -4049,11 +4049,11 @@ function glowSprite(hex,scale,op){const m=L(new THREE.SpriteMaterial({map:glowTe
  window.__roids=roid
  // ⑥ 존(5웨이브마다 진화) — 배경·포그·림라이트·행성 색을 부드럽게 크로스페이드
  const ZONES=[
-  {bg:0x060a15,rim:0xff4fa3,pl:0x24549a,ple:0x0a1d3e,neb:[0x1e6dff,0xff3d9a,0x8a4fff],nm:'DEEP SPACE'}, // W1–5
-  {bg:0x1c0f05,rim:0xff8a3a,pl:0x9a4212,ple:0x3a1405,neb:[0xff7a2a,0xff4d3a,0xffaa4d],nm:'MARS ORBIT'},  // W6–10
-  {bg:0x04160f,rim:0x2ee6b0,pl:0x0e7a56,ple:0x063a2a,neb:[0x2ee6b0,0x35e6ff,0x4affc0],nm:'ION NEBULA'},  // W11–15
-  {bg:0x1a0509,rim:0xff5060,pl:0x8a1222,ple:0x3a060e,neb:[0xff3040,0xff6a4d,0xff2e6e],nm:'RED GIANT'},   // W16–20
-  {bg:0x0f0622,rim:0xb060ff,pl:0x4e1e82,ple:0x24103e,neb:[0xb060ff,0x6a4dff,0xff4dff],nm:'WORMHOLE'},    // W21+
+  {bg:0x091326,rim:0xff4fa3,pl:0x24549a,ple:0x0a1d3e,neb:[0x1e6dff,0xff3d9a,0x8a4fff],nm:'DEEP SPACE'}, // W1–5
+  {bg:0x321a09,rim:0xff8a3a,pl:0x9a4212,ple:0x3a1405,neb:[0xff7a2a,0xff4d3a,0xffaa4d],nm:'MARS ORBIT'},  // W6–10
+  {bg:0x08281e,rim:0x2ee6b0,pl:0x0e7a56,ple:0x063a2a,neb:[0x2ee6b0,0x35e6ff,0x4affc0],nm:'ION NEBULA'},  // W11–15
+  {bg:0x2c0a14,rim:0xff5060,pl:0x8a1222,ple:0x3a060e,neb:[0xff3040,0xff6a4d,0xff2e6e],nm:'RED GIANT'},   // W16–20
+  {bg:0x190c38,rim:0xb060ff,pl:0x4e1e82,ple:0x24103e,neb:[0xb060ff,0x6a4dff,0xff4dff],nm:'WORMHOLE'},    // W21+
  ]
  const zc=x=>new THREE.Color(x).convertSRGBToLinear()
  const znb=arr=>arr.map(x=>new THREE.Color(x))
@@ -4615,7 +4615,8 @@ function offer(label){ST='levelup';AU.lvl();buzz(30);const _h=$('modal').querySe
    if(rar==='rare')S.hp=Math.min(S.maxhp,S.hp+8)
    {const lvl=u.id==='wlv'?S.plv:(u.supp?W[u.id]:(u.max?ULV[u.id]:null));banner('✦ '+u.nm+(lvl!=null?' · LV'+lvl:'')+(rar==='epic'?' ×2':''),'#b4ff39')} // 획득 피드백
    renderLoadout();renderWeaponSel() // 로드아웃·무기 셀렉터(마스터리) 갱신
-   $('modal').classList.remove('on');ST='play';maybeOffer()}
+   $('modal').classList.remove('on');ST='play';maybeOffer()
+   if(ST==='play'&&S.crateBonusPending){S.crateBonusPending=false;offerBonusPrompt()}} // 크레이트 픽 전부 소진 → 보너스 광고 프롬프트
   el.appendChild(c)}
  $('modal').classList.add('on')}
 function gainXP(n){S.xp+=n
@@ -4623,10 +4624,11 @@ function gainXP(n){S.xp+=n
  maybeOffer()}
 
 /* ============ 보상/광고 ============ */
-function spawnCrate(){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
- g.position.set(rnd(-FW*.7,FW*.7),0,TOPZ-2);g.rotation.set(0,0,0)
+function spawnCrate(x,z){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
+ g.position.set(x==null?rnd(-FW*.7,FW*.7):x,0,z==null?TOPZ-2:z);g.rotation.set(0,0,0)
  crates.push({m:g});toast('◆ SUPPLY CRATE — fly in to grab it!',2200,'good');AU.ready()}
-function showReward(){ST='reward';$('reward').classList.add('on');cgEvt('gameplayStop')} // 크레이트 오픈 — 광고 or 계속(둘 다 기본 지급)
+function grabCrate(){claimBase();AU.pick();S.crateBonusPending=true;maybeOffer()} // 크레이트 = 즉시 수리+픽 → 픽 완료 후 보너스 프롬프트
+function offerBonusPrompt(){ST='reward';$('reward').classList.add('on');cgEvt('gameplayStop')} // 픽 완료 후: 광고 보고 +1 보너스 픽
 function claimBase(){S.hp=Math.min(S.maxhp,S.hp+30);queueOffer('SUPPLY DROP')} // 기본: 수리 + 픽 1(SUPPLY DROP)
 function grantBonus(){S.hp=Math.min(S.maxhp,S.hp+20);queueOffer('BONUS')} // 광고: 추가 픽 1(BONUS)
 function closeReward(){$('reward').classList.remove('on');ST='play';cgEvt('gameplayStart');maybeOffer()} // 큐된 픽 표시
@@ -4635,8 +4637,8 @@ function mockAd(then){ST='adplay';const el=$('adplay');el.classList.add('on');le
  const iv=setInterval(()=>{n--
   if(n<=0){clearInterval(iv);el.classList.remove('on');then()}
   else $('adTxt').textContent='AD · '+n},700)}
-$('rwAd').onclick=()=>playAd(()=>{claimBase();grantBonus();AU.pick();closeReward()}) // 광고 → 기본+보너스
-$('rwCont').onclick=()=>{claimBase();AU.pick();closeReward()} // 그냥 → 기본만
+$('rwAd').onclick=()=>playAd(()=>{grantBonus();AU.pick();closeReward()}) // 광고 → 보너스 픽 1 추가
+$('rwCont').onclick=()=>{closeReward()} // No thanks → 닫기(기본 픽은 이미 지급됨)
 $('reviveAd').onclick=()=>{if(S.revived)return;playAd(()=>{S.revived=true;S.hp=S.maxhp
  S.invUntil=performance.now()+2000;AU.revive();$('over').classList.add('off');ST='play';cgEvt('gameplayStart');maybeOffer()})}
 $('salvAd').onclick=()=>{if(S.adSalvUsed)return;playAd(()=>{S.adSalvUsed=true
@@ -4722,6 +4724,7 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
   banner(BOSSNM[f.type]+' DOWN','#ffcf4a');AU.boss();buzz(90);cgEvt('happytime') // CG 긍정 이벤트
   FLASH.c=1;S.freezeUntil=now+140;S.shake=12
   ring(x,z,0xffffff,7,.6);S.hp=Math.min(S.maxhp,S.hp+20)
+  spawnCrate(clamp(x,-FW*.7,FW*.7),Math.min(z,TOPZ-2)) // 보스 처치 보상 = 보급 크레이트 투하
   if(window.__wbeam)window.__wbeam.visible=false}
  releaseFoe(f)}
 function hitFX(f,dmg,now){f.flashOn=true;f.flashUntil=now+70;setFlash(f.m,true);AU.hit()
@@ -5093,7 +5096,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
   for(let i=crates.length-1;i>=0;i--){const c=crates[i] // 보급 크레이트: 하강 → 닿으면 오픈, 놓치면 사라짐
    c.m.position.z+=2.4*wdt;c.m.rotation.y+=rdt*1.6;c.m.rotation.x+=rdt*.6
    const d=Math.hypot(player.position.x-c.m.position.x,player.position.z-c.m.position.z)
-   if(d<1.35){cratePool.put(c.m);crates.splice(i,1);ring(c.m.position.x,c.m.position.z,0xffd06a,3.2,.45);burst(c.m.position.x,c.m.position.z,0xffe0a0,10);AU.pick();showReward();continue}
+   if(d<1.35){cratePool.put(c.m);crates.splice(i,1);ring(c.m.position.x,c.m.position.z,0xffd06a,3.2,.45);burst(c.m.position.x,c.m.position.z,0xffe0a0,10);grabCrate();continue}
    if(c.m.position.z>PZ+3){cratePool.put(c.m);crates.splice(i,1);toast('SUPPLY CRATE MISSED',1100,'bad')}}
   if(S.t>=S.nextReward){S.nextReward+=40;spawnCrate()}
  }
@@ -5300,7 +5303,11 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  addXP:n=>gainXP(n==null?S.xpNext:n), ulvGet:()=>({...ULV}), wGet:()=>({...W}), renderLoadout:()=>renderLoadout(),
  setMastery:n=>{S.plv=Math.min(MAXPLV,Math.max(1,n|0));renderWeaponSel()},
  shipVis:()=>player.visible, shipKids:()=>player.children.length, starGz:()=>Math.round(window.__stars[0].position.z*1000)/1000, starV0z:()=>Math.round(window.__stars[0].geometry.attributes.position.array[2]*100)/100,
- hp:()=>S.hp, maxhp:()=>S.maxhp, kill:()=>{S.hp=0}
+ hp:()=>S.hp, maxhp:()=>S.maxhp, kill:()=>{S.hp=0},
+ crateCount:()=>crates.length, grab:()=>grabCrate(), // 크레이트 흐름 검증
+ adThen:()=>{grantBonus();AU.pick();closeReward()}, // #rwAd 광고완료 콜백과 동일(로컬 CG 광고 우회 검증)
+ killBoss:()=>{const f=foes.find(x=>x.boss);if(f)kill(f);return !!f}, // 보스→크레이트 경로 검증
+ bgSRGB:()=>'#'+(scene.background?scene.background.clone().convertLinearToSRGB().getHexString():'000000') // 표시 sRGB 배경색
 }
 })()
 </script>
