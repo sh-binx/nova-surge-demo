@@ -4305,13 +4305,16 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
   fctx.globalAlpha=Math.max(0,s.life*2);fctx.fillStyle='#8bf3ff';fctx.fillRect(s.x-1.5,s.y-1.5,3,3)}
  fctx.globalAlpha=1
  if(BANNER){BANNER.t+=rdt;const k=BANNER.t
-  const a=k<.25?k/.25:(k>1.5?Math.max(0,1-(k-1.5)/.5):1)
-  const sc=k<.25?.7+.3*(k/.25):1
-  fctx.save();fctx.translate(VW/2,VH*.3);fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
-  fctx.font='900 30px ui-monospace,Menlo,monospace';fctx.textAlign='center'
-  fctx.fillStyle=BANNER.col;fctx.shadowColor=BANNER.col;fctx.shadowBlur=18
-  fctx.fillText(BANNER.txt,0,0);fctx.restore()
-  if(k>2)BANNER=null}
+  const a=k<.25?k/.25:(k>1.6?Math.max(0,1-(k-1.6)/.5):1)
+  const sc=k<.25?.82+.18*(k/.25):1
+  fctx.save();fctx.translate(VW/2,VH*.26);fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
+  fctx.font='900 36px ui-monospace,Menlo,monospace';fctx.textAlign='center';fctx.textBaseline='middle'
+  const tw=fctx.measureText(BANNER.txt).width,pw=tw/2+28,ph=34
+  fctx.beginPath();if(fctx.roundRect)fctx.roundRect(-pw,-ph,pw*2,ph*2,15);else fctx.rect(-pw,-ph,pw*2,ph*2)
+  fctx.fillStyle='rgba(6,10,20,.85)';fctx.fill()
+  fctx.lineWidth=2;fctx.strokeStyle=BANNER.col;fctx.shadowColor=BANNER.col;fctx.shadowBlur=22;fctx.stroke()
+  fctx.shadowBlur=12;fctx.fillStyle=BANNER.col;fctx.fillText(BANNER.txt,0,0);fctx.restore()
+  if(k>2.1)BANNER=null}
  if(S.combo>1&&ST==='play'){const pop=1+S.comboPop*.55
   fctx.save();fctx.translate(VW/2,VH*.17);fctx.scale(pop,pop)
   fctx.font='900 26px ui-monospace,Menlo,monospace';fctx.textAlign='center'
@@ -4362,6 +4365,9 @@ window.__metrics=()=>({kills:MET.kills,lvls:MET.lvls,hurts:MET.hurts,leaks:MET.l
 let AILVL=0,aiT=0
 const DEV=/[?&]dev/.test(location.search) // 측정/치팅 핸들 게이트 — 프로덕션(공개 데모) 노출 방지
 if(DEV)window.__ai=n=>{AILVL=n|0;aiT=0}
+// 측정용 가속기(DEV 전용·prod 무영향): 렌더 스킵 + 합성 performance.now로 프레임 동기 반복 → 전 웨이브 고속 시뮬(정확한 소스텝)
+if(DEV)window.__fast=(secs,dtms=25)=>{const pn=performance.now.bind(performance);let n=pn();const orig=performance.now;try{performance.now=()=>n}catch(e){}window.__manual=1;window.__norender=1;const end=S.t+secs;let g=0;while(S.t<end&&ST==='play'&&g++<400000){n+=dtms;frame(n)}try{performance.now=orig}catch(e){}window.__manual=0;window.__norender=0;requestAnimationFrame(frame);return{t:Math.round(S.t),ST,dead:ST==='over'}}
+if(DEV)window.__met=()=>MET.hp.map(h=>({t:h.t,hp:h.hp,mhp:h.mhp,foes:h.foes,eb:h.eb,k:h.k,lvl:h.lvl}))
 // 스킬티어 = 순수 회피품질 사다리. 반응속도는 전 티어 0.03s 통일 —
 // 실력 차등은 예측길이(lead)·후보해상도(N)·다이버경계(div)·젬수집(gem)·서지운용(surge)뿐.
 const AITIER={
@@ -4626,10 +4632,14 @@ function hurt(dmg,iframes){const now=performance.now()
  FLASH.r=1;S.shake=Math.min(S.shake+9,12);S.freezeUntil=now+70
  AU.hurt();buzz(55)
  if(S.hp<=0)die()}
-function leak(f){ // 통과 페널티 — '주차' 원천 봉쇄(Balance 2.0)
+function leak(f){ // 통과 페널티 — 주차 봉쇄 + 버스트 즉사 방지(0.6s 누수 무적)
  if(ST!=='play'||S.t<8)return // 개전 유예
+ const now=performance.now()
+ if(now<S.leakIf){num(f.m.position.x,PZ+1.5,'통과','#8792b5',10);return} // 누수 무적 중 — 통과만, 무피해(한꺼번에 새도 즉사 불가)
+ S.leakIf=now+600
  const ld=f.type==='chaff'?2:Math.round(4+S.wave*.6);S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
- FLASH.r=Math.max(FLASH.r,.45)
+ FLASH.r=Math.max(FLASH.r,.55)
+ if(now>S.leakToast){S.leakToast=now+2500;toast('⚠ 적 통과 — 라인 사수!',1400)}
  AU.tone(110,.12,'sine',.09,60);buzz(18)
  num(f.m.position.x,PZ+1.5,'-'+ld,'#ff5d6c',12)
  if(S.hp<=0)die()}
@@ -4696,7 +4706,7 @@ function director(wdt){
 
 /* ============ 메인 루프 ============ */
 const clock={last:performance.now()}
-function frame(now){requestAnimationFrame(frame)
+function frame(now){if(!window.__manual)requestAnimationFrame(frame)
  const rdt=clamp((now-clock.last)/1000,.001,.05);clock.last=now
  fpsBuf.push(rdt);if(fpsBuf.length>120)fpsBuf.shift()
  const frozen=now<S.freezeUntil
@@ -4982,7 +4992,7 @@ function frame(now){requestAnimationFrame(frame)
  const tf=slow?43:48
  if(Math.abs(cam.fov-tf)>.05){cam.fov+=(tf-cam.fov)*Math.min(1,rdt*7);cam.updateProjectionMatrix()}
  setUI();drawFX(rdt)
- renderer.render(scene,cam)}
+ if(!window.__norender)renderer.render(scene,cam)}
 resize();requestAnimationFrame(frame)
 
 /* ============ 시작/리셋 ============ */
@@ -5011,7 +5021,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  Object.assign(S,{hp:100,maxhp:100,lvl:1,xp:0,xpNext:10,kills:0,t:0,wave:1,
   primary:'pulse',plv:1,beamTick:0,
   streams:1,fireRate:.18,dmg:1,speed:1,magnet:3.4,fireT:0,seekT:0,lanceT:0,orbA:0,
-  surge:0,surgeUntil:0,novaT:-1,invUntil:0,
+  surge:0,surgeUntil:0,novaT:-1,invUntil:0,leakIf:0,leakToast:0,
   combo:0,comboAt:0,comboMax:0,comboPop:0,xpStep:0,xpAt:0,
   nextReward:20,revived:false,shake:0,freezeUntil:0,hsCd:0,
   spDrone:0,spChaff:6,spLancer:25,spSting:30,spBig:50,stAlive:0,bigAlive:0,spWeaver:0,spSplitter:0,spShield:0,spBomber:0,
