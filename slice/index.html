@@ -4526,7 +4526,10 @@ function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
   $('ebar').lastElementChild.textContent=S.elite.label||'BOSS'}
  else $('ebar').style.display='none'}
 let toastT=null
-function toast(txt,ms){const el=$('toast');el.textContent=txt;el.style.opacity=1
+function toast(txt,ms,type){const el=$('toast');el.textContent=txt // type: good(골드)·bad(빨강)·기본(시안)
+ const C=type==='good'?'#ffcf4a':type==='bad'?'#ff5d6c':'#35e6ff'
+ el.style.color=C;el.style.borderColor=C+'66';el.style.textShadow='0 0 12px '+C+'99'
+ el.style.opacity=1
  clearTimeout(toastT);toastT=setTimeout(()=>el.style.opacity=0,ms||2200)}
 
 /* ============ 입력 ============ */
@@ -4622,7 +4625,7 @@ function gainXP(n){S.xp+=n
 /* ============ 보상/광고 ============ */
 function spawnCrate(){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
  g.position.set(rnd(-FW*.7,FW*.7),0,TOPZ-2);g.rotation.set(0,0,0)
- crates.push({m:g});toast('◆ SUPPLY CRATE — fly in to grab it!',2200);AU.ready()}
+ crates.push({m:g});toast('◆ SUPPLY CRATE — fly in to grab it!',2200,'good');AU.ready()}
 function showReward(){ST='reward';$('reward').classList.add('on');cgEvt('gameplayStop')} // 크레이트 오픈 — 광고 or 계속(둘 다 기본 지급)
 function claimBase(){S.hp=Math.min(S.maxhp,S.hp+30);queueOffer('SUPPLY DROP')} // 기본: 수리 + 픽 1(SUPPLY DROP)
 function grantBonus(){S.hp=Math.min(S.maxhp,S.hp+20);queueOffer('BONUS')} // 광고: 추가 픽 1(BONUS)
@@ -4750,7 +4753,7 @@ function leak(f){ // 통과 페널티 — 주차 봉쇄 + 버스트 즉사 방�
  S.leakIf=now+600
  const ld=Math.max(1,Math.round((f.type==='chaff'?2:(4+S.wave*.6))*(S.diffLeak||1)));S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
  FLASH.r=Math.max(FLASH.r,.55)
- if(now>S.leakToast){S.leakToast=now+2500;toast('⚠ ENEMY BREACH — hold the line!',1400)}
+ if(now>S.leakToast){S.leakToast=now+2500;toast('⚠ ENEMY BREACH — hold the line!',1400,'bad')}
  AU.tone(110,.12,'sine',.09,60);buzz(18)
  num(f.m.position.x,PZ+1.5,'-'+ld,'#ff5d6c',12)
  if(S.hp<=0)die()}
@@ -5091,7 +5094,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
    c.m.position.z+=2.4*wdt;c.m.rotation.y+=rdt*1.6;c.m.rotation.x+=rdt*.6
    const d=Math.hypot(player.position.x-c.m.position.x,player.position.z-c.m.position.z)
    if(d<1.35){cratePool.put(c.m);crates.splice(i,1);ring(c.m.position.x,c.m.position.z,0xffd06a,3.2,.45);burst(c.m.position.x,c.m.position.z,0xffe0a0,10);AU.pick();showReward();continue}
-   if(c.m.position.z>PZ+3){cratePool.put(c.m);crates.splice(i,1);toast('SUPPLY CRATE MISSED',1100)}}
+   if(c.m.position.z>PZ+3){cratePool.put(c.m);crates.splice(i,1);toast('SUPPLY CRATE MISSED',1100,'bad')}}
   if(S.t>=S.nextReward){S.nextReward+=40;spawnCrate()}
  }
  for(let i=debris.length-1;i>=0;i--){const d=debris[i]
