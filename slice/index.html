@@ -114,7 +114,12 @@
   .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;text-align:center;background:rgba(2,4,10,.35)}
   .center.off{display:none}
   .center h1{font-family:'Arial Black',sans-serif;font-size:clamp(30px,9vw,52px);color:#35e6ff;letter-spacing:1px;text-shadow:0 0 24px rgba(53,230,255,.6);line-height:1}
-  .center .tag{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#a7b4d6;margin:10px 0 26px;letter-spacing:1px}
+  .center .tag{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#a7b4d6;margin:10px 0 18px;letter-spacing:1px}
+  .center .difflabel{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:2px;color:#6b779c;margin-bottom:8px}
+  .diffsel{display:flex;gap:8px;justify-content:center;margin-bottom:22px}
+  .dchip{font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:800;letter-spacing:1px;padding:7px 15px;border-radius:8px;border:1px solid rgba(120,150,220,.3);color:#8792b5;cursor:pointer;background:rgba(255,255,255,.02);transition:all .12s}
+  .dchip.on{color:#04210f;border-color:transparent}
+  .dchip.e.on{background:#4ade80}.dchip.n.on{background:#35e6ff}.dchip.h.on{background:#ff5d6c;color:#fff}
   .center .play{font-family:'Arial Black',sans-serif;font-size:20px;color:#04210f;background:#b4ff39;border-radius:14px;padding:16px 40px;cursor:pointer;box-shadow:0 0 30px rgba(180,255,57,.4)}
   .center .hint{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#6b779c;margin-top:16px}
   .ovst{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#a7b4d6;margin:8px 0 22px;line-height:1.9}
@@ -188,6 +193,8 @@
 
   <div class="center" id="start">
     <h1>NOVA SURGE</h1><div class="tag">graze the swarm. become the storm.</div>
+    <div class="difflabel">DIFFICULTY</div>
+    <div class="diffsel" id="diffSel"></div>
     <div class="play" id="playBtn">▶ PLAY</div>
     <div class="hbtn" id="hangarBtn">⬢ SHIPS &amp; UPGRADES</div>
     <div class="hint">Drag · <b>←→</b> Move · Auto-fire · <b style="color:#35e6ff">SURGE</b> when full <b>(Space)</b></div>
@@ -4358,8 +4365,9 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
 /* ============ 메타(영구): 샐비지·함대 ============ */
 function loadMeta(){try{const m=JSON.parse(localStorage.getItem('ns2_meta')||'null')
  if(m&&m.ships)return m}catch(e){}
- return {salv:0,ships:{owned:['A'],sel:'A',up:{A:{hull:0,thr:0,ars:0,srg:0},B:{hull:0,thr:0,ars:0,srg:0},C:{hull:0,thr:0,ars:0,srg:0}}}}}
-const META=loadMeta()
+ return {salv:0,diff:1,ships:{owned:['A'],sel:'A',up:{A:{hull:0,thr:0,ars:0,srg:0},B:{hull:0,thr:0,ars:0,srg:0},C:{hull:0,thr:0,ars:0,srg:0}}}}}
+const META=loadMeta();if(META.diff==null)META.diff=1 // 난이도 0=Easy 1=Normal 2=Hard
+const DIFF=[{nm:'EASY',sp:.72,lk:.65,rk:.8},{nm:'NORMAL',sp:1,lk:1,rk:1},{nm:'HARD',sp:1.4,lk:1.35,rk:1.5}]
 function updateStartBal(){const _b=document.getElementById('startBalV');if(_b)_b.textContent='◆ '+fmt(META.salv)} // 타이틀 보유 골드 갱신 — META와 같은 스코프(frame 루프는 별 IIFE라 META 미접근)
 function saveMeta(){try{localStorage.setItem('ns2_meta',JSON.stringify(META))}catch(e){}updateStartBal()}
 
@@ -4672,7 +4680,7 @@ function leak(f){ // 통과 페널티 — 주차 봉쇄 + 버스트 즉사 방�
  const now=performance.now()
  if(now<S.leakIf){num(f.m.position.x,PZ+1.5,'safe','#8792b5',10);return} // 누수 무적 중 — 통과만, 무피해(한꺼번에 새도 즉사 불가)
  S.leakIf=now+600
- const ld=f.type==='chaff'?2:Math.round(4+S.wave*.6);S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
+ const ld=Math.max(1,Math.round((f.type==='chaff'?2:(4+S.wave*.6))*(S.diffLeak||1)));S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
  FLASH.r=Math.max(FLASH.r,.55)
  if(now>S.leakToast){S.leakToast=now+2500;toast('⚠ ENEMY BREACH — hold the line!',1400)}
  AU.tone(110,.12,'sine',.09,60);buzz(18)
@@ -4808,7 +4816,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
    for(let i=0;i<orbs.length;i++){const a=S.orbA+i*(6.283/orbs.length)
     orbs[i].position.set(player.position.x+Math.cos(a)*orad,0,player.position.z+Math.sin(a)*orad)
     orbs[i].rotation.y=-a+Math.PI/2}} // 접선 방향 블레이드
-  director(wdt)
+  director(wdt*(S.diffSpawn||1)) // 난이도: 스폰 밀도 배율
   for(let i=bullets.length-1;i>=0;i--){const b=bullets[i]
    b.m.position.z-=30*pdt;b.m.position.x+=b.vx*pdt
    if(b.m.position.z<TOPZ-5||Math.abs(b.m.position.x)>FW+6){bPool.put(b.m);bullets.splice(i,1)}}
@@ -5083,13 +5091,17 @@ function applyShip(){const sel=META.ships.sel||'A'
  S.magnet=3.4*sh.mods.mag
  S.srgMult=sh.mods.srg*(1+up.srg*.08)
  S.salvMult=sh.mods.salv
- S.dmgMult=sh.mods.dmg}
+ S.dmgMult=sh.mods.dmg
+ const dd=DIFF[META.diff]||DIFF[1];S.diffSpawn=dd.sp;S.diffLeak=dd.lk;S.diffRk=dd.rk} // 난이도 배율(스폰·누수·랭킹가중)
 function begin(){AU.unlock();reset();applyShip()
  if(window.__hangarClose)window.__hangarClose()
  window.__setZone&&window.__setZone(0,true) // ⑥ 새 런 = 존1(딥 스페이스)로 즉시 리셋
  $('start').classList.add('off');$('over').classList.add('off');ST='play';renderLoadout();renderWeaponSel()
  banner('◆ WAVE 1','#35e6ff','stay sharp');S.lullUntil=S.t+1.8} // ③ 시작 시 WAVE 1 배너 먼저 → 적은 소강(1.8s) 후 등장
 $('playBtn').onclick=begin
+function renderDiffSel(){const el=$('diffSel');if(!el)return;el.innerHTML=DIFF.map((d,i)=>'<div class="dchip '+'enh'[i]+(i===META.diff?' on':'')+'" data-d="'+i+'">'+d.nm+'</div>').join('')}
+$('diffSel').addEventListener('click',e=>{const c=e.target.closest('.dchip');if(!c)return;META.diff=+c.dataset.d;saveMeta();renderDiffSel()})
+renderDiffSel()
 $('retryBtn').onclick=begin
 /* ============ 행어(함대) ============ */
 const HG={cur:'A',ready:false,cache:{},r:null,sc:null,cam:null,grp:null}
