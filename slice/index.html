@@ -120,6 +120,21 @@
   .dchip{font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:800;letter-spacing:1px;padding:7px 15px;border-radius:8px;border:1px solid rgba(120,150,220,.3);color:#8792b5;cursor:pointer;background:rgba(255,255,255,.02);transition:all .12s}
   .dchip.on{color:#04210f;border-color:transparent}
   .dchip.e.on{background:#4ade80}.dchip.n.on{background:#35e6ff}.dchip.h.on{background:#ff5d6c;color:#fff}
+  #lb .lbsub{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:#8792b5;margin:2px 0 16px}
+  .lblist{width:min(92vw,440px);display:flex;flex-direction:column;gap:3px;min-height:200px}
+  .lbrow{display:grid;grid-template-columns:34px 1fr 50px 82px;gap:8px;align-items:center;padding:8px 12px;border-radius:8px;background:rgba(120,150,220,.05);font-family:ui-monospace,Menlo,monospace;font-size:13px}
+  .lbrow .r{font-weight:800;color:#8792b5;text-align:center}
+  .lbrow:nth-child(1) .r{color:#ffcf4a}.lbrow:nth-child(2) .r{color:#c8d2e8}.lbrow:nth-child(3) .r{color:#e0a060}
+  .lbrow .nm{color:#dbe2f3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+  .lbrow .wv{color:#8792b5;text-align:right;font-size:11px}
+  .lbrow .sc{color:#35e6ff;text-align:right;font-weight:800}
+  .lbrow.me{background:rgba(255,207,74,.12);outline:1px solid rgba(255,207,74,.4)}
+  .lbrow.me .nm{color:#ffcf4a}
+  .lbempty{color:#6b779c;font-family:ui-monospace,Menlo,monospace;font-size:12px;text-align:center;padding:44px 0}
+  .lbname{display:flex;align-items:center;gap:10px;margin-top:16px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#8792b5}
+  .lbname input{background:rgba(255,255,255,.05);border:1px solid rgba(120,150,220,.35);border-radius:7px;color:#eaf0ff;font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:6px 10px;width:150px;outline:none}
+  .lbname input:focus{border-color:#35e6ff}
+  .lbrk{color:#ffcf4a;font-weight:800}
   .center .play{font-family:'Arial Black',sans-serif;font-size:20px;color:#04210f;background:#b4ff39;border-radius:14px;padding:16px 40px;cursor:pointer;box-shadow:0 0 30px rgba(180,255,57,.4)}
   .center .hint{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#6b779c;margin-top:16px}
   .ovst{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#a7b4d6;margin:8px 0 22px;line-height:1.9}
@@ -197,6 +212,7 @@
     <div class="diffsel" id="diffSel"></div>
     <div class="play" id="playBtn">▶ PLAY</div>
     <div class="hbtn" id="hangarBtn">⬢ SHIPS &amp; UPGRADES</div>
+    <div class="hbtn" id="lbBtn" style="margin-top:10px;color:#ffcf4a;background:rgba(255,207,74,.1);border-color:rgba(255,207,74,.5)">🏆 LEADERBOARD</div>
     <div class="hint">Drag · <b>←→</b> Move · Auto-fire · <b style="color:#35e6ff">SURGE</b> when full <b>(Space)</b></div>
     <div class="startbal" id="startBal"><small>YOUR SALVAGE</small><span id="startBalV">◆ 0</span></div>
   </div>
@@ -222,6 +238,15 @@
     <div class="btn ad" id="reviveAd" style="margin-bottom:12px">▶ Watch Ad → Revive<small>Gift · Free · Once</small></div>
     <div class="btn ad" id="salvAd" style="margin-bottom:12px;display:none">▶ Watch Ad → Salvage ×2<small>Gift · Free</small></div>
     <div class="play" id="retryBtn" style="background:#35e6ff">Restart</div>
+    <div class="hbtn" id="lbBtn2" style="margin-top:12px;color:#ffcf4a;background:rgba(255,207,74,.1);border-color:rgba(255,207,74,.5)">🏆 Leaderboard</div>
+  </div>
+
+  <div class="center off" id="lb">
+    <h1 style="color:#ffcf4a;font-size:30px;text-shadow:0 0 24px rgba(255,207,74,.5)">🏆 LEADERBOARD</h1>
+    <div class="lbsub" id="lbSub">GLOBAL · TOP 10</div>
+    <div class="lblist" id="lbList"></div>
+    <div class="lbname"><span>YOU</span><input id="lbName" maxlength="16" spellcheck="false"><span id="lbRank" class="lbrk"></span></div>
+    <div class="play" id="lbBack" style="background:#35e6ff;margin-top:18px">← Back</div>
   </div>
 </div>
 <script>/**
@@ -4370,6 +4395,15 @@ const META=loadMeta();if(META.diff==null)META.diff=1 // 난이도 0=Easy 1=Norma
 const DIFF=[{nm:'EASY',sp:.72,lk:.65,rk:.8},{nm:'NORMAL',sp:1,lk:1,rk:1},{nm:'HARD',sp:1.4,lk:1.35,rk:1.5}]
 function updateStartBal(){const _b=document.getElementById('startBalV');if(_b)_b.textContent='◆ '+fmt(META.salv)} // 타이틀 보유 골드 갱신 — META와 같은 스코프(frame 루프는 별 IIFE라 META 미접근)
 function saveMeta(){try{localStorage.setItem('ns2_meta',JSON.stringify(META))}catch(e){}updateStartBal()}
+// ── 리더보드 (Supabase, 공개 키 · RLS 보호) ──
+const SB_URL='https://znboesjyunfkfqepsumu.supabase.co',SB_KEY='sb_publishable_sTVWvwymVH3nR0NTvE6M0w_rSr_gHi4'
+let PNAME=(localStorage.getItem('ns2_name')||('PILOT-'+Math.floor(1000+Math.random()*9000))).slice(0,16)
+try{localStorage.setItem('ns2_name',PNAME)}catch(e){}
+let PBEST=+(localStorage.getItem('ns2_best')||0)
+const _sbH={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+function submitScore(score,wave,diff){if(!(score>0))return
+ fetch(SB_URL+'/rest/v1/runs',{method:'POST',headers:{..._sbH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({name:PNAME,score,wave,diff})}).catch(()=>{})}
+function fetchBoard(){return fetch(SB_URL+'/rest/v1/runs?select=name,score,wave,diff&order=score.desc&limit=100',{headers:_sbH}).then(r=>r.ok?r.json():null).catch(()=>null)}
 
 /* ============ 함대(행어) ============ */
 const SHIPS={
@@ -4408,6 +4442,7 @@ if(DEV)window.__ai=n=>{AILVL=n|0;aiT=0}
 if(DEV)window.__fast=(secs,dtms=25)=>{const pn=performance.now.bind(performance);let n=pn();const orig=performance.now;try{performance.now=()=>n}catch(e){}window.__manual=1;window.__norender=1;const end=S.t+secs;let g=0;while(S.t<end&&ST==='play'&&g++<400000){n+=dtms;frame(n)}try{performance.now=orig}catch(e){}window.__manual=0;window.__norender=0;requestAnimationFrame(frame);return{t:Math.round(S.t),ST,dead:ST==='over'}}
 if(DEV)window.__met=()=>MET.hp.map(h=>({t:h.t,hp:h.hp,mhp:h.mhp,foes:h.foes,eb:h.eb,k:h.k,lvl:h.lvl}))
 if(DEV)window.__crate=()=>{const g=cratePool.get();g.visible=true;g.position.set(player.position.x,0,TOPZ-2);g.rotation.set(0,0,0);crates.push({m:g})} // 측정용: 플레이어 x에 크레이트 스폰
+if(DEV)window.__die=()=>{if(ST==='play')die()} // 측정용: 강제 게임오버(점수 제출 검증)
 // 스킬티어 = 순수 회피품질 사다리. 반응속도는 전 티어 0.03s 통일 —
 // 실력 차등은 예측길이(lead)·후보해상도(N)·다이버경계(div)·젬수집(gem)·서지운용(surge)뿐.
 const AITIER={
@@ -4662,7 +4697,10 @@ function die(){S.hp=0;ST='over'
  const earned=S.salvRun
  S.lastEarned=earned;S.salvRun=0 // 이중 정산 방지(부활 후 재사망)
  META.salv+=earned;saveMeta()
- $('overStats').innerHTML='WAVE '+S.wave+' · KILLS '+S.kills+' · MAX COMBO <b>×'+S.comboMax+'</b> · '+($('time').textContent)
+ const score=Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned)) // 리더보드 점수
+ if(score>PBEST){PBEST=score;try{localStorage.setItem('ns2_best',PBEST)}catch(e){}}
+ submitScore(score,S.wave,META.diff)
+ $('overStats').innerHTML='<div style="font-size:13px;letter-spacing:2px;color:#8792b5;font-family:ui-monospace,Menlo,monospace">SCORE</div><div style="font-size:30px;color:#35e6ff;font-weight:800;margin:2px 0 10px">'+fmt(score)+'</div>WAVE '+S.wave+' · KILLS '+S.kills+' · MAX COMBO <b>×'+S.comboMax+'</b> · '+($('time').textContent)
   +'<br>SALVAGE <b>◆ +'+earned+'</b> · Balance ◆ '+META.salv
  $('reviveAd').style.display=S.revived?'none':'block'
  $('salvAd').style.display=(earned>0&&!S.adSalvUsed)?'block':'none'
@@ -5102,6 +5140,20 @@ $('playBtn').onclick=begin
 function renderDiffSel(){const el=$('diffSel');if(!el)return;el.innerHTML=DIFF.map((d,i)=>'<div class="dchip '+'enh'[i]+(i===META.diff?' on':'')+'" data-d="'+i+'">'+d.nm+'</div>').join('')}
 $('diffSel').addEventListener('click',e=>{const c=e.target.closest('.dchip');if(!c)return;META.diff=+c.dataset.d;saveMeta();renderDiffSel()})
 renderDiffSel()
+// 리더보드 UI
+const _esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))
+function renderLB(rows){const el=$('lbList');if(!el)return
+ if(rows==null){el.innerHTML='<div class="lbempty">Leaderboard offline — try again later.</div>';$('lbRank').textContent='';return}
+ if(!rows.length)el.innerHTML='<div class="lbempty">No scores yet — be the first!</div>'
+ else el.innerHTML=rows.slice(0,10).map((r,i)=>'<div class="lbrow'+(r.name===PNAME&&r.score===PBEST?' me':'')+'"><span class="r">'+(i+1)+'</span><span class="nm">'+_esc(r.name)+'</span><span class="wv">W'+r.wave+'</span><span class="sc">'+fmt(r.score)+'</span></div>').join('')
+ const mine=rows.findIndex(r=>r.name===PNAME&&r.score===PBEST)
+ $('lbRank').textContent=PBEST>0?(mine>=0?('rank #'+(mine+1)):('best '+fmt(PBEST))):''}
+function openLB(){AU.unlock();ST='lb';$('start').classList.add('off');$('over').classList.add('off');$('lb').classList.remove('off')
+ $('lbName').value=PNAME;$('lbList').innerHTML='<div class="lbempty">Loading…</div>';$('lbRank').textContent=''
+ fetchBoard().then(renderLB)}
+function closeLB(){$('lb').classList.add('off');$('over').classList.add('off');$('start').classList.remove('off');ST='start'}
+$('lbBtn').onclick=openLB;$('lbBtn2').onclick=openLB;$('lbBack').onclick=closeLB
+$('lbName').addEventListener('change',e=>{PNAME=(e.target.value.trim()||PNAME).slice(0,16);try{localStorage.setItem('ns2_name',PNAME)}catch(_){}e.target.value=PNAME})
 $('retryBtn').onclick=begin
 /* ============ 행어(함대) ============ */
 const HG={cur:'A',ready:false,cache:{},r:null,sc:null,cam:null,grp:null}
