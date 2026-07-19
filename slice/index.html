@@ -199,9 +199,12 @@
   <div class="modal" id="modal"><h2>LEVEL UP</h2><div class="sub">Choose one</div><div class="cards" id="cards"></div></div>
 
   <div class="reward" id="reward">
-    <div class="crate" id="crateIc"></div><h2>SUPPLY DROP</h2><div class="got">Repair +30 · Bonus XP</div>
-    <div class="btn ad" id="rwAd">▶ Watch Ad → ×2 Reward<small>Gift · Free</small></div>
-    <div class="btn skip" id="rwSkip">Claim ▶</div>
+    <div class="crate" id="crateIc"></div><h2>SUPPLY DROP</h2><div class="got" id="rwGot">Repair +30 · Bonus XP</div>
+    <div class="btn skip" id="rwClaim">Claim ▶</div>
+    <div id="rwBonus" style="display:none">
+      <div class="btn ad" id="rwAd">▶ Watch Ad → +1 Bonus<small>Gift · Free</small></div>
+      <div class="btn skip" id="rwCont">Continue ▶</div>
+    </div>
   </div>
 
   <div class="adplay" id="adplay"><div class="big">▶</div><div id="adTxt">AD · 3</div></div>
@@ -4594,16 +4597,20 @@ function gainXP(n){S.xp+=n
 function spawnCrate(){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
  g.position.set(rnd(-FW*.7,FW*.7),0,TOPZ-2);g.rotation.set(0,0,0)
  crates.push({m:g});toast('◆ SUPPLY CRATE — fly in to grab it!',2200);AU.ready()}
-function showReward(){ST='reward';$('reward').classList.add('on')}
-function grantReward(m){$('reward').classList.remove('on');ST='play' // 버그 수리: 상태 복귀 먼저 → 레벨업 모달과 경합 제거
- S.hp=Math.min(S.maxhp,S.hp+30);gainXP(S.xpNext*.5*m)}
+function showReward(){ST='reward';$('reward').classList.add('on') // 2단계: 무료 1개 → 광고로 추가
+ $('rwGot').textContent='Repair +30 · Bonus XP';$('rwClaim').style.display='block';$('rwBonus').style.display='none'}
+function grantBase(){S.hp=Math.min(S.maxhp,S.hp+30);gainXP(S.xpNext*.5);AU.pick() // ① 무료 획득
+ $('rwGot').textContent='✓ Claimed — grab one more?';$('rwClaim').style.display='none';$('rwBonus').style.display='block'}
+function grantBonus(){S.hp=Math.min(S.maxhp,S.hp+20);gainXP(S.xpNext*.5);closeReward()} // ② 광고 추가
+function closeReward(){$('reward').classList.remove('on');ST='play'}
 function playAd(then){ST='adplay';const el=$('adplay');el.classList.add('on');let n=3
  $('adTxt').textContent='AD · '+n
  const iv=setInterval(()=>{n--
   if(n<=0){clearInterval(iv);el.classList.remove('on');then()}
   else $('adTxt').textContent='AD · '+n},700)}
-$('rwAd').onclick=()=>playAd(()=>grantReward(2))
-$('rwSkip').onclick=()=>grantReward(1)
+$('rwClaim').onclick=grantBase
+$('rwAd').onclick=()=>playAd(grantBonus)
+$('rwCont').onclick=closeReward
 $('reviveAd').onclick=()=>{if(S.revived)return;playAd(()=>{S.revived=true;S.hp=S.maxhp
  S.invUntil=performance.now()+2000;AU.revive();$('over').classList.add('off');ST='play';maybeOffer()})}
 $('salvAd').onclick=()=>{if(S.adSalvUsed)return;playAd(()=>{S.adSalvUsed=true
