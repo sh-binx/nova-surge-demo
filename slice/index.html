@@ -4002,11 +4002,11 @@ function glowSprite(hex,scale,op){const m=L(new THREE.SpriteMaterial({map:glowTe
  window.__roids=roid
  // ⑥ 존(5웨이브마다 진화) — 배경·포그·림라이트·행성 색을 부드럽게 크로스페이드
  const ZONES=[
-  {bg:0x060a15,rim:0xff4fa3,pl:0x24549a,ple:0x0a1d3e,neb:[0x1e6dff,0xff3d9a,0x8a4fff],nm:'딥 스페이스'}, // W1–5
-  {bg:0x1c0f05,rim:0xff8a3a,pl:0x9a4212,ple:0x3a1405,neb:[0xff7a2a,0xff4d3a,0xffaa4d],nm:'화성 궤도'},   // W6–10
-  {bg:0x04160f,rim:0x2ee6b0,pl:0x0e7a56,ple:0x063a2a,neb:[0x2ee6b0,0x35e6ff,0x4affc0],nm:'이온 성운'},   // W11–15
-  {bg:0x1a0509,rim:0xff5060,pl:0x8a1222,ple:0x3a060e,neb:[0xff3040,0xff6a4d,0xff2e6e],nm:'적색거성'},    // W16–20
-  {bg:0x0f0622,rim:0xb060ff,pl:0x4e1e82,ple:0x24103e,neb:[0xb060ff,0x6a4dff,0xff4dff],nm:'웜홀'},        // W21+
+  {bg:0x060a15,rim:0xff4fa3,pl:0x24549a,ple:0x0a1d3e,neb:[0x1e6dff,0xff3d9a,0x8a4fff],nm:'DEEP SPACE'}, // W1–5
+  {bg:0x1c0f05,rim:0xff8a3a,pl:0x9a4212,ple:0x3a1405,neb:[0xff7a2a,0xff4d3a,0xffaa4d],nm:'MARS ORBIT'},  // W6–10
+  {bg:0x04160f,rim:0x2ee6b0,pl:0x0e7a56,ple:0x063a2a,neb:[0x2ee6b0,0x35e6ff,0x4affc0],nm:'ION NEBULA'},  // W11–15
+  {bg:0x1a0509,rim:0xff5060,pl:0x8a1222,ple:0x3a060e,neb:[0xff3040,0xff6a4d,0xff2e6e],nm:'RED GIANT'},   // W16–20
+  {bg:0x0f0622,rim:0xb060ff,pl:0x4e1e82,ple:0x24103e,neb:[0xb060ff,0x6a4dff,0xff4dff],nm:'WORMHOLE'},    // W21+
  ]
  const zc=x=>new THREE.Color(x).convertSRGBToLinear()
  const znb=arr=>arr.map(x=>new THREE.Color(x))
@@ -4336,7 +4336,7 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
  if(BANNER){BANNER.t+=rdt;const k=BANNER.t
   const a=k<.25?k/.25:(k>1.6?Math.max(0,1-(k-1.6)/.5):1)
   const sc=k<.25?.82+.18*(k/.25):1
-  fctx.save();fctx.translate(VW/2,VH*.26);fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
+  fctx.save();fctx.translate(VW/2,VH*.30);fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
   fctx.font='900 36px ui-monospace,Menlo,monospace';fctx.textAlign='center';fctx.textBaseline='middle'
   const tw=fctx.measureText(BANNER.txt).width,pw=tw/2+28,ph=34
   fctx.beginPath();if(fctx.roundRect)fctx.roundRect(-pw,-ph,pw*2,ph*2,15);else fctx.rect(-pw,-ph,pw*2,ph*2)
@@ -4513,7 +4513,7 @@ function renderWeaponSel(){const el=document.getElementById('wsel') // 온디맨
 function renderLoadout(){const el=document.getElementById('loadout');if(!el)return // 획득 업그레이드(보조·스탯) — 무기는 셀렉터에 별도
  const out=[]
  for(const u of UPG){if(u.id==='wlv')continue;const lv=u.supp?W[u.id]:(ULV[u.id]||0);if(lv>0)out.push({ic:u.ic,nm:u.nm,lv})}
- el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">L'+it.lv+'</span></div>').join(''):'<div class="loempty">— 없음 —</div>'}
+ el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">L'+it.lv+'</span></div>').join(''):'<div class="loempty">— NONE —</div>'}
 function maybeOffer(){if(ST!=='play'||S.pendingOffers<=0)return
  S.pendingOffers--;offer()}
 function offer(){ST='levelup';AU.lvl();buzz(30)
@@ -4550,7 +4550,7 @@ function gainXP(n){S.xp+=n
 /* ============ 보상/광고 ============ */
 function spawnCrate(){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
  g.position.set(rnd(-FW*.7,FW*.7),0,TOPZ-2);g.rotation.set(0,0,0)
- crates.push({m:g});toast('◆ 보급 크레이트 하강 — 날아가 획득!',2200);AU.ready()}
+ crates.push({m:g});toast('◆ SUPPLY CRATE — fly in to grab it!',2200);AU.ready()}
 function showReward(){ST='reward';$('reward').classList.add('on')}
 function grantReward(m){$('reward').classList.remove('on');ST='play' // 버그 수리: 상태 복귀 먼저 → 레벨업 모달과 경합 제거
  S.hp=Math.min(S.maxhp,S.hp+30);gainXP(S.xpNext*.5*m)}
@@ -4670,11 +4670,11 @@ function hurt(dmg,iframes){const now=performance.now()
 function leak(f){ // 통과 페널티 — 주차 봉쇄 + 버스트 즉사 방지(0.6s 누수 무적)
  if(ST!=='play'||S.t<8)return // 개전 유예
  const now=performance.now()
- if(now<S.leakIf){num(f.m.position.x,PZ+1.5,'통과','#8792b5',10);return} // 누수 무적 중 — 통과만, 무피해(한꺼번에 새도 즉사 불가)
+ if(now<S.leakIf){num(f.m.position.x,PZ+1.5,'safe','#8792b5',10);return} // 누수 무적 중 — 통과만, 무피해(한꺼번에 새도 즉사 불가)
  S.leakIf=now+600
  const ld=f.type==='chaff'?2:Math.round(4+S.wave*.6);S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
  FLASH.r=Math.max(FLASH.r,.55)
- if(now>S.leakToast){S.leakToast=now+2500;toast('⚠ 적 통과 — 라인 사수!',1400)}
+ if(now>S.leakToast){S.leakToast=now+2500;toast('⚠ ENEMY BREACH — hold the line!',1400)}
  AU.tone(110,.12,'sine',.09,60);buzz(18)
  num(f.m.position.x,PZ+1.5,'-'+ld,'#ff5d6c',12)
  if(S.hp<=0)die()}
@@ -4737,10 +4737,10 @@ function director(wdt){
   if(w%5===0&&!S.elite){ // 마일스톤 보스 — 웨5/10/15/20 (엔들리스 순환·티어 강화)
    const kinds=['warden','elite','elite','elite'],kind=kinds[(w/5-1)%4] // hive(웨10)·twin(웨15)은 구현 후 교체
    S.hp=Math.min(S.maxhp,S.hp+15)
-   spawnFoe(kind,0,TOPZ-2);banner('⚠ '+BOSSNM[kind]+(S.elitesKilled>=4?' ++':''),'#ff5d6c','보스 — 정면 승부');AU.boss();buzz(70)}
+   spawnFoe(kind,0,TOPZ-2);banner('⚠ '+BOSSNM[kind]+(S.elitesKilled>=4?' ++':''),'#ff5d6c','BOSS — stand your ground');AU.boss();buzz(70)}
   else{S.hp=Math.min(S.maxhp,S.hp+15);AU.ready() // ③ 큰 WAVE N 인트로 + 부제
-   const intro={4:'위버 — 회피 비행',6:'스플리터 — 분열 적',8:'랜서 협공',11:'고밀도 스웜',12:'폭탄병 등장'}[w]
-   const sub=zoneNew?('▸ '+window.__zoneName(nz)+' 진입'):(intro||'다음 파도')
+   const intro={4:'WEAVER — evasive fliers',6:'SPLITTER — splits on death',8:'LANCER pincer attack',11:'high-density swarm',12:'BOMBER incoming'}[w]
+   const sub=zoneNew?('▸ ENTERING '+window.__zoneName(nz)):(intro||'stay sharp')
    banner('◆ WAVE '+w,zoneNew?'#ffcf4a':'#35e6ff',sub)}
   pulse();S.salvRun+=10+w*2}}
 
@@ -5015,7 +5015,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
    c.m.position.z+=2.4*wdt;c.m.rotation.y+=rdt*1.6;c.m.rotation.x+=rdt*.6
    const d=Math.hypot(player.position.x-c.m.position.x,player.position.z-c.m.position.z)
    if(d<1.35){cratePool.put(c.m);crates.splice(i,1);ring(c.m.position.x,c.m.position.z,0xffd06a,3.2,.45);burst(c.m.position.x,c.m.position.z,0xffe0a0,10);AU.pick();showReward();continue}
-   if(c.m.position.z>PZ+3){cratePool.put(c.m);crates.splice(i,1);toast('보급 크레이트 놓침',1100)}}
+   if(c.m.position.z>PZ+3){cratePool.put(c.m);crates.splice(i,1);toast('SUPPLY CRATE MISSED',1100)}}
   if(S.t>=S.nextReward){S.nextReward+=40;spawnCrate()}
  }
  for(let i=debris.length-1;i>=0;i--){const d=debris[i]
@@ -5087,7 +5087,8 @@ function applyShip(){const sel=META.ships.sel||'A'
 function begin(){AU.unlock();reset();applyShip()
  if(window.__hangarClose)window.__hangarClose()
  window.__setZone&&window.__setZone(0,true) // ⑥ 새 런 = 존1(딥 스페이스)로 즉시 리셋
- $('start').classList.add('off');$('over').classList.add('off');ST='play';renderLoadout();renderWeaponSel()}
+ $('start').classList.add('off');$('over').classList.add('off');ST='play';renderLoadout();renderWeaponSel()
+ banner('◆ WAVE 1','#35e6ff','stay sharp');S.lullUntil=S.t+1.8} // ③ 시작 시 WAVE 1 배너 먼저 → 적은 소강(1.8s) 후 등장
 $('playBtn').onclick=begin
 $('retryBtn').onclick=begin
 /* ============ 행어(함대) ============ */
