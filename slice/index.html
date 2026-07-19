@@ -124,7 +124,9 @@
   #lb .lbsub{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:#8792b5;margin:2px 0 16px}
   .lblist{width:min(92vw,440px);display:flex;flex-direction:column;gap:3px;min-height:200px;max-height:min(56vh,440px);overflow-y:auto;padding-right:4px}
   .lblist::-webkit-scrollbar{width:6px}.lblist::-webkit-scrollbar-thumb{background:rgba(120,150,220,.3);border-radius:3px}
-  .lbrow{display:grid;grid-template-columns:34px 1fr 50px 82px;gap:8px;align-items:center;padding:8px 12px;border-radius:8px;background:rgba(120,150,220,.05);font-family:ui-monospace,Menlo,monospace;font-size:13px}
+  .lbrow{display:grid;grid-template-columns:28px 1fr 22px 42px 76px;gap:8px;align-items:center;padding:8px 11px;border-radius:8px;background:rgba(120,150,220,.05);font-family:ui-monospace,Menlo,monospace;font-size:13px}
+  .lbrow .df{font-weight:800;text-align:center;font-size:11px}
+  .lbrow .df.d0{color:#4ade80}.lbrow .df.d1{color:#35e6ff}.lbrow .df.d2{color:#ff5d6c}
   .lbrow .r{font-weight:800;color:#8792b5;text-align:center}
   .lbrow:nth-child(1) .r{color:#ffcf4a}.lbrow:nth-child(2) .r{color:#c8d2e8}.lbrow:nth-child(3) .r{color:#e0a060}
   .lbrow .nm{color:#dbe2f3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
@@ -137,6 +139,10 @@
   .lbname input{background:rgba(255,255,255,.05);border:1px solid rgba(120,150,220,.35);border-radius:7px;color:#eaf0ff;font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:6px 10px;width:150px;outline:none}
   .lbname input:focus{border-color:#35e6ff}
   .lbrk{color:#ffcf4a;font-weight:800}
+  #pauseBtn{position:absolute;top:calc(env(safe-area-inset-top,0) + 10px);left:50%;transform:translateX(-50%);z-index:7;width:32px;height:32px;border-radius:9px;background:rgba(10,16,32,.6);border:1px solid rgba(120,150,220,.32);display:none;align-items:center;justify-content:center;gap:4px;cursor:pointer;pointer-events:auto}
+  #pauseBtn:active{transform:translateX(-50%) scale(.92)}
+  #pauseBtn i{width:4px;height:12px;background:#c3cde8;border-radius:1px}
+  #ui.playing #pauseBtn{display:flex}
   .center .play{font-family:'Arial Black',sans-serif;font-size:20px;color:#04210f;background:#b4ff39;border-radius:14px;padding:16px 40px;cursor:pointer;box-shadow:0 0 30px rgba(180,255,57,.4)}
   .center .hint{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#6b779c;margin-top:16px}
   .ovst{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#a7b4d6;margin:8px 0 22px;line-height:1.9}
@@ -197,16 +203,14 @@
   <div id="ebar"><i></i><span>ELITE — DREAD CROWN</span></div>
   <div id="toast"></div>
   <div class="tagmini">NOVA SURGE 2.0</div>
+  <div id="pauseBtn" title="Pause (Esc)"><i></i><i></i></div>
 
   <div class="modal" id="modal"><h2>LEVEL UP</h2><div class="sub">Choose one</div><div class="cards" id="cards"></div></div>
 
   <div class="reward" id="reward">
-    <div class="crate" id="crateIc"></div><h2>SUPPLY DROP</h2><div class="got" id="rwGot">Repair +30 · Bonus XP</div>
-    <div class="btn skip" id="rwClaim">Claim ▶</div>
-    <div id="rwBonus" style="display:none">
-      <div class="btn ad" id="rwAd">▶ Watch Ad → +1 Bonus<small>Gift · Free</small></div>
-      <div class="btn skip" id="rwCont">Continue ▶</div>
-    </div>
+    <div class="crate" id="crateIc"></div><h2>SUPPLY DROP</h2><div class="got">Repair +30 · Pick an upgrade</div>
+    <div class="btn ad" id="rwAd">▶ Watch Ad → +1 Bonus<small>Gift · Free</small></div>
+    <div class="btn skip" id="rwCont">Continue ▶</div>
   </div>
 
   <div class="adplay" id="adplay"><div class="big">▶</div><div id="adTxt">AD · 3</div></div>
@@ -252,6 +256,12 @@
     <div class="lblist" id="lbList"></div>
     <div class="lbname"><span>YOU</span><input id="lbName" maxlength="16" spellcheck="false"><span id="lbRank" class="lbrk"></span></div>
     <div class="play" id="lbBack" style="background:#35e6ff;margin-top:18px">← Back</div>
+  </div>
+
+  <div class="center off" id="pause">
+    <h1 style="font-size:32px">PAUSED</h1>
+    <div class="play" id="resumeBtn" style="background:#b4ff39">▶ Resume</div>
+    <div class="hbtn" id="quitBtn" style="margin-top:12px">← Quit to Menu</div>
   </div>
 </div>
 <script>/**
@@ -3911,7 +3921,7 @@ const SVG={
  seek:'<svg viewBox="0 0 24 24"><path d="M14.5 3.5l6 6-9.5 3.5L14.5 3.5z" fill="#ff6fb0"/><path d="M11 13l-1.8 6.3a1.6 1.6 0 0 1-2.7.7l-2.5-2.5a1.6 1.6 0 0 1 .7-2.7L11 13z" fill="#35e6ff"/><circle cx="17.5" cy="6.5" r="1.4" fill="#eaf0ff"/></svg>',
  arc:'<svg viewBox="0 0 24 24"><path d="M4 20L10 8l2 4z" fill="#35e6ff"/><path d="M20 20L14 8l-2 4z" fill="#35e6ff" opacity=".75"/><rect x="11" y="14" width="2" height="7" rx="1" fill="#8be9ff"/></svg>',
  lance:'<svg viewBox="0 0 24 24"><path d="M12 1.5l3 6h-6z" fill="#ffcf4a"/><rect x="10.6" y="7" width="2.8" height="12" fill="#ffcf4a" opacity=".85"/><path d="M8.5 20h7l-3.5 2.5z" fill="#ffcf4a" opacity=".6"/></svg>',
- pulse:'<svg viewBox="0 0 24 24"><circle cx="12" cy="4.4" r="2.4" fill="#35e6ff"/><rect x="10.6" y="6" width="2.8" height="9" rx="1.4" fill="#35e6ff"/><path d="M12 20.5l-3.4-5h6.8z" fill="#35e6ff"/></svg>',
+ pulse:'<svg viewBox="0 0 24 24"><path d="M12 3.5l3.4 5h-6.8z" fill="#35e6ff"/><rect x="10.6" y="9" width="2.8" height="9" rx="1.4" fill="#35e6ff"/><circle cx="12" cy="19.6" r="2.2" fill="#35e6ff"/></svg>',
  rail:'<svg viewBox="0 0 24 24"><rect x="10.4" y="1" width="3.2" height="3" rx="1" fill="#8be9ff"/><rect x="9.3" y="3.6" width="5.4" height="12.4" rx="1.2" fill="#35e6ff"/><rect x="6.8" y="16.6" width="10.4" height="3.6" rx="1.4" fill="#35e6ff" opacity=".55"/></svg>',
 }
 
@@ -4298,7 +4308,7 @@ function mkLanceB(){const g=new THREE.Group()
  const gl=glowSprite(0xffcf4a,1.5,.9);g.add(gl)
  scene.add(g);return g}
 const lbPool=Pool(mkLanceB,4),lances=[]
-const mGeo=new THREE.ConeGeometry(.14,.5,5);mGeo.rotateX(Math.PI/2)
+const mGeo=new THREE.ConeGeometry(.14,.5,5);mGeo.rotateX(-Math.PI/2) // 뾰족한 앞(-z, 진행방향)이 앞으로
 function mkMissile(){const g=new THREE.Group() // 오렌지 로켓 — XP 젬(시안)과 구분
  g.add(new THREE.Mesh(mGeo,basicM(0xffb14d)))
  const gl=glowSprite(0xff7a2a,.7,.95);g.add(gl)
@@ -4530,7 +4540,8 @@ addEventListener('keydown',e=>{const k=e.code;AU.unlock()
  if(k==='ArrowLeft'||k==='KeyA'){keyMove.l=true;e.preventDefault()}
  else if(k==='ArrowRight'||k==='KeyD'){keyMove.r=true;e.preventDefault()}
  else if(k==='Space'){if(ST==='play')fireSurge();e.preventDefault()}
- else if(/^Digit[1-4]$/.test(k)){if(ST==='play')setPrimary(['pulse','spread','laser','rail'][+k.slice(-1)-1]);e.preventDefault()}}) // 1~4 = 무기 전환
+ else if(/^Digit[1-4]$/.test(k)){if(ST==='play')setPrimary(['pulse','spread','laser','rail'][+k.slice(-1)-1]);e.preventDefault()} // 1~4 = 무기 전환
+ else if(k==='Escape'){if(ST==='play')pauseGame();else if(ST==='pause')resumeGame()}}) // ESC = 일시정지 토글
 addEventListener('keyup',e=>{const k=e.code
  if(k==='ArrowLeft'||k==='KeyA')keyMove.l=false
  else if(k==='ArrowRight'||k==='KeyD')keyMove.r=false})
@@ -4574,9 +4585,10 @@ function renderLoadout(){const el=document.getElementById('loadout');if(!el)retu
  const out=[]
  for(const u of UPG){if(u.id==='wlv')continue;const lv=u.supp?W[u.id]:(ULV[u.id]||0);if(lv>0)out.push({ic:u.ic,nm:u.nm,lv})}
  el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">L'+it.lv+'</span></div>').join(''):'<div class="loempty">— NONE —</div>'}
+function queueOffer(label){(S.offerLabels||(S.offerLabels=[])).push(label||'LEVEL UP');S.pendingOffers++} // 라벨별 픽 큐잉
 function maybeOffer(){if(ST!=='play'||S.pendingOffers<=0)return
- S.pendingOffers--;offer()}
-function offer(){ST='levelup';AU.lvl();buzz(30)
+ S.pendingOffers--;offer((S.offerLabels&&S.offerLabels.shift())||'LEVEL UP')}
+function offer(label){ST='levelup';AU.lvl();buzz(30);const _h=$('modal').querySelector('h2');if(_h)_h.textContent=label||'LEVEL UP'
  // 카드 = 스탯·보조·마스터리(WEAPON LV)만. 주무기 전환은 온디맨드(좌측 셀렉터/1~4키)라 카드에 없음.
  const lvOf=u=>u.id==='wlv'?S.plv:(u.supp?W[u.id]:(ULV[u.id]||0)),maxOf=u=>u.id==='wlv'?MAXPLV:u.max
  let pool=UPG.filter(u=>lvOf(u)<maxOf(u)).sort(()=>Math.random()-.5).slice(0,3)
@@ -4604,27 +4616,24 @@ function offer(){ST='levelup';AU.lvl();buzz(30)
   el.appendChild(c)}
  $('modal').classList.add('on')}
 function gainXP(n){S.xp+=n
- while(S.xp>=S.xpNext){S.xp-=S.xpNext;S.lvl++;S.xpNext=Math.round(S.xpNext*1.55+3);S.pendingOffers++;MET.lvls.push(S.t)} // 초반 완만화(시작 10·×1.55+3) — 레벨업 모달 빈도↓(오너: 초반 너무 빠름)
+ while(S.xp>=S.xpNext){S.xp-=S.xpNext;S.lvl++;S.xpNext=Math.round(S.xpNext*1.55+3);queueOffer('LEVEL UP');MET.lvls.push(S.t)} // 초반 완만화(시작 10·×1.55+3)
  maybeOffer()}
 
 /* ============ 보상/광고 ============ */
 function spawnCrate(){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
  g.position.set(rnd(-FW*.7,FW*.7),0,TOPZ-2);g.rotation.set(0,0,0)
  crates.push({m:g});toast('◆ SUPPLY CRATE — fly in to grab it!',2200);AU.ready()}
-function showReward(){ST='reward';$('reward').classList.add('on') // 2단계: 무료 1개 → 광고로 추가
- $('rwGot').textContent='Repair +30 · Bonus XP';$('rwClaim').style.display='block';$('rwBonus').style.display='none'}
-function grantBase(){S.hp=Math.min(S.maxhp,S.hp+30);gainXP(S.xpNext*.5);AU.pick() // ① 무료 획득
- $('rwGot').textContent='✓ Claimed — grab one more?';$('rwClaim').style.display='none';$('rwBonus').style.display='block'}
-function grantBonus(){S.hp=Math.min(S.maxhp,S.hp+20);gainXP(S.xpNext*.5);closeReward()} // ② 광고 추가
-function closeReward(){$('reward').classList.remove('on');ST='play'}
+function showReward(){ST='reward';$('reward').classList.add('on');cgEvt('gameplayStop')} // 크레이트 오픈 — 광고 or 계속(둘 다 기본 지급)
+function claimBase(){S.hp=Math.min(S.maxhp,S.hp+30);queueOffer('SUPPLY DROP')} // 기본: 수리 + 픽 1(SUPPLY DROP)
+function grantBonus(){S.hp=Math.min(S.maxhp,S.hp+20);queueOffer('BONUS')} // 광고: 추가 픽 1(BONUS)
+function closeReward(){$('reward').classList.remove('on');ST='play';cgEvt('gameplayStart');maybeOffer()} // 큐된 픽 표시
 function mockAd(then){ST='adplay';const el=$('adplay');el.classList.add('on');let n=3
  $('adTxt').textContent='AD · '+n
  const iv=setInterval(()=>{n--
   if(n<=0){clearInterval(iv);el.classList.remove('on');then()}
   else $('adTxt').textContent='AD · '+n},700)}
-$('rwClaim').onclick=grantBase
-$('rwAd').onclick=()=>playAd(grantBonus)
-$('rwCont').onclick=closeReward
+$('rwAd').onclick=()=>playAd(()=>{claimBase();grantBonus();AU.pick();closeReward()}) // 광고 → 기본+보너스
+$('rwCont').onclick=()=>{claimBase();AU.pick();closeReward()} // 그냥 → 기본만
 $('reviveAd').onclick=()=>{if(S.revived)return;playAd(()=>{S.revived=true;S.hp=S.maxhp
  S.invUntil=performance.now()+2000;AU.revive();$('over').classList.add('off');ST='play';cgEvt('gameplayStart');maybeOffer()})}
 $('salvAd').onclick=()=>{if(S.adSalvUsed)return;playAd(()=>{S.adSalvUsed=true
@@ -4718,7 +4727,7 @@ function die(){S.hp=0;ST='over';cgEvt('gameplayStop') // CG 게임플레이 종�
  const earned=S.salvRun
  S.lastEarned=earned;S.salvRun=0 // 이중 정산 방지(부활 후 재사망)
  META.salv+=earned;saveMeta()
- const score=Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned)) // 리더보드 점수
+ const score=Math.round(Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned))*(S.diffRk||1)) // 리더보드 점수(난이도 가중: EASY×.8·HARD×1.5)
  if(score>PBEST){PBEST=score;try{localStorage.setItem('ns2_best',PBEST)}catch(e){}}
  submitScore(score,S.wave,META.diff,Math.round(S.t))
  $('overStats').innerHTML='<div style="font-size:13px;letter-spacing:2px;color:#8792b5;font-family:ui-monospace,Menlo,monospace">SCORE</div><div style="font-size:30px;color:#35e6ff;font-weight:800;margin:2px 0 10px">'+fmt(score)+'</div>WAVE '+S.wave+' · KILLS '+S.kills+' · MAX COMBO <b>×'+S.comboMax+'</b> · '+($('time').textContent)
@@ -5121,7 +5130,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(let i=debris.length-1;i>=0;i--){dPool.put(debris[i].m)};debris.length=0
  for(let i=rings.length-1;i>=0;i--){rPool.put(rings[i].m)};rings.length=0
  for(let i=trails.length-1;i>=0;i--){tPool.put(trails[i].sp)};trails.length=0
- NUM.length=0;SPARK.length=0;BANNER=null
+ NUM.length=0;SPARK.length=0;BANNER=null;S.offerLabels=[]
  W.orbit=0;W.homing=0
  for(const k in ULV)ULV[k]=0
  for(const k in E)E[k]=0
@@ -5166,7 +5175,7 @@ const _esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'
 function renderLB(rows){const el=$('lbList');if(!el)return
  if(rows==null){el.innerHTML='<div class="lbempty">Leaderboard offline — try again later.</div>';$('lbRank').textContent='';return}
  if(!rows.length)el.innerHTML='<div class="lbempty">No scores yet — be the first!</div>'
- else el.innerHTML=rows.slice(0,100).map((r,i)=>'<div class="lbrow'+(r.name===PNAME&&r.score===PBEST?' me':'')+'"><span class="r">'+(i+1)+'</span><span class="nm">'+_esc(r.name)+'</span><span class="wv">W'+r.wave+'</span><span class="sc">'+fmt(r.score)+'</span></div>').join('')
+ else el.innerHTML=rows.slice(0,100).map((r,i)=>{const d=r.diff==null?1:r.diff;return '<div class="lbrow'+(r.name===PNAME&&r.score===PBEST?' me':'')+'"><span class="r">'+(i+1)+'</span><span class="nm">'+_esc(r.name)+'</span><span class="df d'+d+'">'+['E','N','H'][d]+'</span><span class="wv">W'+r.wave+'</span><span class="sc">'+fmt(r.score)+'</span></div>'}).join('')
  const mine=rows.findIndex(r=>r.name===PNAME&&r.score===PBEST)
  $('lbRank').textContent=PBEST>0?(mine>=0?('rank #'+(mine+1)):('best '+fmt(PBEST))):''}
 function openLB(){AU.unlock();ST='lb';$('start').classList.add('off');$('over').classList.add('off');$('lb').classList.remove('off')
@@ -5176,6 +5185,15 @@ function closeLB(){$('lb').classList.add('off');$('over').classList.add('off');$
 $('lbBtn').onclick=openLB;$('lbBtn2').onclick=openLB;$('lbBack').onclick=closeLB
 $('lbName').addEventListener('change',e=>{PNAME=(e.target.value.trim()||PNAME).slice(0,16);try{localStorage.setItem('ns2_name',PNAME)}catch(_){}e.target.value=PNAME})
 $('retryBtn').onclick=()=>cgMidgame(begin) // 재시작 시 미드게임 인터스티셜(있으면)
+// ── 일시정지 ──
+function pauseGame(){if(ST!=='play')return;ST='pause';$('pause').classList.remove('off');cgEvt('gameplayStop')}
+function resumeGame(){if(ST!=='pause')return;$('pause').classList.add('off');ST='play';cgEvt('gameplayStart')}
+function quitToMenu(){const earned=S.salvRun;META.salv+=earned;saveMeta() // 메인으로: 점수 제출 후 종료
+ const score=Math.round(Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned))*(S.diffRk||1))
+ if(score>PBEST){PBEST=score;try{localStorage.setItem('ns2_best',PBEST)}catch(e){}}
+ submitScore(score,S.wave,META.diff,Math.round(S.t));cgEvt('gameplayStop')
+ reset();$('pause').classList.add('off');$('start').classList.remove('off');ST='start'}
+$('pauseBtn').onclick=pauseGame;$('resumeBtn').onclick=resumeGame;$('quitBtn').onclick=quitToMenu
 /* ============ 행어(함대) ============ */
 const HG={cur:'A',ready:false,cache:{},r:null,sc:null,cam:null,grp:null}
 function fmt(n){return n.toLocaleString('en-US')}
