@@ -4532,7 +4532,8 @@ let CG=null,CG_READY=false
      renderDiffSel();updateStartBal();window.__hangarRefresh&&window.__hangarRefresh()}
    }catch(e){}}
 }catch(e){CG=null;CG_READY=false}})()
-const cgOn=()=>{try{return CG_READY&&CG&&CG.ad&&(CG.environment==='crazygames'||CG.environment==='local')}catch(e){return false}}
+const cgEnv=()=>{try{return CG&&CG.environment}catch(e){return null}}
+const cgOn=()=>{try{return CG_READY&&CG&&CG.ad&&cgEnv()!=='disabled'}catch(e){return false}} // 화이트리스트 → 블랙리스트: QA 프리뷰 iframe이 'crazygames'로 안 잡혀 광고가 목업으로 새던 버그 수리(SDK 준비됐고 명시적 disabled가 아니면 항상 SDK 광고)
 function cgEvt(fn){try{if(CG_READY&&CG&&CG.game&&CG.game[fn])CG.game[fn]()}catch(e){}}
 function cgMidgame(then){const fin=()=>{AU.muted=false;then()} // 광고 중 음소거(CG QA 요건) → 종료 시 복원
  if(cgOn()){try{CG.ad.requestAd('midgame',{adStarted:()=>{AU.muted=true},adFinished:fin,adError:fin});return}catch(e){}}then()}
