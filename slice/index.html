@@ -4515,7 +4515,8 @@ let CG=null,CG_READY=false
   for(let i=0;i<50&&!(window.CrazyGames&&window.CrazyGames.SDK);i++)await new Promise(r=>setTimeout(r,100))
   if(window.CrazyGames&&window.CrazyGames.SDK){CG=window.CrazyGames.SDK
    await CG.init();CG_READY=true // init 먼저 → 그 뒤 게임 메서드
-   try{CG.game.sdkGameLoadingStart();CG.game.sdkGameLoadingStop()}catch(e){}
+   try{CG.game.sdkGameLoadingStart()}catch(e){}
+   setTimeout(()=>{try{CG.game.sdkGameLoadingStop()}catch(e){}},1600) // 즉시 연속 호출은 SDK 스로틀에 먹힘 — 함선 GLB 로드 구간만큼 간격
    try{ // CG 플랫폼 뮤트 연동 — 사이트 뮤트 버튼이 게임 오디오에 항상 우선(설정 문서 요구)
     if(CG.game&&CG.game.settings&&CG.game.settings.muteAudio)AU.sysMuted=true
     if(CG.game&&CG.game.addSettingsChangeListener)CG.game.addSettingsChangeListener(s=>{AU.sysMuted=!!(s&&s.muteAudio)})}catch(e){}
@@ -4897,6 +4898,9 @@ function shieldAbsorb(f,d,hx,hz){if(f.type!=='aegis'||!f.segsAlive)return false 
 function hitFX(f,dmg,now){f.flashOn=true;f.flashUntil=now+70;setFlash(f.m,true);AU.hit()
  num(f.m.position.x,f.m.position.z,'-'+dmg,'#cfe6ff',11)}
 function die(){S.hp=0;ST='over';cgEvt('gameplayStop') // CG 게임플레이 종료
+ if(window.__beam)window.__beam.visible=false // 사망 시 빔 잔상 제거(레이저 장착 사망 시 게임오버 위에 빔이 남던 버그)
+ if(window.__beam2)window.__beam2.visible=false
+ if(window.__wbeam)window.__wbeam.visible=false
  const earned=S.salvRun
  S.lastEarned=earned;S.salvRun=0 // 이중 정산 방지(부활 후 재사망)
  META.salv+=earned;saveMeta()
