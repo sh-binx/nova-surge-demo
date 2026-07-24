@@ -1,27 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>NOVA SURGE</title>
-  <style>
-    /* 데스크톱(가로 뷰포트)에서 540×960 세로 캔버스는 FIT 스케일 후 좌우에 레터박스 여백이 남는다.
-       플랫 검정이면 포털(CrazyGames) 데스크톱에서 "미완성" 인상 — 타이틀 아트의 분위기(상단 시안 글로우 +
-       하단 마젠타 노을)를 CSS 글로우로 이어받아 여백이 게임 우주의 연장처럼 보이게 한다. 캔버스는 불투명하게
-       위에 얹히므로 이 배경은 여백에서만 보이고, 모바일 세로에선 캔버스가 화면을 꽉 채워 사실상 노출되지 않는다.
-       순수 CSS(에셋 의존 0) — 번들/좌표에 영향 없음. */
-    html, body {
-      margin: 0; height: 100%; overflow: hidden;
-      background:
-        radial-gradient(ellipse 55% 45% at 50% 30%, rgba(0, 240, 255, 0.10), transparent 72%),
-        radial-gradient(ellipse 75% 55% at 50% 78%, rgba(255, 46, 151, 0.07), transparent 72%),
-        #05070f;
-    }
-    /* 센터링은 Phaser Scale.CENTER_BOTH 단독 담당 — CSS 센터링과 이중 적용 시 캔버스가 밀리고 입력 좌표가 어긋남 */
-    #app { height: 100%; touch-action: none; }
-    canvas { touch-action: none; }
-  </style>
-  <script type="module" crossorigin src="./assets/index-CdkGnLlx.js"></script>
-</head>
-<body><div id="app"></div></body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Nova Surge 2.0</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0; url=./slice/">
+<link rel="canonical" href="./slice/">
+<style>html,body{margin:0;height:100%;background:#05070f;color:#7fd7ff;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center}</style>
+<script>location.replace('./slice/'+location.search+location.hash)</script>
+</head><body><p>Loading <a href="./slice/" style="color:#7fd7ff">Nova Surge 2.0</a>…</p></body></html>
