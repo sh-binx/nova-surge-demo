@@ -9,6 +9,7 @@
 /* 우상단 = 토스 게임 내비게이션 바(더보기·X) 자리 — 오른쪽 HUD 패널을 그 아래에서 시작 */
 .side.right{padding-top:calc(var(--nav,52px) + 6px)}
 html{font-variant-numeric:tabular-nums}
+#ui,.ait-card,.ait-toast{word-break:keep-all;overflow-wrap:anywhere} /* 한글 단어 중간 줄바꿈 방지(‘관/통’) */
 /* 한글은 자간을 좁게(영문 모노 자간 그대로면 벌어져 보인다) */
 .ptitle,.plabel,.center .difflabel,.dchip,.center .tag,.hrole{letter-spacing:.5px}
 
@@ -26,8 +27,8 @@ body:has(#ui:not(.playing)) #fx{visibility:hidden}
 .ait-snd[aria-pressed="false"]{color:#7a86a8}
 #ui.playing .ait-snd{display:none}
 
-/* ── 짧은 가로 화면(폰 가로 ≈ 360–430px 높이) 압축 레이아웃 ── */
-@media (max-height:520px){
+/* ── 짧은 가로 화면(폰 가로 ≈ 360–430px · 데스크톱 브라우저 창 ≤700px) 압축 레이아웃 — 기체 화면 세로 스택이 넘친다 ── */
+@media (max-height:700px){
   .center h1{font-size:clamp(28px,7.2vh,40px)}
   .center .tag{margin:6px 0 10px;font-size:12px}
   .center .difflabel{margin-bottom:5px}

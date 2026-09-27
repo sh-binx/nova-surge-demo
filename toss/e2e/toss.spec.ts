@@ -95,10 +95,10 @@ test('한 판 플레이 — 레벨업 카드 · 보스 · 크레이트 보너스
   await page.click('#playBtn')
   expect((await st(page)).ST).toBe('play')
   await page.evaluate(() => (window as any).__ai(3))
-  await page.waitForTimeout(6000)
+  await expect.poll(async () => (await st(page)).kills, { timeout: 20_000 }).toBeGreaterThan(0) // 개전 소강(1.8s) 뒤 첫 격추
+  await page.waitForTimeout(4000)
   const s1 = await st(page)
-  console.log(`[run] 6초: kills ${s1.kills} · fps ${s1.fps} · hp ${s1.hp}`)
-  expect(s1.kills).toBeGreaterThan(0)
+  console.log(`[run] t=${s1.t}s: kills ${s1.kills} · fps ${s1.fps} · hp ${s1.hp}`)
   await koScan(page, '인게임 HUD'); await navZoneClear(page, '인게임 HUD')
 
   await page.evaluate(() => (window as any).__test.addXP())
@@ -301,5 +301,9 @@ test('SDK 없는 일반 브라우저(브리지 부재)에서도 10초 안에 로
   await page.click('#playBtn')
   await page.waitForTimeout(1500)
   expect((await st(page)).ST).toBe('play')
+  await page.evaluate(() => (window as any).__die())
+  await page.click('#reviveAd') // 광고 불가 환경 — 안내 후 보상 없음
+  await expect(page.locator('#aitToast')).toHaveText('이 환경에서는 광고를 볼 수 없어요')
+  expect((await st(page)).ST).toBe('over')
   expect(errs.filter(e => e.startsWith('pageerror'))).toEqual([])
 })
