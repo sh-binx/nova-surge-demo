@@ -1,0 +1,243 @@
+{
+  "_comment": "NOVA SURGE 한국어 표시 사전 — exact(완전 일치, 앞뒤 공백 보존) → patterns(정규식; $n=캡처 그대로, §n=캡처를 다시 사전 번역) 순으로 적용. 게임 로직은 영문 키를 그대로 쓰고 표시 계층에서만 바꾼다.",
+  "exact": {
+    "graze the swarm. become the storm.": "적탄을 스쳐라. 폭풍이 되어라.",
+    "DIFFICULTY": "난이도",
+    "EASY": "쉬움",
+    "NORMAL": "보통",
+    "HARD": "어려움",
+    "▶ PLAY": "▶ 게임 시작",
+    "⬢ SHIPS & UPGRADES": "⬢ 기체 · 강화",
+    "🏆 LEADERBOARD": "🏆 랭킹",
+    "🏆 Leaderboard": "🏆 랭킹",
+    "YOUR SALVAGE": "보유 자원",
+    "WEAPON": "무기",
+    "UPGRADES": "강화",
+    "— NONE —": "— 없음 —",
+    "SALVAGE": "자원",
+    "SURGE": "서지",
+    "ELITE — DREAD CROWN": "엘리트 — 드레드 크라운",
+    "BOSS": "보스",
+    "LEVEL UP": "레벨 업",
+    "SUPPLY DROP": "보급품 도착",
+    "BONUS": "보너스",
+    "Choose one": "하나를 고르세요",
+    "RARE": "레어",
+    "EPIC": "에픽",
+    "NEW": "신규",
+    "ONE MORE?": "하나 더?",
+    "Watch a short ad for a bonus upgrade": "짧은 광고를 보면 강화를 하나 더 받아요",
+    "▶ Watch Ad → +1 Bonus": "▶ 광고 보고 강화 +1",
+    "Gift · Free": "무료 선물",
+    "No thanks ▶": "괜찮아요 ▶",
+    "GAME OVER": "게임 오버",
+    "SCORE": "점수",
+    "▶ Watch Ad → Revive": "▶ 광고 보고 부활",
+    "Gift · Free · Once": "무료 · 1회",
+    "▶ Watch Ad → Salvage ×2": "▶ 광고 보고 자원 ×2",
+    "Restart": "다시 시작",
+    "SECTOR CLEARED ✦ CLEAR BONUS +25,000": "섹터 클리어 ✦ 클리어 보너스 +25,000",
+    "GLOBAL · TOP 100": "전체 · 상위 100",
+    "YOU": "나",
+    "← Back": "← 뒤로",
+    "Loading…": "불러오는 중…",
+    "Leaderboard offline — try again later.": "랭킹을 불러올 수 없어요 — 잠시 후 다시 시도해 주세요.",
+    "No scores yet — be the first!": "아직 기록이 없어요 — 첫 기록을 세워 보세요!",
+    "ALL 8 BOSSES DOWN · WAVE 40": "보스 8체 격파 · 웨이브 40",
+    "SECTOR CLEARED": "섹터 클리어",
+    "YOU BEAT THE GAUNTLET, PILOT": "모든 관문을 돌파했다, 파일럿",
+    "CLEAR BONUS +25,000": "클리어 보너스 +25,000",
+    "ENDLESS PROTOCOL ENGAGED": "무한 프로토콜 가동",
+    " — bosses return stronger": " — 보스가 더 강해져 돌아와요",
+    "PAUSED": "일시정지",
+    "▶ Resume": "▶ 계속하기",
+    "← Quit to Menu": "← 메뉴로 나가기",
+    "NOVA WRAITH": "노바 레이스",
+    "PRISM SHARD": "프리즘 샤드",
+    "VOID RAY": "보이드 레이",
+    "BALANCED STRIKER": "균형형 전투기",
+    "GLASS CANNON": "공격 특화형",
+    "VOID HARVESTER": "자원 수확형",
+    "Standard — balanced stats": "표준 — 균형 잡힌 능력치",
+    "Resonant Crystal — DMG +15% · Surge +20% / HP −20%": "공명 크리스탈 — 공격력 +15% · 서지 +20% / 체력 −20%",
+    "Void Harvest — HP +25% · Magnet +30% · Salvage +15% / Speed −10%": "공허 수확 — 체력 +25% · 자석 +30% · 자원 +15% / 속도 −10%",
+    "HP": "체력",
+    "DMG": "공격",
+    "SPD": "속도",
+    "SRG": "서지",
+    "HULL": "선체",
+    "THRUST": "추진",
+    "ARSENAL": "무장",
+    "SURGE CORE": "서지 코어",
+    "MAX": "최대",
+    "Select Ship": "기체 선택",
+    "✓ Active Ship": "✓ 사용 중",
+    "Locked": "잠김",
+    "PULSE": "펄스",
+    "SPREAD": "스프레드",
+    "LASER": "레이저",
+    "RAIL": "레일",
+    "Straight cannon · LV5 twin · LV10 pierce": "직선 캐논 · LV5 쌍발 · LV10 관통",
+    "Wide fan · LV5 arc+ · LV10 rear shots": "부채꼴 확산 · LV5 각도 확장 · LV10 후방 사격",
+    "Focus beam · LV5 wide · LV10 split": "집중 빔 · LV5 광폭 · LV10 분열",
+    "Pierce lance · LV5 heavy · LV10 chain": "관통 창 · LV5 대형 · LV10 연쇄",
+    "ORBIT": "궤도 칼날",
+    "Support — orbit blades · melee": "보조 — 주위를 도는 칼날 · 근접",
+    "HOMING": "유도 미사일",
+    "Support — homing missiles": "보조 — 적을 쫓는 미사일",
+    "RAPID FIRE": "속사",
+    "Fire rate +25%": "연사 속도 +25%",
+    "OVERCHARGE": "과충전",
+    "Damage +1 (flat)": "공격력 +1(고정)",
+    "THRUSTERS": "추진기",
+    "Move speed +20%": "이동 속도 +20%",
+    "MAGNET": "자석",
+    "Pickup range +40%": "획득 범위 +40%",
+    "Max HP +25 · heal": "최대 체력 +25 · 회복",
+    "Emergency Repair": "긴급 수리",
+    "HP +40": "체력 +40",
+    "Salvage Cache": "자원 상자",
+    "Surge Charge": "서지 충전",
+    "Surge +50%": "서지 +50%",
+    "TWIN STREAM": "트윈 스트림",
+    "PIERCING ROUNDS": "관통탄",
+    "WIDE ARC": "와이드 아크",
+    "BACK SPREAD": "후방 확산",
+    "CHARGE LANCE": "차지 랜스",
+    "CHAIN ARC": "체인 아크",
+    "WIDE BEAM": "와이드 빔",
+    "SPLIT BEAM": "분열 빔",
+    "VULCAN STORM": "벌컨 스톰",
+    "MAELSTROM": "소용돌이",
+    "HYDRA": "히드라",
+    "PRISM": "프리즘",
+    "JUDGMENT LASER": "심판의 레이저",
+    "WARDEN": "워든",
+    "DREAD CROWN": "드레드 크라운",
+    "MONARCH": "모나크",
+    "HIVE MOTHER": "하이브 마더",
+    "TWIN VIPERS": "트윈 바이퍼",
+    "MINELAYER": "마인레이어",
+    "AEGIS RING": "이지스 링",
+    "GATEKEEPER": "게이트키퍼",
+    "DEEP SPACE": "심우주",
+    "MARS ORBIT": "화성 궤도",
+    "ION NEBULA": "이온 성운",
+    "RED GIANT": "적색 거성",
+    "WORMHOLE": "웜홀",
+    "stay sharp": "긴장을 늦추지 마세요",
+    "BOSS — stand your ground": "보스 — 버텨내세요",
+    "WEAVER — evasive fliers": "위버 — 요리조리 피하는 비행체",
+    "SPLITTER — splits on death": "스플리터 — 격파하면 분열",
+    "LANCER pincer attack": "랜서 협공",
+    "high-density swarm": "고밀도 적 무리",
+    "TURRET emplacements": "포탑 배치",
+    "CRAB flankers": "크랩 측면 기습",
+    "WORM chains": "웜 행렬",
+    "LAMPREY — curving shots": "램프리 — 휘어지는 탄",
+    "AEGIS SHIELDS DOWN": "이지스 실드 붕괴",
+    "WINGMAN DOWN — VIPER ENRAGED": "윙맨 격추 — 바이퍼 격노",
+    "GATEKEEPER — FINAL PHASE": "게이트키퍼 — 최종 단계",
+    "GRAZE": "스침",
+    "safe": "안전",
+    "◆ SUPPLY CRATE — fly in to grab it!": "◆ 보급 상자 — 날아가서 획득하세요!",
+    "SUPPLY CRATE MISSED": "보급 상자를 놓쳤어요",
+    "⚠ ENEMY BREACH — hold the line!": "⚠ 적 돌파 — 방어선을 지키세요!",
+    "Graze enemy shots to charge SURGE!": "적탄을 스치면 서지가 충전돼요!",
+    "SURGE READY — press the button!": "서지 준비 완료 — 버튼을 누르세요!"
+  },
+  "patterns": [
+    [
+      "^LEVEL UP$",
+      "레벨 업"
+    ],
+    [
+      "^WAVE (\\d+) · LOOP (\\d+)$",
+      "웨이브 $1 · $2회차"
+    ],
+    [
+      "^WAVE (\\d+)$",
+      "웨이브 $1"
+    ],
+    [
+      "^◆ WAVE (\\d+)$",
+      "◆ 웨이브 $1"
+    ],
+    [
+      "^(\\d+)s$",
+      "$1초"
+    ],
+    [
+      "^▸ ENTERING (.+)$",
+      "▸ 진입: §1"
+    ],
+    [
+      "^⚠ (.+?)( \\+\\+)?$",
+      "⚠ §1$2"
+    ],
+    [
+      "^(.+) DOWN$",
+      "§1 격파"
+    ],
+    [
+      "^▸ (PULSE|SPREAD|LASER|RAIL) · LV(\\d+)$",
+      "▸ §1 · LV$2"
+    ],
+    [
+      "^✦ (PULSE|SPREAD|LASER|RAIL) EVOLVED — (.+)$",
+      "✦ §1 진화 — §2"
+    ],
+    [
+      "^EVOLVE — (.+)$",
+      "진화 — §1"
+    ],
+    [
+      "^✦ (.+?)( · LV\\d+)?( ×2)?$",
+      "✦ §1$2$3"
+    ],
+    [
+      "^(PULSE|SPREAD|LASER|RAIL) \\+1$",
+      "§1 +1"
+    ],
+    [
+      "^Joined fleet — (.+)$",
+      "함대 합류 — §1"
+    ],
+    [
+      "^◆ ([\\d,]+) — BUY$",
+      "◆ $1 — 구매"
+    ],
+    [
+      "^Balance ◆ ([\\d,]+)$",
+      "보유 ◆ $1"
+    ],
+    [
+      "^WAVE (\\d+) · KILLS (\\d+) · MAX COMBO $",
+      "웨이브 $1 · 격추 $2 · 최대 콤보 "
+    ],
+    [
+      "^ · Balance ◆ ([\\d,]+)$",
+      " · 보유 ◆ $1"
+    ],
+    [
+      "^SALVAGE $",
+      "자원 "
+    ],
+    [
+      "^Ad bonus ◆ \\+(\\d+) — Balance ◆ (\\d+)$",
+      "광고 보너스 ◆ +$1 — 보유 ◆ $2"
+    ],
+    [
+      "^rank #(\\d+)$",
+      "$1위"
+    ],
+    [
+      "^best ([\\d,]+)$",
+      "최고 $1"
+    ],
+    [
+      "^AD · (\\d+)$",
+      "광고 · $1"
+    ]
+  ]
+}

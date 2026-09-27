@@ -1,0 +1,91 @@
+/* 앱인토스 빌드 전용 스타일 — 포털판(slice/index.html)의 <style> 뒤에 붙어 필요한 곳만 덮는다. */
+
+/* ── 한글 폰트(Pretendard 서브셋, OFL) — 폰트 스택에 NSKR/NSKRB 로 끼워져 한글 글리프만 담당 ── */
+@font-face{font-family:NSKR;src:url(./assets/nskr-800.woff2) format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:NSKRB;src:url(./assets/nskr-900.woff2) format('woff2');font-weight:100 900;font-display:swap}
+
+/* ── Safe area: UI 레이어 전체를 인셋 안으로(캔버스는 풀스크린 유지) ── */
+#ui{top:var(--sa-t,0px);right:var(--sa-r,0px);bottom:var(--sa-b,0px);left:var(--sa-l,0px)}
+/* 우상단 = 토스 게임 내비게이션 바(더보기·X) 자리 — 오른쪽 HUD 패널을 그 아래에서 시작 */
+.side.right{padding-top:calc(var(--nav,52px) + 6px)}
+html{font-variant-numeric:tabular-nums}
+/* 한글은 자간을 좁게(영문 모노 자간 그대로면 벌어져 보인다) */
+.ptitle,.plabel,.center .difflabel,.dchip,.center .tag,.hrole{letter-spacing:.5px}
+
+/* 보스 체력바: 좌우 HUD 패널 사이로(원본 14% 폭은 폰 가로에서 패널을 덮는다) · 인런이 아니면 숨김 */
+#ebar{top:58px;left:calc(clamp(148px,15vw,208px) + 14px);right:calc(clamp(148px,15vw,208px) + 14px)}
+#ui:not(.playing) #ebar{display:none!important}
+/* 캔버스 FX(배너·숫자)는 인런에서만 — 결과/타이틀 화면 위에 마지막 배너가 남지 않게 */
+body:has(#ui:not(.playing)) #fx{visibility:hidden}
+
+/* ── 사운드 토글(좌상단 — 타이틀·일시정지·결과·기체 화면) ── */
+.ait-snd{position:absolute;top:10px;left:12px;z-index:9;display:flex;align-items:center;gap:6px;pointer-events:auto;cursor:pointer;
+  height:36px;padding:0 12px 0 9px;border-radius:10px;background:rgba(10,16,32,.72);border:1px solid rgba(120,150,220,.35);
+  color:#c3cde8;font:800 12px ui-monospace,Menlo,NSKR,monospace;-webkit-tap-highlight-color:transparent}
+.ait-snd svg{width:18px;height:18px}
+.ait-snd[aria-pressed="false"]{color:#7a86a8}
+#ui.playing .ait-snd{display:none}
+
+/* ── 짧은 가로 화면(폰 가로 ≈ 360–430px 높이) 압축 레이아웃 ── */
+@media (max-height:520px){
+  .center h1{font-size:clamp(28px,7.2vh,40px)}
+  .center .tag{margin:6px 0 10px;font-size:12px}
+  .center .difflabel{margin-bottom:5px}
+  .diffsel{margin-bottom:12px}
+  .dchip{padding:6px 13px}
+  .center .play{font-size:17px;padding:11px 34px}
+  .hbtn{font-size:13px;padding:9px 24px;margin-top:9px}
+  #start .hbtn#lbBtn{margin-top:8px!important}
+  .center .hint{margin-top:9px;font-size:11px}
+  /* 보유 자원: 컬럼 맨 아래(기체와 겹침) → 좌상단 사운드 버튼 아래 */
+  .startbal{position:absolute;left:14px;top:56px;margin:0;text-align:left;font-size:14px}
+
+  /* 결과 화면: 다시 시작 · 랭킹을 한 줄로(세로 공간 확보) */
+  #over:not(.off){display:grid;grid-template-columns:auto auto;justify-content:center;align-content:center;justify-items:center;column-gap:10px}
+  #over h1,#over .ovst,#over .btn.ad{grid-column:1/-1}
+  #over #lbBtn2{margin-top:0!important;align-self:center}
+  #over h1{font-size:32px}
+  #over{background:rgba(2,4,10,.6)} /* 뒤에서 도는 전장 위 글자 가독성 */
+  .ovst{margin:4px 0 10px;line-height:1.6;font-size:12px}
+  #over .btn.ad{padding:9px 16px;min-width:240px;font-size:14px;margin-bottom:8px!important}
+  #over .play{padding:10px 30px;font-size:16px}
+  #over .hbtn{margin-top:8px!important}
+
+  /* 기체 화면: 세로 스택 → 좌(3D 미리보기) · 우(정보) 2열 */
+  #hangar{padding-top:var(--nav,52px)} /* ▶ 버튼이 우상단 토스 X 영역과 겹치지 않게 */
+  #hangar .hwrap{width:min(92vw,700px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);column-gap:18px;align-items:center;
+    grid-template-areas:"cv nav" "cv pass" "cv stats" "cv ups" "cv act" "cv bal";grid-template-rows:repeat(6,auto);align-content:center}
+  #hcv{grid-area:cv;width:auto;height:min(300px,70vh);max-width:100%;aspect-ratio:1/1;align-self:center;justify-self:center}
+  .hnav{grid-area:nav;margin-top:0}
+  .hnav button{padding:4px 14px;min-height:38px;font-size:17px}
+  .hname{font-size:18px}
+  .hpass{grid-area:pass;margin-top:3px;min-height:0;font-size:11px}
+  .hstats{grid-area:stats;margin-top:5px;gap:2px}
+  .hups{grid-area:ups;margin-top:5px;gap:2px}
+  .hup button{padding:4px 10px;min-height:30px}
+  .hact{grid-area:act;margin-top:6px;justify-content:center}
+  .hact .b{padding:9px 18px;font-size:13px}
+  .hbal{grid-area:bal;margin-top:6px;text-align:center}
+  .hback{position:absolute;left:12px;top:52px;padding:10px 14px}
+
+  /* 레벨업 카드 */
+  .modal h2{font-size:20px}
+  .modal .sub{margin-bottom:10px}
+  .card{padding:11px 9px 10px}
+  .card::before{margin:-11px -9px 11px}
+  .card .icw{width:40px;height:40px;margin:0 auto 6px}
+}
+
+/* ── 앱인토스 오버레이(토스트 · 광고 고지 · 종료 확인) ── */
+.ait-toast{position:fixed;left:50%;bottom:calc(var(--sa-b,0px) + 18px);transform:translateX(-50%) translateY(8px);z-index:60;max-width:min(88vw,520px);
+  padding:10px 16px;border-radius:12px;background:rgba(6,10,20,.92);border:1px solid rgba(53,230,255,.45);color:#eaf3ff;
+  font:800 13px system-ui,-apple-system,NSKR,sans-serif;text-align:center;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+.ait-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.ait-notice,.ait-modal{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(2,4,10,.72);pointer-events:auto}
+.ait-card{width:min(86vw,380px);padding:20px 20px 16px;border-radius:16px;background:linear-gradient(180deg,#101833,#0b1120);border:1px solid rgba(120,150,220,.35);
+  box-shadow:0 10px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:8px;text-align:center;color:#eaf0ff;font-family:system-ui,-apple-system,NSKR,sans-serif}
+.ait-card b{font-size:17px;font-weight:800;color:#35e6ff}
+.ait-card span{font-size:13px;line-height:1.45;color:#a7b4d6}
+.ait-row{display:flex;gap:10px;margin-top:8px}
+.ait-btn{flex:1;height:46px;border-radius:12px;border:0;background:#35e6ff;color:#04212b;font:800 15px system-ui,-apple-system,NSKR,sans-serif;cursor:pointer}
+.ait-btn.ghost{background:rgba(120,150,220,.14);color:#dbe2f3;border:1px solid rgba(120,150,220,.35)}

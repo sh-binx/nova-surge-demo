@@ -14,6 +14,17 @@
 - `index.html` — 루트 → `./slice/` 리다이렉트
 - 배포 = **`git push`** (GitHub Pages: https://sh-binx.github.io/nova-surge-demo/slice/)
 
+## 앱인토스(Apps in Toss) 빌드 — `toss/`
+
+같은 `slice/index.html` 을 입력으로 `nova-surge.ait` 를 만든다(게임 소스는 하나).
+- `cd toss && npm ci && npm run build:toss` → `scripts/prepare.mjs`(포털 영역 제거·한글 폰트·GLB 압축) → vite → 번들 스캔 → `ait build`
+- 소스의 이음새: `<!--@portal{-->…<!--@portal}-->`·`//@portal{ … //@portal}` 영역(CrazyGames SDK·Supabase·OG)은 토스 번들에서 빠진다.
+  게임 코드의 `PF`(= `window.__NS_PF`)가 있으면 광고·저장·리더보드·번역을 토스 플랫폼으로 보낸다 — 포털에선 `PF=null` 이라 기존 동작 그대로.
+  **이 마커를 지우거나 옮기면 `prepare.mjs` 가 실패한다**(의도된 안전장치).
+- 한국어는 표시 계층 번역(`toss/src/i18n/ko.json`) — 새 영문 문구를 추가하면 사전에도 넣고 `npm run e2e` 의 한국어 스캔으로 확인.
+- 검증: `npm run e2e`(toss: 폰 가로 844×390 + this-엄격 SDK mock / portal: 포털판 회귀, Supabase 스텁)
+- 콘솔·심의 제출 자료는 `store/`(gitignore — 사업자 정보 포함, 커밋 금지).
+
 ## 로컬 실행
 
 포트 대역 **3030–3034** (`PORTS.md`). `sh scripts/serve.sh` — 대역에서 빈 첫 포트로 정적 서버.

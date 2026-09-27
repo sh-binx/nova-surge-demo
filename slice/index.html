@@ -1,11 +1,11 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Nova Surge 2.0</title>
-<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+<!--@portal{--><script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script><!--@portal}-->
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBhMTUyNiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjEyLjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM1ZTZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4yMiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cGF0aCBkPSJNMTYgNSBMMjQuNiAyNS41IEwxNiAyMC44IEw3LjQgMjUuNSBaIiBmaWxsPSIjMzVlNmZmIi8+PHBhdGggZD0iTTE2IDUgTDE2IDIwLjggTDcuNCAyNS41IFoiIGZpbGw9IiMxNDk3YzQiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjEzLjUiIHI9IjEuNSIgZmlsbD0iI2VhZjlmZiIvPjwvc3ZnPg==">
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBhMTUyNiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjEyLjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM1ZTZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4yMiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cGF0aCBkPSJNMTYgNSBMMjQuNiAyNS41IEwxNiAyMC44IEw3LjQgMjUuNSBaIiBmaWxsPSIjMzVlNmZmIi8+PHBhdGggZD0iTTE2IDUgTDE2IDIwLjggTDcuNCAyNS41IFoiIGZpbGw9IiMxNDk3YzQiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjEzLjUiIHI9IjEuNSIgZmlsbD0iI2VhZjlmZiIvPjwvc3ZnPg==">
 <meta name="theme-color" content="#04060d">
-<meta name="description" content="Nova Surge 2.0 — auto-fire space survivor. Build up, evolve weapons, survive the swarm.">
+<!--@portal{--><meta name="description" content="Nova Surge 2.0 — auto-fire space survivor. Build up, evolve weapons, survive the swarm.">
 <meta property="og:title" content="Nova Surge 2.0"><meta property="og:description" content="Auto-fire space survivor — build up, evolve, survive.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="undefined studio">
@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Nova Surge 2.0">
 <meta name="twitter:description" content="Auto-fire space survivor — graze the swarm, become the storm.">
-<meta name="twitter:image" content="https://sh-binx.github.io/nova-surge-demo/slice/og.png">
+<meta name="twitter:image" content="https://sh-binx.github.io/nova-surge-demo/slice/og.png"><!--@portal}-->
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;background:radial-gradient(ellipse 90% 70% at 50% 22%,#0b1834 0%,#070c1e 46%,#03050c 100%);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none} /* 레터박스 여백=은은한 우주 배경 */
@@ -3924,8 +3924,13 @@
 } )();
 </script>
 <script>
-(function(){
+(function NS_BOOT(){
+// 플랫폼 이음새 — 포털 빌드(slice/ 그대로)에선 전부 no-op. 앱인토스 빌드(toss/)가 __NS_DEFER 로 부트를 미루고
+// Storage 하이드레이션 뒤 __NS_GO() 로 시작하며, __NS_PF(광고·저장·리더보드·번역)를 주입한다.
+if(window.__NS_DEFER){window.__NS_DEFER=0;window.__NS_GO=NS_BOOT;return}
 if(!window.THREE)return
+const PF=window.__NS_PF||null
+const T=s=>(PF&&PF.t&&s)?PF.t(s):s // 캔버스 텍스트 번역 훅(DOM 텍스트는 PF 쪽 옵저버가 처리)
 const clamp=(v,a,b)=>v<a?a:(v>b?b:v)
 const rnd=(a,b)=>a+Math.random()*(b-a)
 
@@ -3980,7 +3985,7 @@ const AU={ac:null,muted:false,sysMuted:false, // muted=광고 중 음소거 · s
  boss(){this.tone(70,.8,'sine',.18,45);this.noise(.5,.14);[392,466,587].forEach((f,i)=>this.tone(f,.3,'sawtooth',.05,null,.15+i*.12))},
  revive(){[392,523,659,880].forEach((f,i)=>this.tone(f,.14,'triangle',.08,null,i*.09))},
 }
-const buzz=ms=>{if(navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
+const buzz=ms=>{if(PF&&PF.haptic){PF.haptic(ms);return}if(navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
 
 /* ============ RENDERER / SCENE ============ */
 const cv=document.getElementById('c')
@@ -4466,11 +4471,11 @@ function burst(x,z,hex,n){for(let i=0;i<n;i++){if(debris.length>85)break
 const NUM=[],SPARK=[];const FLASH={r:0,c:0};let BANNER=null
 const _v=new THREE.Vector3()
 function toScr(x,y,z){_v.set(x,y,z).project(cam);return{x:(_v.x+1)/2*VW,y:(-_v.y+1)/2*VH}}
-function num(wx,wz,txt,col,size){if(NUM.length>36)return;const p=toScr(wx,0,wz)
+function num(wx,wz,txt,col,size){if(NUM.length>36)return;const p=toScr(wx,0,wz);txt=T(txt)
  NUM.push({x:p.x+rnd(-8,8),y:p.y-8,txt,col,size:size||13,life:1})}
 function spark(wx,wz){const p=toScr(wx,0,wz);for(let i=0;i<5;i++){if(SPARK.length>40)break
  const a=rnd(0,6.28),s=rnd(40,130);SPARK.push({x:p.x,y:p.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5})}}
-function banner(txt,col,sub){BANNER={txt,col:col||'#b4ff39',sub:sub||'',t:0}}
+function banner(txt,col,sub){BANNER={txt:T(txt),col:col||'#b4ff39',sub:T(sub||''),t:0}}
 function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
  for(let i=NUM.length-1;i>=0;i--){const n=NUM[i];n.y-=52*rdt;n.life-=rdt*1.5
   if(n.life<=0){NUM.splice(i,1);continue}
@@ -4509,19 +4514,23 @@ function loadMeta(){try{const m=JSON.parse(localStorage.getItem('ns2_meta')||'nu
 const META=loadMeta();if(META.diff==null)META.diff=1 // 난이도 0=Easy 1=Normal 2=Hard
 const DIFF=[{nm:'EASY',sp:.72,lk:.65,rk:.8},{nm:'NORMAL',sp:1,lk:1,rk:1},{nm:'HARD',sp:1.4,lk:1.35,rk:1.5}]
 function updateStartBal(){const _b=document.getElementById('startBalV');if(_b)_b.textContent='◆ '+fmt(META.salv)} // 타이틀 보유 골드 갱신 — META와 같은 스코프(frame 루프는 별 IIFE라 META 미접근)
-function pSet(k,v){try{localStorage.setItem(k,v)}catch(e){};try{if(CG_READY&&CG&&CG.data)CG.data.setItem(k,v)}catch(e){}} // 저장 이중화 — CG data 미러(iframe localStorage 유실 대비, v1 QA 전례)
+function pSet(k,v){try{localStorage.setItem(k,v)}catch(e){};if(PF){PF.persist(k,v);return};try{if(CG_READY&&CG&&CG.data)CG.data.setItem(k,v)}catch(e){}} // 저장 이중화 — CG data 미러(iframe localStorage 유실 대비, v1 QA 전례)
 function saveMeta(){pSet('ns2_meta',JSON.stringify(META));updateStartBal()}
 // ── 리더보드 (Supabase, 공개 키 · RLS 보호) ──
-const SB_URL='https://znboesjyunfkfqepsumu.supabase.co',SB_KEY='sb_publishable_sTVWvwymVH3nR0NTvE6M0w_rSr_gHi4'
+let SB_URL='',SB_KEY=''
+//@portal{
+SB_URL='https://znboesjyunfkfqepsumu.supabase.co';SB_KEY='sb_publishable_sTVWvwymVH3nR0NTvE6M0w_rSr_gHi4'
+//@portal}
 let PNAME=(localStorage.getItem('ns2_name')||('PILOT-'+Math.floor(1000+Math.random()*9000))).slice(0,16)
 try{localStorage.setItem('ns2_name',PNAME)}catch(e){}
 let PBEST=+(localStorage.getItem('ns2_best')||0)
 const _sbH={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-function submitScore(score,wave,diff,dur){if(!(score>0))return // 서버(Edge Function) 타당성 검증 경유 — 직접삽입 차단됨
+function submitScore(score,wave,diff,dur){if(!(score>0))return;if(PF){PF.submitScore(score);return} // 서버(Edge Function) 타당성 검증 경유 — 직접삽입 차단됨
  fetch(SB_URL+'/functions/v1/submit-run',{method:'POST',headers:{..._sbH,'Content-Type':'application/json'},body:JSON.stringify({name:PNAME,score,wave,diff,dur})}).catch(()=>{})}
-function fetchBoard(){return fetch(SB_URL+'/rest/v1/runs?select=name,score,wave,diff&order=score.desc&limit=100',{headers:_sbH}).then(r=>r.ok?r.json():null).catch(()=>null)}
+function fetchBoard(){if(PF)return Promise.resolve(null);return fetch(SB_URL+'/rest/v1/runs?select=name,score,wave,diff&order=score.desc&limit=100',{headers:_sbH}).then(r=>r.ok?r.json():null).catch(()=>null)}
 // ── CrazyGames SDK v3 (광고·게임플레이 이벤트 · 오프플랫폼은 목업 폴백) ──
 let CG=null,CG_READY=false
+//@portal{
 ;(async()=>{try{
   for(let i=0;i<50&&!(window.CrazyGames&&window.CrazyGames.SDK);i++)await new Promise(r=>setTimeout(r,100))
   if(window.CrazyGames&&window.CrazyGames.SDK){CG=window.CrazyGames.SDK
@@ -4543,12 +4552,15 @@ let CG=null,CG_READY=false
      renderDiffSel();updateStartBal();window.__hangarRefresh&&window.__hangarRefresh()}
    }catch(e){}}
 }catch(e){CG=null;CG_READY=false}})()
+//@portal}
 const cgEnv=()=>{try{return CG&&CG.environment}catch(e){return null}}
 const cgOn=()=>{try{return CG_READY&&CG&&CG.ad&&cgEnv()!=='disabled'}catch(e){return false}} // 화이트리스트 → 블랙리스트: QA 프리뷰 iframe이 'crazygames'로 안 잡혀 광고가 목업으로 새던 버그 수리(SDK 준비됐고 명시적 disabled가 아니면 항상 SDK 광고)
 function cgEvt(fn){try{if(CG_READY&&CG&&CG.game&&CG.game[fn])CG.game[fn]()}catch(e){}}
-function cgMidgame(then){const fin=()=>{AU.muted=false;then()} // 광고 중 음소거(CG QA 요건) → 종료 시 복원
+function cgMidgame(then){if(PF){PF.midgame(then);return} // 앱인토스: 사전 고지 + 전면형(쿨다운·사전 로드 게이트)
+ const fin=()=>{AU.muted=false;then()} // 광고 중 음소거(CG QA 요건) → 종료 시 복원
  if(cgOn()){try{CG.ad.requestAd('midgame',{adStarted:()=>{AU.muted=true},adFinished:fin,adError:fin});return}catch(e){}}then()}
-function playAd(then){const fin=()=>{AU.muted=false;then()} // 리워디드 → SDK(음소거 배선), 없으면 목업
+function playAd(then,nope){if(PF){PF.rewarded(then,nope||(()=>{}));return} // 앱인토스: userEarnedReward 에서만 then(보상), 실패·중도 종료는 nope
+ const fin=()=>{AU.muted=false;then()} // 리워디드 → SDK(음소거 배선), 없으면 목업
  if(cgOn()){try{CG.ad.requestAd('rewarded',{adStarted:()=>{AU.muted=true},adFinished:fin,adError:fin});return}catch(e){}}mockAd(then)}
 
 /* ============ 함대(행어) ============ */
@@ -5573,7 +5585,8 @@ function renderLB(rows){const el=$('lbList');if(!el)return
  else el.innerHTML=rows.slice(0,100).map((r,i)=>{const d=r.diff==null?1:r.diff;return '<div class="lbrow'+(r.name===PNAME&&r.score===PBEST?' me':'')+'"><span class="r">'+(i+1)+'</span><span class="nm">'+_esc(r.name)+'</span><span class="df d'+d+'">'+['E','N','H'][d]+'</span><span class="wv">W'+r.wave+'</span><span class="sc">'+fmt(r.score)+'</span></div>'}).join('')
  const mine=rows.findIndex(r=>r.name===PNAME&&r.score===PBEST)
  $('lbRank').textContent=PBEST>0?(mine>=0?('rank #'+(mine+1)):('best '+fmt(PBEST))):''}
-function openLB(){AU.unlock();ST='lb';$('start').classList.add('off');$('over').classList.add('off');$('lb').classList.remove('off')
+function openLB(){AU.unlock();if(PF){PF.openLeaderboard();return} // 앱인토스: 토스 게임센터 리더보드
+ ST='lb';$('start').classList.add('off');$('over').classList.add('off');$('lb').classList.remove('off')
  $('lbName').value=PNAME;$('lbList').innerHTML='<div class="lbempty">Loading…</div>';$('lbRank').textContent=''
  fetchBoard().then(renderLB)}
 function closeLB(){$('lb').classList.add('off');$('over').classList.add('off');$('start').classList.remove('off');ST='start'}
@@ -5676,6 +5689,7 @@ loadGameShip() // SHIPS/META 선언 이후 시점에 초기 로드(TDZ 회피)
 updateStartBal() // 타이틀 최초 진입에도 보유 골드 표시(복귀 유저)
 if(DEV)window.__begin=begin
 window.__surge=fireSurge
+if(PF&&PF.attach)PF.attach({AU,state:()=>ST,pause:pauseGame,resume:resumeGame,isPaused:()=>ST==='pause'})
 if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공개 데모 치팅 방지)
  setEliteAt:t=>{S.eliteAt=t},
  setPrimary:(id,lv)=>{for(let i=0;i<(lv||1);i++)setPrimary(id)},

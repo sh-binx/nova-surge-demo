@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.ait
+# prepare.mjs 생성물(입력은 ../slice/)
+index.html
+public/
+src/assets/
+test-results/
+playwright-report/
+.env*.local
