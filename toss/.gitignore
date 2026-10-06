@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 dist/
 *.ait
 # prepare.mjs 생성물(입력은 ../slice/)
