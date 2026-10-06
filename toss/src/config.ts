@@ -9,24 +9,30 @@ export const TOSS_APP_NAME = 'nova-surge'
 export const TOSS_PRIMARY_COLOR = '#35E6FF'
 
 /**
- * 광고 그룹 ID. 기본값은 앱인토스 공식 테스트 ID — 로컬·QR 테스트에서 운영 ID를 쓰면 제재 대상이다.
- * TODO(owner): 콘솔에서 운영 광고 그룹(전면형·보상형)을 만든 뒤 **출시 번들을 빌드할 때만** env 로 주입한다.
- *   VITE_TOSS_AD_INTERSTITIAL_ID=<전면형 광고 그룹 ID> VITE_TOSS_AD_REWARDED_ID=<보상형 광고 그룹 ID> npm run build:toss
- *   (또는 toss/.env.production.local — gitignore 대상)
+ * 광고 그룹 ID — **빌드 채널로만** 고른다. 운영 ID 는 출시 산출물(`npm run build:toss:release` = `vite build --mode release`)
+ * 에만 들어가고, 값은 `toss/.env.release`(release 모드에서만 Vite 가 읽는 파일)에 있다.
+ * dev 서버·e2e·QR 테스트 번들(`npm run build:toss`)은 env 가 무엇이든 앱인토스 공식 테스트 ID 고정 —
+ * 운영 ID 로 테스트하면 제재 대상이다. 예전엔 `PROD` 로만 갈라 QR 번들도 `.env.production.local` 의 운영 ID 를
+ * 집어 갈 수 있었다(2026-10-06 수정).
  */
 export const TOSS_TEST_AD_GROUP = {
   interstitial: 'ait-ad-test-interstitial-id',
   rewarded: 'ait-ad-test-rewarded-id',
 } as const
 
-const envId = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined)
+/** 콘솔이 발급한 운영 광고 그룹 ID 형식. */
+export const TOSS_LIVE_AD_ID = /^ait\.v2\.live\.[0-9a-f]{16}$/
+
+export type AdChannel = 'release' | 'test'
+/** Vite 모드 → 광고 채널. 'release' 만 출시, 나머지(development·production 등)는 전부 테스트. */
+export const adChannelOf = (mode: string | undefined): AdChannel => (mode === 'release' ? 'release' : 'test')
 
 export function tossAdGroupIds(): { interstitial: string; rewarded: string } {
-  const prod = import.meta.env.PROD === true // dev 서버에선 env 가 있어도 테스트 ID 고정
-  return {
-    interstitial: (prod && envId(import.meta.env.VITE_TOSS_AD_INTERSTITIAL_ID)) || TOSS_TEST_AD_GROUP.interstitial,
-    rewarded: (prod && envId(import.meta.env.VITE_TOSS_AD_REWARDED_ID)) || TOSS_TEST_AD_GROUP.rewarded,
-  }
+  // MODE 를 직접 비교해야 빌드 때 상수로 접혀 반대 채널의 ID 가 번들에서 빠진다(함수 호출이면 둘 다 남는다 — scan 이 잡음).
+  // release 빌드는 vite.config.ts 가 두 값이 운영 형식인지 검사한 뒤에만 통과한다.
+  return import.meta.env.MODE === 'release'
+    ? { interstitial: import.meta.env.VITE_TOSS_AD_INTERSTITIAL_ID!, rewarded: import.meta.env.VITE_TOSS_AD_REWARDED_ID! }
+    : { ...TOSS_TEST_AD_GROUP }
 }
 
 /** 전면형 광고 최소 간격(부트 시점부터 계산 — 첫 판 직후엔 뜨지 않는다). */

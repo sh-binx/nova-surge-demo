@@ -7,10 +7,12 @@
   "scripts": {
     "prepare:toss": "node scripts/prepare.mjs",
     "dev": "node scripts/prepare.mjs && sh scripts/dev.sh",
-    "build:toss": "node scripts/prepare.mjs && tsc --noEmit && vite build && node scripts/scan.mjs && ait build",
-    "scan": "node scripts/scan.mjs",
+    "build:toss": "node scripts/prepare.mjs && tsc --noEmit && vite build && node scripts/scan.mjs --channel test && ait build && node scripts/stamp.mjs test",
+    "build:toss:release": "node scripts/prepare.mjs && tsc --noEmit && vite build --mode release && node scripts/scan.mjs --channel release && ait build && node scripts/stamp.mjs release",
+    "scan": "node scripts/scan.mjs --channel test",
     "e2e": "playwright test",
-    "deploy:toss": "ait deploy"
+    "deploy:toss:test": "ait deploy --location out/nova-surge.test.ait",
+    "deploy:toss:release": "ait deploy --location out/nova-surge.release.ait"
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "3.5.0",

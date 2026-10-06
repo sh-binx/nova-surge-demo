@@ -18,6 +18,10 @@
 
 같은 `slice/index.html` 을 입력으로 `nova-surge.ait` 를 만든다(게임 소스는 하나).
 - `cd toss && npm ci && npm run build:toss` → `scripts/prepare.mjs`(포털 영역 제거·한글 폰트·GLB 압축) → vite → 번들 스캔 → `ait build`
+  → `out/nova-surge.test.ait` + 영수증 JSON. **QR·테스트용 — 광고는 테스트 ID(`ait-ad-test-*`) 고정.**
+- **출시 번들은 `npm run build:toss:release`** 뿐이다(`vite build --mode release` → `toss/.env.release` 의 운영 광고 ID →
+  `out/nova-surge.release.ait`). 스캔이 채널마다 반대쪽 ID 가 섞이면 실패시킨다. 운영 ID 로 테스트 광고를 부르면 제재 대상 —
+  출시 번들로 e2e·QR 테스트를 하지 않는다. 업로드는 `npm run deploy:toss:test|release`(경로 지정 — 루트 `.ait` 없음).
 - 소스의 이음새: `<!--@portal{-->…<!--@portal}-->`·`//@portal{ … //@portal}` 영역(CrazyGames SDK·Supabase·OG)은 토스 번들에서 빠진다.
   게임 코드의 `PF`(= `window.__NS_PF`)가 있으면 광고·저장·리더보드·번역을 토스 플랫폼으로 보낸다 — 포털에선 `PF=null` 이라 기존 동작 그대로.
   **이 마커를 지우거나 옮기면 `prepare.mjs` 가 실패한다**(의도된 안전장치).

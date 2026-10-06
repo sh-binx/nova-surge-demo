@@ -8,3 +8,4 @@ src/assets/
 test-results/
 playwright-report/
 .env*.local
+out/
