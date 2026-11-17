@@ -132,3 +132,15 @@ body:has(#over:not(.off)) #fx{visibility:hidden}
  #over #lbBtn2{grid-column:2;grid-row:4;min-height:40px}
  #over .btn small{letter-spacing:0;font-size:11px;margin-top:3px}
 }
+
+@media(max-height:700px) and (orientation:landscape){
+ #start .startbal{position:static;top:auto;left:auto;grid-column:1;grid-row:6;margin:10px 0 0;align-self:start}
+ #start:not(.off){grid-template-columns:minmax(0,1fr) minmax(0,245px);column-gap:24px;padding-top:54px;padding-bottom:20px}
+ #start .hint{margin:8px 0 0}
+ #start .hbtn{min-width:0;width:100%;box-sizing:border-box}
+ #hangar .hwrap{width:100%;max-width:700px;min-width:0;column-gap:18px}
+ #hangar{padding-left:20px;padding-right:20px;box-sizing:border-box}
+ #hangar .hwrap>*{min-width:0}
+}
+/* 선택 화면 뒤의 웨이브 배너가 한글 제목과 겹치지 않도록 한다. */
+body:has(#modal.on) #fx,body:has(#reward.on) #fx{visibility:hidden}

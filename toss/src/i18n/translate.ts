@@ -46,7 +46,7 @@ export const tr = makeTranslator(ko as unknown as Dict)
 
 /** 한 번만 통째로 바꿔야 하는 정적 마크업(텍스트가 <b> 로 쪼개진 안내문 등). */
 const STATIC_HTML: [string, string][] = [
-  ['#start .hint', '드래그로 좌우 이동 · 자동 사격 · 게이지가 차면 <b style="color:#35e6ff">서지</b> 발동'],
+  ['#start .hint', '<span>드래그로 좌우 이동 · 자동 사격</span><span>게이지가 차면 <b style="color:#35e6ff">서지</b> 발동</span>'],
 ]
 
 function walk(root: Node) {
@@ -63,6 +63,8 @@ function fix(t: Text) {
 
 export function installDomTranslation(root: HTMLElement = document.body) {
   for (const [sel, html] of STATIC_HTML) { const el = document.querySelector(sel); if (el) el.innerHTML = html }
+  document.getElementById("pauseBtn")?.setAttribute("aria-label","일시정지")
+  document.getElementById("sbtn")?.setAttribute("aria-label","충전된 서지 발동")
   walk(root)
   const mo = new MutationObserver(list => {
     for (const m of list) {

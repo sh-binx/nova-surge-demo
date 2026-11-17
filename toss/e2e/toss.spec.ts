@@ -343,3 +343,27 @@ test('가로 결과 화면은 모든 보상 버튼이 보여도 겹치지 않는
 
 
 })
+
+test('전체 한글 화면 가로 폭별 시각 검수 자료', async ({ page }) => {
+  await open(page)
+  async function capture(name: string) {
+    for (const width of [667,844,932]) {
+      await page.setViewportSize({width,height:390})
+      await page.evaluate(async()=>{await document.fonts.ready;await new Promise<void>(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r())))})
+      await koScan(page,`${name}-${width}`)
+      await page.screenshot({path:`/tmp/nova-audit-${name}-${width}.png`})
+    }
+  }
+  await capture('start')
+  await page.click('#hangarBtn')
+  await page.waitForFunction(()=>(window as any).__hangar.state().ready)
+  await capture('hangar')
+  await page.click('#hBack')
+  await page.click('#playBtn')
+  await page.click('#pauseBtn')
+  await capture('pause')
+  await page.click('#resumeBtn')
+  await page.evaluate(()=>(window as any).__test.addXP())
+  await expect(page.locator('#modal')).toHaveClass(/on/)
+  await capture('growth')
+})
