@@ -42,7 +42,7 @@ log(`폰트 스택 치환: mono ${f1} · black ${f2} · body ${f3}`)
 
 // 게임 스크립트 직전에 부트 지연 플래그, <head> 끝에 플랫폼 모듈·CSS
 rep('<script>\n(function NS_BOOT(){', '<script>window.__NS_DEFER=1</script>\n<script>\n(function NS_BOOT(){', '게임 부트 마커')
-rep('</style></head>', '</style>\n<link rel="stylesheet" href="/src/toss.css">\n<script type="module" src="/src/main.ts"></script>\n</head>', 'head 끝')
+rep('</head>', '<link rel="stylesheet" href="/src/toss.css">\n<script type="module" src="/src/main.ts"></script>\n</head>', 'head 끝')
 
 // 남은 포털 흔적은 주석뿐이다(코드는 위 영역 제거로 사라짐) — 해당 줄 주석을 잘라낸다. 코드 안에서 발견되면 실패.
 html = html.split('\n').map(line => {
@@ -57,6 +57,9 @@ for (const bad of ['crazygames', 'supabase', 'poki', 'sh-binx.github.io']) {
 }
 writeFileSync(join(ROOT, 'index.html'), html)
 log('index.html', (html.length / 1024).toFixed(0) + 'KB')
+
+// 공통 UI 자산도 빌드 입력에 포함한다. CSS는 Vite가 번들링하고 상대 키아트를 함께 해시 처리한다.
+for (const name of ['polish.css', 'keyart.webp']) copyFileSync(join(SLICE, name), join(ROOT, name))
 
 // ── 4. GLB(WebP 텍스처) ──────────────────────────────────────────────────────────────
 // 메시는 UV 분할 정점 때문에 simplify 가 거의 줄지 않아(실측 146k→124k) 단순화 대신 텍스처 WebP(PNG 1.24MB→~70KB) +

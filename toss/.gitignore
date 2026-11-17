@@ -9,3 +9,7 @@ test-results/
 playwright-report/
 .env*.local
 out/
+
+# 공통 웹 UI의 빌드용 사본
+polish.css
+keyart.webp

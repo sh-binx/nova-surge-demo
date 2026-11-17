@@ -28,7 +28,8 @@ export default defineConfig({
   timeout: 90_000,
   workers: 2,
   reporter: [['list']],
-  use: { launchOptions: { args: process.platform === 'darwin' ? gpu : [] } },
+  // iOS Safari와 같은 WebKit 엔진 회귀 검증. Chromium 화면 검수는 ego에서 수행한다.
+  use: { browserName: 'webkit' },
   webServer: process.env.TOSS_URL_EXTERNAL ? [] : [
     { command: `npx vite preview --port ${TOSS}`, url: TOSS_URL, reuseExistingServer: false, timeout: 30_000 },
     { command: `python3 -m http.server ${PORTAL} --bind 127.0.0.1 --directory ..`, url: PORTAL_URL, reuseExistingServer: false, timeout: 30_000 },

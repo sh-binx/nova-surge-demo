@@ -1,0 +1,124 @@
+/* 비행 정보와 조작을 명확히 나누는 2026-11 시각 개편 */
+:root{color-scheme:dark;--ink:#edf5ff;--muted:#a4b5c9;--surface:#142334;--cyan:#65e2ee}
+button,input{font:inherit}
+:focus-visible{outline:2px solid #fff;outline-offset:4px}
+.center{padding:24px max(24px,env(safe-area-inset-right)) 24px max(24px,env(safe-area-inset-left))}
+#start{background:linear-gradient(90deg,rgba(3,9,18,.92),rgba(3,9,18,.68) 48%,rgba(3,9,18,.15));align-items:flex-start;text-align:left;padding-left:clamp(28px,9vw,160px)}
+#start h1{font-family:Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:clamp(64px,8.5vw,132px);letter-spacing:-.025em;line-height:.88;color:#eefaff;text-shadow:none;max-width:580px}
+#start .tag{font-family:system-ui,sans-serif;font-size:clamp(14px,1.4vw,19px);letter-spacing:0;color:#b4c7d7;margin:24px 0 34px}
+.center .difflabel{font:500 12px system-ui,sans-serif;color:var(--muted);letter-spacing:.02em}
+.diffsel{gap:4px;background:#11202e;padding:4px;border-radius:12px;margin-bottom:18px}
+.dchip{border:0;border-radius:8px;min-height:40px;display:flex;align-items:center;font:650 12px system-ui,sans-serif;padding:8px 21px;letter-spacing:.05em;color:#b4c7d7}
+.dchip.n.on{background:#c6f7ff;color:#08212c}
+.center .play{font:750 18px system-ui,sans-serif;background:#d2f8ff;color:#09222b;box-shadow:none;border-radius:12px;padding:16px 28px;min-width:245px;min-height:54px;text-align:center;transition:background .15s,transform .15s}
+.center .play:hover{background:#fff;transform:translateY(-2px)}
+.hbtn,#lbBtn{font:600 14px system-ui,sans-serif!important;color:#d8e9f5!important;background:#152738!important;border:0!important;border-radius:10px;padding:13px 24px;min-width:245px;text-align:center;margin-top:8px!important;min-height:44px}
+.hbtn:hover{background:#20394e!important}
+#start .hint{display:flex;flex-direction:column;gap:5px;font:400 12px/1.45 system-ui,sans-serif;color:#a4b5c9;margin-top:25px}
+.startbal{display:flex;align-items:center;gap:12px;margin-top:22px;font-size:14px}
+.startbal small{margin:0;font:500 12px system-ui,sans-serif;color:#a4b5c9;letter-spacing:0}
+.side{padding-top:max(20px,env(safe-area-inset-top));padding-left:18px;padding-right:18px;gap:13px;width:clamp(160px,15vw,215px)}
+.ptitle{font:700 13px system-ui,sans-serif;letter-spacing:.06em;text-shadow:none;color:#cdeef4}
+.plabel,.lonm,.lolv,.wrem,.loempty{font-size:12px;color:#a9bdd1;letter-spacing:0}
+.pcard,.pcard.gcard,.loi{border:0;background:none;border-radius:0}
+.pcard .gold{display:flex;align-items:center;justify-content:flex-end;font-size:22px;line-height:1.3}
+.bar{border:0;background:#203044;height:8px}
+.wchip{border:0;background:#192b3b;min-height:40px;border-radius:10px}
+.wchip.cur{background:#ceeaf0;box-shadow:none;color:#102b35}.wchip.cur svg{filter:brightness(.35)}.wchip.cur .wclv{color:#102b35}
+.wclv{font-size:10px;right:4px;bottom:2px;color:#bdd2e2}
+#pauseBtn{width:44px;height:44px;border:0;background:#152635;border-radius:12px}
+#sbtn{width:88px;height:88px;margin-bottom:max(12px,env(safe-area-inset-bottom))}
+#ebar{left:23%;right:23%;top:66px;height:18px;border:0}
+#ebar>span{font-size:11px;letter-spacing:.05em}
+.card{border:0;border-radius:8px;background:#192d3b;padding:24px 18px 20px;box-shadow:none;min-height:226px;max-width:230px}
+.card:hover{background:#284454;transform:translateY(-2px)}
+.center h2,.modal h2{letter-spacing:-.03em;text-shadow:none}
+#hangar{overflow-y:auto;justify-content:flex-start;padding-top:24px;touch-action:pan-y}
+#hangar .hwrap{margin:auto;width:min(92vw,480px)}
+#hcv{max-height:30vh;aspect-ratio:16/9}
+.hrole,.hst,.hst .dl,.hup,.hup .lbl,.hup button{font-size:12px;color:#aec3d4}
+.hact .sel,.hnav button,.hup button{border:0;background:#23404c;color:#c7f4ff}
+.hpass{line-height:1.5}.hback{font-size:14px}
+@media(max-height:540px) and (orientation:landscape){
+ #start:not(.off){padding-top:18px;padding-bottom:18px;display:grid;grid-template-columns:minmax(220px,1fr) 245px;column-gap:36px;align-content:center;align-items:center;padding-left:6vw;padding-right:6vw}
+ #start h1{font-size:clamp(48px,7vw,76px);grid-column:1;grid-row:1/3;max-width:350px}
+ #start .tag{grid-column:1;grid-row:3;font-size:13px;margin:6px 0 10px}
+ #start .difflabel{grid-column:2;grid-row:1;margin-bottom:4px}
+ #start .diffsel{grid-column:2;grid-row:2;margin-bottom:8px;justify-content:stretch}.dchip{flex:1;justify-content:center;padding:8px;min-height:36px}
+ #playBtn{grid-column:2;grid-row:3;min-height:46px;padding:12px}
+ #hangarBtn{grid-column:2;grid-row:4}#lbBtn{grid-column:2;grid-row:5}
+ #start .hint{grid-column:1;grid-row:4/6;margin-top:10px;font-size:12px}
+ #start .startbal{grid-column:1;grid-row:6;margin-top:12px}
+ .side{width:140px;padding:14px 12px;gap:8px}.ptitle{font-size:12px}.wsel{gap:4px}.wchip{min-height:34px}.wchip svg{width:18px;height:18px}
+ #sbtn{width:72px;height:72px;margin-bottom:5px}.loadout{gap:3px}.loi{padding:4px}.lonm{font-size:11px}
+ #hangar .hwrap{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px;width:min(90vw,850px)}
+ #hcv{grid-column:1;grid-row:1/5;max-height:220px}.hnav{grid-column:2}.hname{font-size:18px}.hrole{font-size:11px}
+ .hpass,.hstats,.hups,.hact,.hbal,.hback{grid-column:2;margin-top:0}.hpass{min-height:0}.hups{gap:3px}.hup button{min-height:32px;padding:6px 10px}.hback{padding:8px}
+}
+@media(orientation:portrait){#start h1{font-size:17vw}#start{padding-left:8vw}.side{width:128px;padding:12px 8px}.ptitle{font-size:11px}.wsel{gap:3px}}
+@media(prefers-reduced-motion:reduce){.play,.card,.dchip{transition:none!important}}
+#start{background:linear-gradient(90deg,#030912f5 0%,#030912df 30%,#03091265 60%,#03091230),url('keyart.webp') center/cover no-repeat}
+
+@media(max-height:540px) and (orientation:landscape){#hangar{padding:12px 24px}.hnav button{min-height:40px;padding:6px 16px}.hstats{gap:3px}.hact .b{padding:9px 18px}.hback{padding:6px;min-height:32px}.hbal{font-size:12px}#hangar .hwrap{gap:4px 28px}}
+/* 네이티브 성장 선택 버튼: 상속·키보드 포커스 유지 */
+button.card{color:inherit;font:inherit;text-align:left;appearance:none}
+button.card:focus-visible{outline:3px solid #35e6ff;outline-offset:4px}
+
+/* 표시/조작/보상을 서로 다른 위계로 구분한다. */
+#ui{font-family:system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums}
+.barwrap,.prow,.wmastery,.lvl,.wtag,.wrem,.plabel,.lonm,.lolv,.pcard .gold,.hname,.hrole,.hst,.hup,.hbal,.hback{font-family:inherit;text-shadow:none}
+.pcard.gcard{padding:0 0 12px;gap:5px}.pcard .gold{font-size:26px;font-weight:650;color:#e9d9a4}
+.plabel{color:#91a5b5;font-weight:500;font-size:11px;text-transform:lowercase;letter-spacing:.03em}
+.loi{padding:4px 0;gap:9px}.lonm{font-weight:500;font-size:12px;color:#bed0dc}.lolv{font-weight:500;color:#93a7b7}
+.loic{opacity:.7}.loadout{gap:4px}.loempty{font:400 12px system-ui;color:#91a5b5}
+.bar{height:6px;border-radius:2px}.hp>i{background:#ee7893}.xp>i{background:#82c9d8}.wave>i{background:#a5c9ba}
+.wtag{color:#d6e6ef;font-weight:600}.wclv{font-family:inherit;font-size:11px}
+#sbtn{background:conic-gradient(#b5e8ef calc(var(--p)*1%),#223542 0);padding:3px}
+#sbtn .in{border:0;background:#142632}#sbtn span{font:650 12px system-ui;color:#9bb4c5;letter-spacing:.04em}
+#sbtn.full{animation:none;filter:none}#sbtn.full .in{background:#c9edf1}#sbtn.full span{color:#0b303a}
+#toast{border:0;border-radius:4px;background:#152b38f5;box-shadow:none;text-shadow:none;font:500 13px system-ui;color:#d7e5ed;max-width:70vw;white-space:normal;text-align:center}
+.modal,.reward{background:#061019e8;backdrop-filter:blur(8px)}
+.modal h2,.reward h2{font:600 28px system-ui;color:#eff5fa;letter-spacing:-.04em;text-shadow:none}
+.modal .sub,.reward .got{font:400 13px/1.5 system-ui;color:#a3b7c6}
+.cards{max-width:740px;gap:14px}.card::before{display:none}
+.card .icw{border:0;background:none;border-radius:0;margin:10px 0 25px;width:38px;height:38px;justify-content:flex-start}
+.card .icw svg{width:36px;height:36px}.card .nm{font-size:16px;font-weight:600;letter-spacing:-.02em}
+.card .lv{font:600 12px system-ui;color:#a8d9df;margin:6px 0 10px}.card .ds{font:400 13px/1.5 system-ui;color:#aebfcb}
+.card.rare,.card.epic{box-shadow:none;border:0}.card.epic{background:#353329}
+.card .rr{position:static;display:inline-block;font:600 11px system-ui;padding:3px 7px;border-radius:3px;margin-bottom:0}
+.card .rr+.icw{margin-top:10px;margin-bottom:7px}.card.rare .rr{background:#355461;color:#d1e9ed}.card.epic .rr{background:#5a5030;color:#f0dfac}
+.btn.ad{border:0;background:#d0e7eb;color:#102d38;font:650 15px system-ui;box-shadow:none;border-radius:8px;min-height:48px}
+.btn.ad small{color:#47616c}.btn.skip{font:500 14px system-ui;color:#c2d2dd;min-height:44px}
+.reward .crate{filter:none;width:52px;height:52px;margin-bottom:22px}
+.center:not(#start) h1{font:650 clamp(32px,5vw,56px) system-ui!important;letter-spacing:-.05em;text-shadow:none!important;color:#eff5fa!important}
+#hangar{background:#08131d}.hname{font-weight:650;letter-spacing:-.02em}.hnav button{border:0;border-radius:6px;box-shadow:none;background:#1b303e;color:#c6dce6}
+.hact .sel.on{background:#cde7eb;color:#102d38}.hup button{border-radius:5px}.hup button:disabled{opacity:.55}
+#hcv{border:0;box-shadow:none}.lbname input{border:0;background:#1b303e;padding:10px}.lbrow.me{outline:0;background:#2b3e42}.tagmini{display:none}
+@media(max-height:540px) and (orientation:landscape){
+ .cards{max-width:660px;gap:10px}.card{min-height:180px;padding:15px;max-width:210px}
+ .card .icw{margin:2px 0 14px;width:30px;height:30px}.card .icw svg{width:30px;height:30px}
+ .card .rr+.icw{margin:5px 0 4px}.card .nm{font-size:14px}.card .ds{font-size:12px;line-height:1.4}.card .lv{margin:4px 0 6px}
+ .modal h2,.reward h2{font-size:23px}.modal .sub{margin-bottom:14px}.reward .crate{width:40px;height:40px;margin-bottom:10px}
+ .pcard .gold{font-size:22px}.pcard.gcard{padding-bottom:3px}.loi{padding:2px 0}.lonm{font-size:11px}
+}
+/* 희귀도와 관계없이 아이콘·이름·레벨 기준선을 맞춘다. */
+button.card{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+.card .rr{position:absolute;top:12px;right:12px;margin:0}
+.card .icw,.card .rr+.icw{flex:none;margin:18px 0 18px}
+@media(max-height:540px) and (orientation:landscape){.card .icw,.card .rr+.icw{margin:16px 0 12px}.card .rr{top:10px;right:10px}}
+
+.hrole{letter-spacing:0;text-transform:lowercase;font-weight:400;color:#a9bbc9}
+.hst .bb i{background:#7eb7c6!important}
+#ui:has(.modal.on) #pauseBtn,#ui:has(.reward.on) #pauseBtn{display:none}
+/* 보상 버튼이 모두 표시돼도 작은 가로 화면에서 결과가 잘리지 않도록 배치 */
+@media(max-height:540px) and (orientation:landscape){
+ #over:not(.off){display:grid;grid-template-columns:minmax(220px,1fr) minmax(240px,1fr);column-gap:32px;row-gap:8px;align-content:center;padding:18px 6vw;overflow-y:auto}
+ #over h1{grid-column:1;grid-row:1;font-size:32px!important;line-height:1.1}
+ #overStats{grid-column:1;grid-row:2/5;margin:0;font-size:12px;line-height:1.5}
+ #reviveAd{grid-column:2;grid-row:1;margin:0!important}#salvAd{grid-column:2;grid-row:2;margin:0!important}
+ #retryBtn{grid-column:2;grid-row:3;min-height:46px;padding:12px}#lbBtn2{grid-column:2;grid-row:4;margin:0!important}
+ #over .btn{min-width:0;padding:10px 14px}
+}
+#over{background:#07121cf5}#overStats,#overStats div{font-family:inherit!important}
+#over .btn.ad{background:#1d3341;color:#ccdde7}#over .btn.ad small{color:#a0b6c5}
+#retryBtn{background:#d2f8ff!important;color:#09222b}

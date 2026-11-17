@@ -23,7 +23,7 @@ test('포털: CrazyGames SDK 로드 · 영문 UI · 이음새 no-op · 플레이
   const env = await page.evaluate(() => (window as any).CrazyGames.SDK.environment)
   console.log('[portal] CrazyGames SDK environment =', env)
   expect(await page.evaluate(() => [typeof (window as any).__NS_PF, typeof (window as any).__NS_GO, document.documentElement.lang])).toEqual(['undefined', 'undefined', 'en'])
-  await expect(page.locator('#playBtn')).toHaveText('▶ PLAY')
+  await expect(page.locator('#playBtn')).toHaveText('Begin flight')
   expect(await page.evaluate(() => /[가-힣]/.test(document.getElementById('ui')!.innerText))).toBe(false)
   await page.click('#playBtn')
   await page.evaluate(() => (window as any).__ai(3))
@@ -35,8 +35,7 @@ test('포털: CrazyGames SDK 로드 · 영문 UI · 이음새 no-op · 플레이
   await page.evaluate(() => { (window as any).__test.spawn('warden', 0); (window as any).__test.killBoss() }) // 점수 > 0 보장
   await page.evaluate(() => (window as any).__die())
   await expect(page.locator('#over h1')).toHaveText('GAME OVER')
-  await expect.poll(() => sb.length).toBeGreaterThan(0) // 점수 제출은 여전히 Supabase 경로(스텁)
-  expect(sb[0]).toContain('/functions/v1/submit-run')
+  expect(sb.filter(x => x.startsWith('POST'))).toHaveLength(0) // DEV 검수는 운영 점수 제출 금지
   await page.click('#lbBtn2')
   await expect(page.locator('#lb')).not.toHaveClass(/off/) // 포털은 자체 리더보드 화면
   await page.click('#lbBack')

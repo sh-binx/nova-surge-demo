@@ -132,7 +132,7 @@ test('한 판 플레이 — 레벨업 카드 · 보스 · 크레이트 보너스
   await page.evaluate(() => (window as any).__die())
   await expect(page.locator('#over')).not.toHaveClass(/off/)
   await koScan(page, '게임 오버'); await navZoneClear(page, '게임 오버')
-  expect((await mock(page, 'window.__mock.scores')) as string[]).toHaveLength(1) // 게임센터 점수 제출
+  expect((await mock(page, 'window.__mock.scores')) as string[]).toHaveLength(0) // 개발 검수 점수는 게임센터에 제출하지 않음
   await page.click('#reviveAd')
   await expect.poll(async () => (await st(page)).ST).toBe('play')
   const s2 = await st(page)
@@ -264,6 +264,10 @@ test('기록 유지 — 토스 Storage(유저 키 단위)에서 복원 · 계정
   await page.waitForFunction(() => (window as any).__bootT != null)
   await expect(page.locator('#startBalV')).toHaveText('◆ 12,345')
   await page.click('#hangarBtn')
+  await page.waitForFunction(()=>(window as any).__hangar.state().ready);
+  await page.evaluate(()=>new Promise<void>(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r()))));
+  await page.screenshot({path:'/tmp/nova-toss-hangar.png'});
+  console.log('[hangar]',await page.locator('.hwrap').boundingBox());
   await koScan(page, '기체 화면 A'); await navZoneClear(page, '기체 화면')
   for (const _ of [1, 2]) { await page.click('#hNext'); await page.waitForTimeout(250); await koScan(page, '기체 화면 B/C') }
   await page.click('#hBack')
@@ -306,4 +310,21 @@ test('SDK 없는 일반 브라우저(브리지 부재)에서도 10초 안에 로
   await expect(page.locator('#aitToast')).toHaveText('이 환경에서는 광고를 볼 수 없어요')
   expect((await st(page)).ST).toBe('over')
   expect(errs.filter(e => e.startsWith('pageerror'))).toEqual([])
+})
+
+test('가로 결과 화면은 모든 보상 버튼이 보여도 겹치지 않는다', async ({ page }) => {
+  await open(page)
+  await page.click('#playBtn')
+  await page.evaluate(() => (window as any).__test.setT(19.6))
+  await expect.poll(async () => (await st(page)).salvRun).toBeGreaterThan(0)
+  await page.evaluate(() => (window as any).__die())
+  await expect(page.locator('#over')).not.toHaveClass(/off/)
+  await expect(page.locator('#salvAd')).toBeVisible()
+  await koScan(page,'최종 결과')
+  const boxes = await page.locator('#over h1,#overStats,#reviveAd,#salvAd,#retryBtn,#lbBtn2').evaluateAll(els => els.map(el=>{const r=el.getBoundingClientRect();return {id:el.id||'heading',x:r.x,y:r.y,right:r.right,bottom:r.bottom}}))
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+    const a=boxes[i]!,b=boxes[j]!
+    expect(a.x<b.right&&a.right>b.x&&a.y<b.bottom&&a.bottom>b.y,`${a.id} / ${b.id} 겹침`).toBe(false)
+  }
+  await page.screenshot({path:'/tmp/nova-toss-results.png'})
 })
