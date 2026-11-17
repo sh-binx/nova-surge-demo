@@ -4952,9 +4952,9 @@ function die(){S.hp=0;ST='over';cgEvt('gameplayStop') // CG 게임플레이 종�
  const score=Math.round(Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned)+(S.clearBonus||0))*(S.diffRk||1)) // +SECTOR CLEARED 보너스(난이도 가중 전 합산) // 리더보드 점수(난이도 가중: EASY×.8·HARD×1.5)
  if(score>PBEST){PBEST=score;pSet('ns2_best',''+PBEST)}
  submitScore(score,S.wave,META.diff,Math.round(S.t))
- $('overStats').innerHTML='<div style="font-size:13px;letter-spacing:2px;color:#8792b5;font-family:ui-monospace,Menlo,monospace">SCORE</div><div style="font-size:30px;color:#35e6ff;font-weight:800;margin:2px 0 10px">'+fmt(score)+'</div>WAVE '+S.wave+' · KILLS '+S.kills+' · MAX COMBO <b>×'+S.comboMax+'</b> · '+($('time').textContent)
-  +(S.sectorCleared?'<br><span style="color:#ffcf4a">SECTOR CLEARED ✦ CLEAR BONUS +25,000</span>':'')
-  +'<br>SALVAGE <b>◆ +'+earned+'</b> · Balance ◆ '+META.salv
+ $('overStats').innerHTML='<div class="result-label">SCORE</div><div class="result-score">'+fmt(score)+'</div><div class="result-metrics"><div><span>Wave</span><strong>'+S.wave+'</strong></div><div><span>Kills</span><strong>'+S.kills+'</strong></div><div><span>Max combo</span><strong>×'+S.comboMax+'</strong></div><div><span>Time</span><strong>'+$('time').textContent+'</strong></div></div>'
+  +(S.sectorCleared?'<div class="result-clear">SECTOR CLEARED ✦ CLEAR BONUS +25,000</div>':'')
+  +'<div class="result-salvage"><span>SALVAGE</span><b>◆ +'+earned+'</b><span>Balance</span><strong>◆ '+META.salv+'</strong></div>'
  $('reviveAd').style.display=S.revived?'none':'block'
  $('salvAd').style.display=(earned>0&&!S.adSalvUsed)?'block':'none'
  if(window.__hangarRefresh)window.__hangarRefresh()

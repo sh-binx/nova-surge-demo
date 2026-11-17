@@ -122,3 +122,14 @@ button.card{display:flex;flex-direction:column;align-items:flex-start;justify-co
 #over{background:#07121cf5}#overStats,#overStats div{font-family:inherit!important}
 #over .btn.ad{background:#1d3341;color:#ccdde7}#over .btn.ad small{color:#a0b6c5}
 #retryBtn{background:#d2f8ff!important;color:#09222b}
+
+/* 웹·토스 공통 결과 지표 */
+#overStats{text-align:left;min-width:0;width:100%;letter-spacing:0}
+#overStats .result-label{font-size:12px;color:#9dafc0;letter-spacing:0}
+#overStats .result-score{font-size:42px;line-height:1.15;font-weight:800;color:#35e6ff;margin:3px 0 18px}
+.result-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}
+.result-metrics>div{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12px;color:#9dafc0}
+.result-metrics strong{font-size:14px;color:#edf5fa;font-weight:600}
+.result-salvage{display:grid;grid-template-columns:auto 1fr auto auto;align-items:baseline;gap:8px;margin-top:18px;font-size:12px;color:#9dafc0}
+.result-salvage b{color:#ffcf4a}.result-salvage strong{font-weight:500;color:#c4d5e1}
+.result-clear{font-size:12px;color:#ffcf4a;margin-top:8px}

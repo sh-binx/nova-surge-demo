@@ -328,5 +328,18 @@ test('가로 결과 화면은 모든 보상 버튼이 보여도 겹치지 않는
   }
   await page.evaluate(async()=>{await document.fonts.ready;await new Promise<void>(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r())))})
   await page.screenshot({path:'/tmp/nova-toss-results.png'})
+  for (const width of [667, 740, 932]) {
+    await page.setViewportSize({width,height:375})
+    const layout=await page.evaluate(()=>{
+      const stats=document.querySelector('#overStats')!.getBoundingClientRect()
+      const btns=['reviveAd','salvAd','retryBtn','lbBtn2'].map(id=>document.getElementById(id)!.getBoundingClientRect())
+      return {gap:Math.min(...btns.map(r=>r.left))-stats.right,widths:btns.map(r=>r.width),bottom:Math.max(stats.bottom,...btns.map(r=>r.bottom)),height:innerHeight}
+    })
+    expect(layout.gap).toBeGreaterThanOrEqual(36)
+    expect(Math.max(...layout.widths)-Math.min(...layout.widths)).toBeLessThan(1)
+    expect(layout.bottom).toBeLessThanOrEqual(layout.height-21)
+    await page.screenshot({path:`/tmp/nova-toss-results-${width}.png`})
+  }
+
 
 })

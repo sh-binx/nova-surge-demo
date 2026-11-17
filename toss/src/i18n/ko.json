@@ -162,7 +162,12 @@
     "Try again": "다시 도전",
     "Choose your challenge": "난이도 선택",
     "Watch ad · Revive": "광고 보고 부활",
-    "Watch ad · Double salvage": "광고 보고 자원 두 배"
+    "Watch ad · Double salvage": "광고 보고 자원 두 배",
+    "Wave": "웨이브",
+    "Kills": "격추",
+    "Max combo": "최대 콤보",
+    "Time": "시간",
+    "Balance": "보유"
   },
   "patterns": [
     [
