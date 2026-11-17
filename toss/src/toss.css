@@ -114,6 +114,7 @@ body:has(#ui:not(.playing)) #fx{visibility:hidden}
  #hcv{grid-area:cv;max-height:240px;height:60vh}
 }
 /* 결과 화면 뒤 전장·배너 잔상을 차단한다. */
-#over{background:#07121c}
+/* WebKit26.6에서 완전 불투명 배경은 자식 버튼 글자를 누락했다. .99 알파로 렌더 경로 유지. */
+#over{background:rgba(7,18,28,.99)}
 body:has(#over:not(.off)) #fx{visibility:hidden}
 .ait-snd{border:0;background:#172b39;font-family:system-ui,-apple-system,NSKR,sans-serif}

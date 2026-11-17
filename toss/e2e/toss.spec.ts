@@ -326,5 +326,7 @@ test('가로 결과 화면은 모든 보상 버튼이 보여도 겹치지 않는
     const a=boxes[i]!,b=boxes[j]!
     expect(a.x<b.right&&a.right>b.x&&a.y<b.bottom&&a.bottom>b.y,`${a.id} / ${b.id} 겹침`).toBe(false)
   }
+  await page.evaluate(async()=>{await document.fonts.ready;await new Promise<void>(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r())))})
   await page.screenshot({path:'/tmp/nova-toss-results.png'})
+
 })
