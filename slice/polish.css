@@ -110,3 +110,15 @@ button.card{display:flex;flex-direction:column;align-items:flex-start;justify-co
 .hrole{letter-spacing:0;text-transform:lowercase;font-weight:400;color:#a9bbc9}
 .hst .bb i{background:#7eb7c6!important}
 #ui:has(.modal.on) #pauseBtn,#ui:has(.reward.on) #pauseBtn{display:none}
+/* 보상 버튼이 모두 표시돼도 작은 가로 화면에서 결과가 잘리지 않도록 배치 */
+@media(max-height:540px) and (orientation:landscape){
+ #over:not(.off){display:grid;grid-template-columns:minmax(220px,1fr) minmax(240px,1fr);column-gap:32px;row-gap:8px;align-content:center;padding:18px 6vw;overflow-y:auto}
+ #over h1{grid-column:1;grid-row:1;font-size:32px!important;line-height:1.1}
+ #overStats{grid-column:1;grid-row:2/5;margin:0;font-size:12px;line-height:1.5}
+ #reviveAd{grid-column:2;grid-row:1;margin:0!important}#salvAd{grid-column:2;grid-row:2;margin:0!important}
+ #retryBtn{grid-column:2;grid-row:3;min-height:46px;padding:12px}#lbBtn2{grid-column:2;grid-row:4;margin:0!important}
+ #over .btn{min-width:0;padding:10px 14px}
+}
+#over{background:#07121cf5}#overStats,#overStats div{font-family:inherit!important}
+#over .btn.ad{background:#1d3341;color:#ccdde7}#over .btn.ad small{color:#a0b6c5}
+#retryBtn{background:#d2f8ff!important;color:#09222b}
