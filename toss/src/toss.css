@@ -144,3 +144,12 @@ body:has(#over:not(.off)) #fx{visibility:hidden}
 }
 /* 선택 화면 뒤의 웨이브 배너가 한글 제목과 겹치지 않도록 한다. */
 body:has(#modal.on) #fx,body:has(#reward.on) #fx{visibility:hidden}
+
+/* 효과 비교를 위해 왼쪽 기준선은 유지하고 동일한 콘텐츠 행을 수직 중앙에 둔다. */
+button.card{display:grid;grid-template-rows:38px 24px 24px minmax(40px,auto);align-content:center;justify-content:stretch;align-items:start;row-gap:4px}
+.card .icw,.card .rr+.icw{margin:0;width:38px;height:38px}
+.card .nm,.card .lv,.card .ds{margin:0}
+@media(max-height:540px) and (orientation:landscape){
+ button.card{grid-template-rows:30px 20px 22px minmax(34px,auto);row-gap:4px}
+ .card .icw,.card .rr+.icw{width:30px;height:30px;margin:0}
+}
