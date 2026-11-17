@@ -193,7 +193,9 @@
   .hact .sel.on{background:#35e6ff;color:#04212b}
   .hbal{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#ffcf4a;margin-top:12px}
   .hback{pointer-events:auto;cursor:pointer;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#8b97b9;margin-top:8px;padding:15px 26px;display:inline-block} /* 모바일 터치 히트영역 ≥44 */
-</style></head>
+</style>
+<link rel="stylesheet" href="polish.css">
+</head>
 <body>
 <canvas id="c"></canvas>
 <canvas id="fx"></canvas>
@@ -231,12 +233,12 @@
 
   <div class="center" id="start">
     <h1>NOVA SURGE</h1><div class="tag">graze the swarm. become the storm.</div>
-    <div class="difflabel">DIFFICULTY</div>
+    <div class="difflabel">Choose your challenge</div>
     <div class="diffsel" id="diffSel"></div>
-    <div class="play" id="playBtn">▶ PLAY</div>
-    <div class="hbtn" id="hangarBtn">⬢ SHIPS &amp; UPGRADES</div>
-    <div class="hbtn" id="lbBtn" style="margin-top:10px;color:#ffcf4a;background:rgba(255,207,74,.1);border-color:rgba(255,207,74,.5)">🏆 LEADERBOARD</div>
-    <div class="hint">Drag · <b>←→</b> Move · Auto-fire · <b style="color:#35e6ff">SURGE</b> when full <b>(Space)</b></div>
+    <div class="play" id="playBtn">Begin flight</div>
+    <div class="hbtn" id="hangarBtn">Ships &amp; upgrades</div>
+    <div class="hbtn" id="lbBtn" style="margin-top:10px;color:#ffcf4a;background:rgba(255,207,74,.1);border-color:rgba(255,207,74,.5)">Leaderboard</div>
+    <div class="hint"><span>Drag or A / D to steer</span><span>Skim enemy fire to charge SURGE</span><span>Space or tap SURGE to release</span></div>
     <div class="startbal" id="startBal"><small>YOUR SALVAGE</small><span id="startBalV">◆ 0</span></div>
   </div>
 
@@ -265,7 +267,7 @@
   </div>
 
   <div class="center off" id="lb">
-    <h1 style="color:#ffcf4a;font-size:30px;text-shadow:0 0 24px rgba(255,207,74,.5)">🏆 LEADERBOARD</h1>
+    <h1 style="color:#ffcf4a;font-size:30px;text-shadow:0 0 24px rgba(255,207,74,.5)">Leaderboard</h1>
     <div class="lbsub" id="lbSub">GLOBAL · TOP 100</div>
     <div class="lblist" id="lbList"></div>
     <div class="lbname"><span>YOU</span><input id="lbName" maxlength="16" spellcheck="false"><span id="lbRank" class="lbrk"></span></div>
@@ -4655,11 +4657,17 @@ function toast(txt,ms,type){const el=$('toast');el.textContent=txt // type: good
 /* ============ 입력 ============ */
 let tx=0
 function toField(cx){return ((cx/VW)*2-1)*FW*1.18} // 창 기준 → 필드 x(가로 드래그로 조종)
-cv.addEventListener('pointerdown',e=>{AU.unlock();tx=toField(e.clientX)})
-addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')tx=toField(e.clientX)})
+let steeringPointer=null
+cv.addEventListener('pointerdown',e=>{if(ST!=='play'||steeringPointer!==null)return;AU.unlock();steeringPointer=e.pointerId;cv.setPointerCapture(e.pointerId);tx=toField(e.clientX)})
+cv.addEventListener('pointermove',e=>{if(e.pointerId===steeringPointer&&ST==='play')tx=toField(e.clientX)})
+function endSteering(e){if(e.pointerId===steeringPointer)steeringPointer=null}
+cv.addEventListener('pointerup',endSteering);cv.addEventListener('pointercancel',endSteering);cv.addEventListener('lostpointercapture',endSteering)
 // 키보드 조작(데스크톱) — ←→ / A·D 좌우 이동 + Space 서지
 const keyMove={l:false,r:false}
-addEventListener('keydown',e=>{const k=e.code;AU.unlock()
+function resetInput(){keyMove.l=false;keyMove.r=false;steeringPointer=null}
+addEventListener('blur',()=>{resetInput();if(ST==='play')pauseGame()})
+document.addEventListener('visibilitychange',()=>{if(document.hidden){resetInput();if(ST==='play')pauseGame()}})
+addEventListener('keydown',e=>{const k=e.code;if(e.target.matches('input,textarea,select'))return;AU.unlock()
  if(k==='ArrowLeft'||k==='KeyA'){keyMove.l=true;e.preventDefault()}
  else if(k==='ArrowRight'||k==='KeyD'){keyMove.r=true;e.preventDefault()}
  else if(k==='Space'){if(ST==='play')fireSurge();e.preventDefault()}
@@ -5581,7 +5589,7 @@ $('lbBtn').onclick=openLB;$('lbBtn2').onclick=openLB;$('lbBack').onclick=closeLB
 $('lbName').addEventListener('change',e=>{PNAME=(e.target.value.trim()||PNAME).slice(0,16);pSet('ns2_name',PNAME);e.target.value=PNAME})
 $('retryBtn').onclick=()=>cgMidgame(begin) // 재시작 시 미드게임 인터스티셜(있으면)
 // ── 일시정지 ──
-function pauseGame(){if(ST!=='play')return;ST='pause';$('pause').classList.remove('off');cgEvt('gameplayStop')}
+function pauseGame(){if(ST!=='play')return;resetInput();ST='pause';$('pause').classList.remove('off');cgEvt('gameplayStop')}
 function resumeGame(){if(ST!=='pause')return;$('pause').classList.add('off');ST='play';cgEvt('gameplayStart')}
 function quitToMenu(){const earned=S.salvRun;META.salv+=earned;saveMeta() // 메인으로: 점수 제출 후 종료
  const score=Math.round(Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned)+(S.clearBonus||0))*(S.diffRk||1)) // +SECTOR CLEARED 보너스(난이도 가중 전 합산)
@@ -5705,5 +5713,13 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  bgSRGB:()=>'#'+(scene.background?scene.background.clone().convertLinearToSRGB().getHexString():'000000') // 표시 sRGB 배경색
 }
 })()
+</script>
+<script>
+for(const el of document.querySelectorAll('.play,.hbtn,.hback,#pauseBtn,#sbtn')){
+ el.setAttribute('role','button');el.tabIndex=0;
+ el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();if(el.id==='sbtn')window.__surge();else el.click()}});
+}
+document.getElementById('pauseBtn').setAttribute('aria-label','Pause flight');
+document.getElementById('sbtn').setAttribute('aria-label','Release SURGE when charged');
 </script>
 </body></html>
