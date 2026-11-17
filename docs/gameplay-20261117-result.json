@@ -1,0 +1,50 @@
+{
+  "mode": "dev-autopilot-accelerated",
+  "state": {
+    "ST": "reward",
+    "hp": 250,
+    "lvl": 29,
+    "kills": 7405,
+    "surge": 62,
+    "surgeFired": 51,
+    "combo": 72,
+    "comboMax": 744,
+    "fb": 7405,
+    "foes": 22,
+    "t": 834,
+    "wave": 40,
+    "zone": 7,
+    "weapons": {
+      "orbit": 3,
+      "homing": 3
+    },
+    "ulv": {
+      "multi": 0,
+      "rapid": 5,
+      "power": 6,
+      "thr": 4,
+      "mag": 4,
+      "hull": 6
+    },
+    "evo": {},
+    "plvs": {
+      "pulse": 10,
+      "spread": 4,
+      "laser": 5,
+      "rail": 7
+    },
+    "salvRun": 38244,
+    "metaSalv": 131,
+    "leaks": 13,
+    "elite": null,
+    "elitesKilled": 8,
+    "waveTime": 793.8926499994665,
+    "sectorCleared": true,
+    "xpNext": 180,
+    "fps": 710
+  },
+  "boss_kills": 8,
+  "natural_upgrade_selection": true,
+  "forced_boss_kills_in_full_run": false,
+  "physical_device_test": false
+}

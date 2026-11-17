@@ -60,3 +60,6 @@ button,input{font:inherit}
 #start{background:linear-gradient(90deg,#030912f5 0%,#030912df 30%,#03091265 60%,#03091230),url('keyart.webp') center/cover no-repeat}
 
 @media(max-height:540px) and (orientation:landscape){#hangar{padding:12px 24px}.hnav button{min-height:40px;padding:6px 16px}.hstats{gap:3px}.hact .b{padding:9px 18px}.hback{padding:6px;min-height:32px}.hbal{font-size:12px}#hangar .hwrap{gap:4px 28px}}
+/* 네이티브 성장 선택 버튼: 상속·키보드 포커스 유지 */
+button.card{color:inherit;font:inherit;text-align:left;appearance:none}
+button.card:focus-visible{outline:3px solid #35e6ff;outline-offset:4px}
