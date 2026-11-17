@@ -367,3 +367,22 @@ test('전체 한글 화면 가로 폭별 시각 검수 자료', async ({ page })
   await expect(page.locator('#modal')).toHaveClass(/on/)
   await capture('growth')
 })
+
+// WKWebView의 회전 완료 뒤 window.resize 통지가 누락되어도 실제 표시 영역을 채워야 한다.
+test('세로 진입 뒤 resize 통지 누락 · 가로 전장 전체 폭과 렌더 버퍼 복구', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844})
+  await page.addInitScript(() => {
+    window.addEventListener('resize', e => e.stopImmediatePropagation(), true)
+  })
+  const { errs } = await open(page)
+  await page.setViewportSize({width:844,height:390})
+  await expect.poll(() => page.evaluate(() => {
+    const c=document.querySelector<HTMLCanvasElement>('#c')!
+    const r=c.getBoundingClientRect()
+    return {width:r.width,height:r.height,bufferW:c.width,bufferH:c.height}
+  })).toEqual({width:844,height:390,bufferW:1688,bufferH:780})
+  await page.click('#playBtn')
+  await expect(page.locator('#pauseBtn')).toBeVisible()
+  await page.screenshot({path:'/tmp/nova-toss-rotation-recovery.png'})
+  expect(errs).toEqual([])
+})

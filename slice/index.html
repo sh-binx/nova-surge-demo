@@ -4002,9 +4002,17 @@ const CAMP={x:0,y:14,z:16}
 cam.position.set(CAMP.x,CAMP.y,CAMP.z);cam.lookAt(0,0,-6)
 const fx=document.getElementById('fx'),fctx=fx.getContext('2d')
 let VW=1,VH=1,OX=0,OY=0 // OX/OY=레터박스 프레임 오프셋(입력 좌표 보정용)
-function resize(){VW=innerWidth;VH=innerHeight // 가로모드: 창 전체 채움(와이드 필드) — 좌우는 UI 패널이 덮음
- renderer.setSize(VW,VH);cam.aspect=VW/VH;cam.updateProjectionMatrix()
- const d=Math.min(window.devicePixelRatio,2);fx.width=VW*d;fx.height=VH*d;fctx.setTransform(d,0,0,d,0,0)}
+let renderDpr=0
+function resize(){
+ // WKWebView 회전 알림이 누락/지연되어도 CSS가 채운 실제 크기를 기준으로 복구한다.
+ // setSize의 인라인 px 스타일은 세로 크기를 고정하므로 생성하지 않는다.
+ const w=cv.clientWidth,h=cv.clientHeight,d=Math.min(window.devicePixelRatio||1,2)
+ if(w<=0||h<=0||(VW===w&&VH===h&&renderDpr===d))return
+ VW=w;VH=h;renderDpr=d
+ renderer.setPixelRatio(d);renderer.setSize(VW,VH,false)
+ cam.aspect=VW/VH;cam.updateProjectionMatrix()
+ fx.width=Math.floor(VW*d);fx.height=Math.floor(VH*d);fctx.setTransform(d,0,0,d,0,0)
+}
 addEventListener('resize',resize)
 scene.add(new THREE.HemisphereLight(0x9fc0ff,0x0d1526,.4))
 const key=new THREE.DirectionalLight(0xfff0dc,.5);key.position.set(-7,15,8);scene.add(key)
@@ -5060,6 +5068,7 @@ function director(wdt){
 /* ============ 메인 루프 ============ */
 const clock={last:performance.now()}
 function frame(now){if(!window.__manual)requestAnimationFrame(frame)
+ resize() // 크기가 달라진 프레임에만 GPU 버퍼를 갱신한다.
  const rdt=clamp((now-clock.last)/1000,.001,.05);clock.last=now
  fpsBuf.push(rdt);if(fpsBuf.length>120)fpsBuf.shift()
  const frozen=now<S.freezeUntil
