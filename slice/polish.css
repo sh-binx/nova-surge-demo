@@ -20,18 +20,18 @@ button,input{font:inherit}
 .side{padding-top:max(20px,env(safe-area-inset-top));padding-left:18px;padding-right:18px;gap:13px;width:clamp(160px,15vw,215px)}
 .ptitle{font:700 13px system-ui,sans-serif;letter-spacing:.06em;text-shadow:none;color:#cdeef4}
 .plabel,.lonm,.lolv,.wrem,.loempty{font-size:12px;color:#a9bdd1;letter-spacing:0}
-.pcard,.pcard.gcard,.loi{border:0;background:#11202ede;border-radius:10px}
+.pcard,.pcard.gcard,.loi{border:0;background:none;border-radius:0}
 .pcard .gold{display:flex;align-items:center;justify-content:flex-end;font-size:22px;line-height:1.3}
 .bar{border:0;background:#203044;height:8px}
 .wchip{border:0;background:#192b3b;min-height:40px;border-radius:10px}
-.wchip.cur{background:#315766;box-shadow:inset 0 -3px #79f0f5}
+.wchip.cur{background:#ceeaf0;box-shadow:none;color:#102b35}.wchip.cur svg{filter:brightness(.35)}.wchip.cur .wclv{color:#102b35}
 .wclv{font-size:10px;right:4px;bottom:2px;color:#bdd2e2}
 #pauseBtn{width:44px;height:44px;border:0;background:#152635;border-radius:12px}
 #sbtn{width:88px;height:88px;margin-bottom:max(12px,env(safe-area-inset-bottom))}
 #ebar{left:23%;right:23%;top:66px;height:18px;border:0}
 #ebar>span{font-size:11px;letter-spacing:.05em}
-.card{border:0;border-radius:14px;background:#172a3d;padding:18px 14px;box-shadow:0 14px 40px #0005}
-.card:hover{background:#234057;transform:translateY(-4px)}
+.card{border:0;border-radius:8px;background:#192d3b;padding:24px 18px 20px;box-shadow:none;min-height:226px;max-width:230px}
+.card:hover{background:#284454;transform:translateY(-2px)}
 .center h2,.modal h2{letter-spacing:-.03em;text-shadow:none}
 #hangar{overflow-y:auto;justify-content:flex-start;padding-top:24px;touch-action:pan-y}
 #hangar .hwrap{margin:auto;width:min(92vw,480px)}
@@ -63,3 +63,50 @@ button,input{font:inherit}
 /* 네이티브 성장 선택 버튼: 상속·키보드 포커스 유지 */
 button.card{color:inherit;font:inherit;text-align:left;appearance:none}
 button.card:focus-visible{outline:3px solid #35e6ff;outline-offset:4px}
+
+/* 표시/조작/보상을 서로 다른 위계로 구분한다. */
+#ui{font-family:system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums}
+.barwrap,.prow,.wmastery,.lvl,.wtag,.wrem,.plabel,.lonm,.lolv,.pcard .gold,.hname,.hrole,.hst,.hup,.hbal,.hback{font-family:inherit;text-shadow:none}
+.pcard.gcard{padding:0 0 12px;gap:5px}.pcard .gold{font-size:26px;font-weight:650;color:#e9d9a4}
+.plabel{color:#91a5b5;font-weight:500;font-size:11px;text-transform:lowercase;letter-spacing:.03em}
+.loi{padding:4px 0;gap:9px}.lonm{font-weight:500;font-size:12px;color:#bed0dc}.lolv{font-weight:500;color:#93a7b7}
+.loic{opacity:.7}.loadout{gap:4px}.loempty{font:400 12px system-ui;color:#91a5b5}
+.bar{height:6px;border-radius:2px}.hp>i{background:#ee7893}.xp>i{background:#82c9d8}.wave>i{background:#a5c9ba}
+.wtag{color:#d6e6ef;font-weight:600}.wclv{font-family:inherit;font-size:11px}
+#sbtn{background:conic-gradient(#b5e8ef calc(var(--p)*1%),#223542 0);padding:3px}
+#sbtn .in{border:0;background:#142632}#sbtn span{font:650 12px system-ui;color:#9bb4c5;letter-spacing:.04em}
+#sbtn.full{animation:none;filter:none}#sbtn.full .in{background:#c9edf1}#sbtn.full span{color:#0b303a}
+#toast{border:0;border-radius:4px;background:#152b38f5;box-shadow:none;text-shadow:none;font:500 13px system-ui;color:#d7e5ed;max-width:70vw;white-space:normal;text-align:center}
+.modal,.reward{background:#061019e8;backdrop-filter:blur(8px)}
+.modal h2,.reward h2{font:600 28px system-ui;color:#eff5fa;letter-spacing:-.04em;text-shadow:none}
+.modal .sub,.reward .got{font:400 13px/1.5 system-ui;color:#a3b7c6}
+.cards{max-width:740px;gap:14px}.card::before{display:none}
+.card .icw{border:0;background:none;border-radius:0;margin:10px 0 25px;width:38px;height:38px;justify-content:flex-start}
+.card .icw svg{width:36px;height:36px}.card .nm{font-size:16px;font-weight:600;letter-spacing:-.02em}
+.card .lv{font:600 12px system-ui;color:#a8d9df;margin:6px 0 10px}.card .ds{font:400 13px/1.5 system-ui;color:#aebfcb}
+.card.rare,.card.epic{box-shadow:none;border:0}.card.epic{background:#353329}
+.card .rr{position:static;display:inline-block;font:600 11px system-ui;padding:3px 7px;border-radius:3px;margin-bottom:0}
+.card .rr+.icw{margin-top:10px;margin-bottom:7px}.card.rare .rr{background:#355461;color:#d1e9ed}.card.epic .rr{background:#5a5030;color:#f0dfac}
+.btn.ad{border:0;background:#d0e7eb;color:#102d38;font:650 15px system-ui;box-shadow:none;border-radius:8px;min-height:48px}
+.btn.ad small{color:#47616c}.btn.skip{font:500 14px system-ui;color:#c2d2dd;min-height:44px}
+.reward .crate{filter:none;width:52px;height:52px;margin-bottom:22px}
+.center:not(#start) h1{font:650 clamp(32px,5vw,56px) system-ui!important;letter-spacing:-.05em;text-shadow:none!important;color:#eff5fa!important}
+#hangar{background:#08131d}.hname{font-weight:650;letter-spacing:-.02em}.hnav button{border:0;border-radius:6px;box-shadow:none;background:#1b303e;color:#c6dce6}
+.hact .sel.on{background:#cde7eb;color:#102d38}.hup button{border-radius:5px}.hup button:disabled{opacity:.55}
+#hcv{border:0;box-shadow:none}.lbname input{border:0;background:#1b303e;padding:10px}.lbrow.me{outline:0;background:#2b3e42}.tagmini{display:none}
+@media(max-height:540px) and (orientation:landscape){
+ .cards{max-width:660px;gap:10px}.card{min-height:180px;padding:15px;max-width:210px}
+ .card .icw{margin:2px 0 14px;width:30px;height:30px}.card .icw svg{width:30px;height:30px}
+ .card .rr+.icw{margin:5px 0 4px}.card .nm{font-size:14px}.card .ds{font-size:12px;line-height:1.4}.card .lv{margin:4px 0 6px}
+ .modal h2,.reward h2{font-size:23px}.modal .sub{margin-bottom:14px}.reward .crate{width:40px;height:40px;margin-bottom:10px}
+ .pcard .gold{font-size:22px}.pcard.gcard{padding-bottom:3px}.loi{padding:2px 0}.lonm{font-size:11px}
+}
+/* 희귀도와 관계없이 아이콘·이름·레벨 기준선을 맞춘다. */
+button.card{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+.card .rr{position:absolute;top:12px;right:12px;margin:0}
+.card .icw,.card .rr+.icw{flex:none;margin:18px 0 18px}
+@media(max-height:540px) and (orientation:landscape){.card .icw,.card .rr+.icw{margin:16px 0 12px}.card .rr{top:10px;right:10px}}
+
+.hrole{letter-spacing:0;text-transform:lowercase;font-weight:400;color:#a9bbc9}
+.hst .bb i{background:#7eb7c6!important}
+#ui:has(.modal.on) #pauseBtn,#ui:has(.reward.on) #pauseBtn{display:none}
