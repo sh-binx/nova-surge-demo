@@ -219,7 +219,7 @@ export class TossPlatform {
     if (!ac) return
     try {
       if (held && ac.state === 'running') void ac.suspend()
-      else if (!held && ac.state === 'suspended') void ac.resume()
+      else if (!held && ac.state !== 'running') void ac.resume().catch(() => {}) // iOS interrupted 포함
     } catch { /* no-op */ }
   }
   audioState() { return { holds: [...this.holds], ctx: this.game?.AU.ac?.state ?? 'none', muted: this.game?.AU.muted, sysMuted: this.game?.AU.sysMuted } }

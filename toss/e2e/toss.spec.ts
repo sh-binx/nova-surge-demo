@@ -501,3 +501,27 @@ test('3차-C — 보스 5종 2단계 전환 · 단계별 탄 패턴 · 페이지
   }
   expect(errs, errs.join(' | ')).toHaveLength(0)
 })
+
+test('소리 — 음악 모드 전환 · 효과음 전 종이 들리고 넘치지 않음 · 동시 발음 폭주에도 클리핑 0 · 음소거', async ({ page }) => {
+  const { errs } = await open(page)
+  const T = <R>(fn: string) => page.evaluate(fn) as Promise<R>
+  await page.click('#playBtn'); await page.waitForTimeout(900)
+  const a = await T<{ ctx: string; mode: string; on: boolean }>('__test.auState()')
+  expect(a.ctx).toBe('running'); expect(a.mode).toBe('play'); expect(a.on).toBe(true)
+  const names = await T<string[]>('__test.auNames()')
+  expect(names.length, '효과음 종류').toBeGreaterThanOrEqual(30)
+  const each = await T<[string, number, number][]>(`(async()=>{const o=[];for(const n of __test.auNames()){const r=await __test.auRender({secs:3.2,sfx:[[n,.1,4,0]]});o.push([n,r.peakDb,r.clip])}return o})()`)
+  for (const [n, pk, clip] of each) { expect(pk, n + ' 들림').toBeGreaterThan(-40); expect(pk, n + ' 과대').toBeLessThan(-1.5); expect(clip, n + ' 클리핑').toBe(0) }
+  const storm = await T<{ peakDb: number; clip: number; rmsDb: number }>(`(()=>{const st=[];for(let t=.2;t<3.6;t+=.04){st.push(['kill',t,6,0]);st.push(['hit',t+.01,0,false]);st.push(['shot',t+.02,0]);st.push(['xp',t+.03,5])}st.push(['bomb',1],['surge',1.8],['hurt',2.4],['bossDown',2.6]);return __test.auRender({secs:5,music:{mode:'boss',int:3},sfx:st})})()`)
+  expect(storm.clip, '폭주 클리핑').toBe(0); expect(storm.peakDb).toBeLessThan(-0.5)
+  for (const m of ['menu', 'play', 'boss', 'over']) {
+    const r = await T<{ rmsDb: number; peakDb: number }>(`__test.auRender({secs:8,music:{mode:'${m}',int:2}})`)
+    expect(r.rmsDb, m + ' 음악이 들림').toBeGreaterThan(-45); expect(r.peakDb, m + ' 음악 과대').toBeLessThan(-3)
+  }
+  await T(`__test.spawnBoss('warden')`)
+  await expect.poll(async () => (await T<{ mode: string }>('__test.auState()')).mode).toBe('boss')
+  await page.click('#pauseBtn'); await page.click('#aitSnd')
+  await expect.poll(async () => (await T<{ on: boolean }>('__test.auState()')).on).toBe(false)
+  await page.click('#aitSnd')
+  expect(errs).toEqual([])
+})
