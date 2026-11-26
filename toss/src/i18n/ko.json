@@ -209,7 +209,12 @@
     "Surge charge +8%": "서지 +8%",
     "Balanced stats": "균형 잡힌 능력치",
     "DMG +15% · Surge +20% / HP −20%": "공격력 +15% · 서지 +20% / 체력 −20%",
-    "HP +25% · Magnet +30% · Salvage +15% / Speed −10%": "체력 +25% · 자석 +30% · 자원 +15% / 속도 −10%"
+    "HP +25% · Magnet +30% · Salvage +15% / Speed −10%": "체력 +25% · 자석 +30% · 자원 +15% / 속도 −10%",
+    "WARDEN — OVERLOAD": "워든 — 과부하",
+    "DREAD CROWN — FRENZY": "드레드 크라운 — 광란",
+    "MONARCH — MIRAGE": "모나크 — 신기루",
+    "HIVE MOTHER — BROOD FRENZY": "하이브 마더 — 산란 폭주",
+    "MINELAYER — BROADSIDE": "마인레이어 — 일제 포격"
   },
   "patterns": [
     [

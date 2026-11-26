@@ -294,7 +294,8 @@ test('캔버스 문구(배너·수치) 번역 — 게임이 만드는 문자열 
     const zones = ['DEEP SPACE', 'MARS ORBIT', 'ION NEBULA', 'RED GIANT', 'WORMHOLE']
     const W = ['PULSE', 'SPREAD', 'LASER', 'RAIL']
     const evo = ['TWIN STREAM', 'PIERCING ROUNDS', 'WIDE ARC', 'BACK SPREAD', 'CHARGE LANCE', 'CHAIN ARC', 'WIDE BEAM', 'SPLIT BEAM']
-    const s: string[] = ['◆ WAVE 1', '◆ WAVE 17', 'stay sharp', 'BOSS — stand your ground', 'GRAZE', 'safe', 'AEGIS SHIELDS DOWN', 'WINGMAN DOWN — VIPER ENRAGED', 'GATEKEEPER — FINAL PHASE',
+    const s: string[] = ['◆ WAVE 1', '◆ WAVE 17', 'stay sharp', 'BOSS — stand your ground', 'GRAZE', 'safe', 'AEGIS SHIELDS DOWN', 'WINGMAN DOWN — VIPER ENRAGED', 'GATEKEEPER — FINAL PHASE', 'WARDEN — OVERLOAD', 'DREAD CROWN — FRENZY', 'MONARCH — MIRAGE', 'HIVE MOTHER — BROOD FRENZY', 'MINELAYER — BROADSIDE',
+      '✦ REPAIR', '✦ MAGNET', '✦ BOMB', '✦ BARRIER', '✦ SECOND WIND', 'CRIT', 'BLOCK',
       'CHAFF wings — both flanks', 'SCOUT line — graze their shots', 'SPLITTER & BOMBER', 'WEAVER — evasive fliers', 'SPLITTER — splits on death', 'LANCER pincer attack', 'high-density swarm', 'TURRET emplacements', 'CRAB flankers', 'WORM chains', 'LAMPREY — curving shots',
       '✦ RAPID FIRE · LV3', '✦ OVERCHARGE · LV2 ×2', '✦ Emergency Repair', '✦ PULSE +1 · LV4', 'Joined fleet — VOID RAY', 'EVOLVE — VULCAN STORM']
     for (const b of boss) s.push('⚠ ' + b, '⚠ ' + b + ' ++', b + ' DOWN')
@@ -470,5 +471,30 @@ test('3차-B — 카드 재뽑기 · 필드 아이템 4종 · 방어막 · 진�
   const s2 = await st(page); expect(s2.ST).toBe('play'); expect(s2.hp).toBeGreaterThan(0)
   await T('__test.hurtNow(9999)')
   expect((await st(page)).ST).toBe('over')
+  expect(errs, errs.join(' | ')).toHaveLength(0)
+})
+
+test('3차-C — 보스 6종 2단계 전환 · 단계별 탄 패턴 · 페이지 에러 0', async ({ page }) => {
+  const { errs } = await open(page)
+  await page.click('#playBtn')
+  const T = <R>(fn: string) => page.evaluate(fn) as Promise<R>
+  await T('__ai(3)')
+  for (const type of ['warden', 'elite', 'monarch', 'hive', 'minelayer']) {
+    await T(`(()=>{__test.setHp(9999);__test.spawnBoss('${type}')})()`)
+    // 입장 → 호버까지 고속 진행(강화 창이 뜨면 닫는다)
+    const adv = (secs: number) => page.evaluate(secs => { const w = window as any; let left = secs
+      while (left > 0) { w.__test.setHp(9999); const r = w.__fast(Math.min(.5, left), 25); left -= .5
+        if (r.ST === 'levelup') (document.querySelector('#cards .card') as HTMLElement).click()
+        else if (r.ST === 'reward') (document.getElementById('rwCont') as HTMLElement).click() } }, secs)
+    await adv(6)
+    const b1 = await T<any>('__test.boss()')
+    expect(b1, type + ' 생존').not.toBeNull(); expect(b1.p2 === 0 || b1.hp <= b1.max * .5, type + ' 체력 절반 전에는 1단계').toBe(true) // 자동 조종 화력이 6초 안에 절반을 깎는 경우는 허용
+    await T('__test.bossHp(.45)')
+    let b2: any = null // 돌진·점멸 중인 보스는 다음 대기 단계에서 전환한다(최대 5초)
+    for (let i = 0; i < 10; i++) { await adv(.5); b2 = await T<any>('__test.boss()'); if (b2 && b2.p2) break }
+    expect(b2 && b2.p2, type + ' 2단계 전환').toBe(1)
+    await adv(5)
+    expect(await T<number>('__test.ebCount()'), type + ' 2단계 탄').toBeGreaterThan(0)
+  }
   expect(errs, errs.join(' | ')).toHaveLength(0)
 })

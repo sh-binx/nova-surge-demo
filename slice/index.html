@@ -4977,7 +4977,7 @@ function spawnFoe(type,x,z){if(foes.length>90)return null
  if(type==='mine'){f.spd=.7;f.fuse=99} // 기뢰 — 기본 무기폭(minelayer가 수명·기폭 제어)
  if(BOSSNM[type]){f.spd=2.2;f.boss=1 // 8보스 공통 — 재등장=강화(elitesKilled 지수)
   f.hp=Math.round(c.hp*Math.pow(1.35,S.elitesKilled));f.max=f.hp
-  f.phase='enter';f.pt=0;f.rad=0
+  f.phase='enter';f.pt=0;f.rad=0;f.p2=0;f.vol=1.6;f.spiralT=0;f.lob=1.5;f.bs=1.2;f.enr=0;f.radN=0
   if(type==='twin'){f.wing=1;g.userData.vipers.forEach(v=>v.visible=true)} // 윙맨 복원(풀 재사용)
   if(type==='aegis'){f.segA=0;f.segsAlive=6;f.segHp=[] // 실드 세그 6기(전 피해 흡수)
    const shp=Math.round(55*Math.pow(1.2,S.elitesKilled));for(let i=0;i<6;i++)f.segHp.push(shp)
@@ -5126,6 +5126,13 @@ function fireSurge(){if(ST!=='play'||S.surge<100)return
  ring(sx,sz,0xffffff,4,.4);ring(sx,sz,0x35e6ff,8.5,.7,.4);ring(sx,sz,0xffffff,6,.55,.35)
  pop(sx,sz,0xffffff,9,.45);pop(sx,sz,0x35e6ff,16,.75)}
 let novaRing=null
+// 3차-C 보스 공용: 탄 발사 도우미와 2단계 전환 연출
+function ebShot(x,z,vx,vz,ax){if(ebullets.length>=62)return;const b=ebPool.get();b.position.set(x,0,z);const o={m:b,vx,vz,grazed:false};if(ax)o.ax=ax;ebullets.push(o)}
+function ebAim(x,z,sp,spread,n){const base=Math.atan2(player.position.z-z,player.position.x-x);for(let k=0;k<n;k++){const a=base+(k-(n-1)/2)*spread;ebShot(x,z,Math.cos(a)*sp,Math.sin(a)*sp)}}
+function ebRing(x,z,sp,n,ph){for(let k=0;k<n;k++){const a=(ph||0)+k/n*6.283;ebShot(x,z,Math.cos(a)*sp,Math.sin(a)*sp)}}
+function bossP2(f,txt){f.p2=1;banner(txt,'#ff5d6c');FLASH.c=.55;AU.boss();buzz(50);S.shake=Math.max(S.shake,7)
+ ring(f.m.position.x,f.m.position.z,0xff5d6c,6.5,.55);pop(f.m.position.x,f.m.position.z,0xff5d6c,9,.4)
+ for(let i=ebullets.length-1;i>=0;i--)ebPool.put(ebullets[i].m);ebullets.length=0} // 전환 순간 화면의 탄을 지워 숨 돌릴 틈을 준다
 
 /* ============ 스폰 디렉터(웨이브 펄스 + 엘리트) ============ */
 function pulse(){for(let i=0;i<3+Math.min(3,S.t/50|0);i++)spawnFoe('drone',rnd(-FW,FW),TOPZ-rnd(0,5))
@@ -5400,11 +5407,14 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
     if(S.elite)S.elite.hp=f.hp
     if(m.userData.core)m.userData.core.rotation.y+=wdt*2
     if(f.phase==='enter'){m.position.z+=(f.spd+3.6)*wdt;if(m.position.z>=-12){f.phase='hover';f.pt=0;f.beamCd=1.2}} // 더 앞(-12)에 호버 — 멀어서 안 맞던 문제 완화
-    else{m.position.x+=(Math.sin(S.t*.2)*3.8-m.position.x)*Math.min(1,wdt*.6) // 흔들림 축소·감속(3.8, 원래 FW*.55=4.7) — 추적·명중 쉽게
+    else{if(!f.p2&&f.hp<=f.max*.5)bossP2(f,'WARDEN — OVERLOAD')
+     m.position.x+=(Math.sin(S.t*(f.p2?.55:.2))*(f.p2?5.4:3.8)-m.position.x)*Math.min(1,wdt*(f.p2?1.1:.6)) // 2단계: 넓고 빠르게 좌우 기동
+     m.position.z+=(-12-m.position.z)*Math.min(1,wdt*1.5) // 피격 밀림 복귀
      if(f.phase==='hover'){f.beamCd-=wdt
+      f.vol-=wdt;if(f.vol<=0){f.vol=f.p2?1.9:2.6;ebAim(m.position.x,m.position.z+1.2,5.6,.16,f.p2?5:3);AU.tone(300,.08,'square',.04,200)} // 빔 사이 조준 연사(스치기 기회)
       if(f.beamCd<=0){f.phase='charge';f.pt=0;f.beamDir=(Math.random()<.5?1:-1);f.flashOn=true;setFlash(m,true);f.flashUntil=now+9999;AU.warn()}} // 스윕 방향 결정 → 충전 중 예고선 표시
      else if(f.phase==='charge'){if(f.pt>1.25){f.phase='beam';f.pt=0;f.beamX=f.beamDir*(FW+1.5);f.flashOn=false;setFlash(m,false);AU.tone(110,2,'sawtooth',.13,70)}}
-     else if(f.phase==='beam'){const BDUR=1.7,sX=f.beamDir*(FW+1.5);f.beamX=sX+(f.pt/BDUR)*(0-sX) // 시작 끝→중앙 반쪽만 스윕 — 반대 절반은 항상 안전(회피 가능)
+     else if(f.phase==='beam'){const BDUR=f.p2?2.2:1.7,sX=f.beamDir*(FW+1.5),eX=f.p2?-f.beamDir*FW*.4:0;f.beamX=sX+(f.pt/BDUR)*(eX-sX) // 1단계: 끝→중앙 / 2단계: 끝→반대편 40%까지(먼 쪽 끝만 안전)
       if(Math.abs(player.position.x-f.beamX)<.8&&player.position.z>m.position.z&&now>S.invUntil)hurt(Math.round(14*zdm(S.zone||0)),700)
       if(f.pt>BDUR){f.phase='hover';f.pt=0;f.beamCd=rnd(2.4,3.4)}}}
     if(f.phase==='beam'||f.phase==='charge'){if(!window.__wbeam){const bg=new THREE.Group()
@@ -5420,7 +5430,8 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
     if(S.elite)S.elite.hp=f.hp
     if(f.phase==='enter'){m.position.z+=(f.spd+3.6)*wdt;if(m.position.z>=-13){f.phase='hover';f.pt=0}} // 입장 가속(등장 후 방치 감소)
     else if(f.phase==='hover'){
-     m.position.x+=(player.position.x*.6-m.position.x)*Math.min(1,wdt*.8)
+     if(!f.p2&&f.hp<=f.max*.5)bossP2(f,'DREAD CROWN — FRENZY')
+     m.position.x+=(clamp(player.position.x*.6+(f.p2?Math.sin(S.t*2.2)*2.8:0),-FW*.8,FW*.8)-m.position.x)*Math.min(1,wdt*(f.p2?1.6:.8))
      f.rad+=wdt
      if(f.rad>2.4){f.rad=0;f.radN=(f.radN||0)+1
       if(f.radN%2===1){ // 조준 5산탄 — 주차 파괴
@@ -5435,13 +5446,13 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
         const a=k/nb*6.283+rnd(-.1,.1)
         const b=ebPool.get();b.position.set(m.position.x,0,m.position.z)
         ebullets.push({m:b,vx:Math.cos(a)*6.4,vz:Math.sin(a)*6.4,grazed:false})}}}
-     if(f.pt>3.2){f.phase='tele';f.pt=0;f.flashOn=true;f.flashUntil=now+700;setFlash(m,true);AU.warn()}}
+     if(f.pt>(f.p2?2.2:3.2)){f.phase='tele';f.pt=0;f.flashOn=true;f.flashUntil=now+700;setFlash(m,true);AU.warn()}}
     else if(f.phase==='tele'){if(f.pt>.7){f.phase='dash';f.pt=0;setFlash(m,false);f.flashOn=false;f.dx=player.position.x}}
     else if(f.phase==='dash'){
      const k=Math.min(1,f.pt/.55)
      m.position.z=-13+(PZ-2.4+13)*(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2)
      m.position.x+=(f.dx-m.position.x)*Math.min(1,wdt*6)
-     if(f.pt>.75){f.phase='back';f.pt=0}}
+     if(f.pt>.75){f.phase='back';f.pt=0;if(f.p2){ebRing(m.position.x,m.position.z,5.4,8,rnd(0,.7));ring(m.position.x,m.position.z,0xff5d6c,3.4,.35)}}} // 2단계: 착지 지점에서 8방 탄
     else if(f.phase==='back'){m.position.z+=(-13-m.position.z)*Math.min(1,wdt*2.2)
      if(f.pt>1.6){f.phase='hover';f.pt=0}}}
    else if(f.type==='monarch'){f.pt+=wdt // 텔레포트 왕관 — 점멸 + 링/부채탄(웨15)
@@ -5449,8 +5460,11 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
     if(m.userData.ring)m.userData.ring.rotation.z+=wdt*1.4
     if(m.userData.core)m.userData.core.rotation.y+=wdt*2.2
     if(f.phase==='enter'){m.position.z+=(f.spd+3.6)*wdt;if(m.position.z>=-13){f.phase='hover';f.pt=0}}
-    else{m.position.x+=Math.sin(S.t*.9)*1.1*wdt
+    else{if(!f.p2&&f.hp<=f.max*.5){bossP2(f,'MONARCH — MIRAGE');f.teleT=1.2}
+     m.position.x+=Math.sin(S.t*.9)*1.1*wdt+(f.p2?clamp(player.position.x-m.position.x,-1,1)*1.2*wdt:0)
      f.teleT-=wdt;f.rad+=wdt
+     if(f.spiralT>0){f.spiralT-=wdt;f.spA=(f.spA||0)+wdt*2.6;f.spC=(f.spC||0)-wdt // 2단계 나선탄(두 갈래)
+      if(f.spC<=0){f.spC=.17;for(const o of [0,Math.PI])ebShot(m.position.x,m.position.z,Math.cos(f.spA+o)*5.4,Math.sin(f.spA+o)*5.4)}}
      if(f.rad>2.1){f.rad=0;f.radN=(f.radN||0)+1
       if(f.radN%2===1){const nb=12 // 링 12
        for(let k=0;k<nb;k++){if(ebullets.length>=60)break
@@ -5460,7 +5474,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
        for(let k=-2;k<=2;k++){if(ebullets.length>=60)break
         const a=base+k*.2,b=ebPool.get();b.position.set(m.position.x,0,m.position.z)
         ebullets.push({m:b,vx:Math.cos(a)*7.4,vz:Math.sin(a)*7.4,grazed:false})}}}
-     if(f.teleT<=0){f.teleT=4.2 // 텔레포트 — 소멸 FX → 재출현 + 도착 사격
+     if(f.teleT<=0){f.teleT=f.p2?3:4.2;if(f.p2)f.spiralT=1.5 // 텔레포트 — 소멸 FX → 재출현 + 도착 사격
       burst(m.position.x,m.position.z,0xff5db0,10);ring(m.position.x,m.position.z,0xff5db0,3,.4)
       m.position.set(rnd(-FW*.6,FW*.6),0,rnd(-16,-11))
       ring(m.position.x,m.position.z,0xffd6f0,3.6,.45);AU.warn();buzz(20)
@@ -5473,10 +5487,14 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
     m.rotation.y+=wdt*.4
     if(m.userData.core)m.userData.core.rotation.y-=wdt*1.8
     if(f.phase==='enter'){m.position.z+=(f.spd+3)*wdt;if(m.position.z>=-14){f.phase='hover';f.pt=0}}
-    else{m.position.x+=(Math.sin(S.t*.5)*3-m.position.x)*Math.min(1,wdt*.5)
+    else{if(!f.p2&&f.hp<=f.max*.5)bossP2(f,'HIVE MOTHER — BROOD FRENZY')
+     m.position.x+=(Math.sin(S.t*.5)*3-m.position.x)*Math.min(1,wdt*.5)
+     m.position.z+=((-14+(f.p2?Math.max(0,Math.sin(S.t*.7))*4.5:0))-m.position.z)*Math.min(1,wdt*1.2) // 2단계: 밀고 내려왔다 물러남(1단계는 제자리 복귀)
+     if(f.p2){
+      f.lob-=wdt;if(f.lob<=0){f.lob=1.7;for(const sx of [-1,1])ebShot(m.position.x+sx*.8,m.position.z+1,sx*3.4,5.2,-sx*2.6)}} // 바깥으로 나갔다 안으로 휘는 탄
      f.hatchT-=wdt;f.rad+=wdt
-     if(f.hatchT<=0){f.hatchT=4.6 // 부화 — 드론 2기(부화 억제가 공략)
-      if(foes.length<40)for(let k=0;k<2;k++){const d=spawnFoe('drone',m.position.x+rnd(-1.5,1.5),m.position.z+rnd(.5,1.5));if(d)d.spd*=1.15}
+     if(f.hatchT<=0){f.hatchT=f.p2?3.5:4.6 // 부화 — 드론 2기(2단계 3기)
+      if(foes.length<40)for(let k=0;k<(f.p2?3:2);k++){const d=spawnFoe('drone',m.position.x+rnd(-1.5,1.5),m.position.z+rnd(.5,1.5));if(d)d.spd*=1.15}
       burst(m.position.x,m.position.z,0x8af04a,8);AU.tone(240,.2,'square',.06,120)}
      if(f.rad>3.4){f.rad=0;const nb=10 // 링(간헐)
       for(let k=0;k<nb;k++){if(ebullets.length>=60)break
@@ -5504,11 +5522,13 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
     if(S.elite)S.elite.hp=f.hp
     if(m.userData.core)m.userData.core.rotation.y+=wdt*1.6
     if(f.phase==='enter'){m.position.z+=(f.spd+3)*wdt;if(m.position.z>=-14.5){f.phase='patrol';f.pt=0}}
-    else{m.position.x+=f.vx*wdt // 가로 순찰
+    else{if(!f.p2&&f.hp<=f.max*.5){bossP2(f,'MINELAYER — BROADSIDE');f.vx*=1.7}
+     if(f.p2){f.bs-=wdt;if(f.bs<=0){f.bs=1.7;ebAim(m.position.x,m.position.z+1,6.4,.2,3);AU.tone(260,.08,'square',.04,180)}}
+     m.position.x+=f.vx*wdt;m.position.z+=(-14.5-m.position.z)*Math.min(1,wdt*1.5) // 가로 순찰 + 피격 밀림 복귀
      if(Math.abs(m.position.x)>FW*.75)f.vx=-Math.sign(m.position.x)*Math.abs(f.vx)
      f.mineT-=wdt;f.detT-=wdt
      let mn2=0;for(const o of foes)if(o.type==='mine')mn2++
-     if(f.mineT<=0&&mn2<5){f.mineT=3.2 // 살포(필드 최대 5)
+     if(f.mineT<=0&&mn2<(f.p2?7:5)){f.mineT=f.p2?2.3:3.2 // 살포(필드 최대 5, 2단계 7)
       const mn=spawnFoe('mine',m.position.x,m.position.z+1.2)
       if(mn){mn.hp=Math.max(4,Math.round(6+S.wave*.4));mn.fuse=99} // 2~4발 파괴 밸런스(웨이브 무관)
       AU.tone(160,.14,'square',.05,90)}
@@ -5518,7 +5538,10 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
    else if(f.type==='aegis'){f.pt+=wdt // 시타델 — 회전 실드 6세그(전멸 전 코어 무적, RAIL은 관통)(웨35)
     if(S.elite)S.elite.hp=f.hp
     if(f.phase==='enter'){m.position.z+=(f.spd+3)*wdt;if(m.position.z>=-13.5){f.phase='hover';f.pt=0}}
-    else{m.position.x+=(Math.sin(S.t*.4)*2.6-m.position.x)*Math.min(1,wdt*.5)
+    else{if(f.segsAlive)m.position.x+=(Math.sin(S.t*.4)*2.6-m.position.x)*Math.min(1,wdt*.5)
+     else{m.position.x+=(clamp(player.position.x,-FW*.75,FW*.75)-m.position.x)*Math.min(1,wdt*.9) // 실드 붕괴 뒤: 플레이어를 쫓으며 조준 부채탄
+      f.bs-=wdt;if(f.bs<=0){f.bs=1.4;ebAim(m.position.x,m.position.z+1,6.6,.18,3)}}
+     m.position.z+=(-13.5-m.position.z)*Math.min(1,wdt*1.5)
      f.segA+=wdt*(f.segsAlive?1:1.6);f.rad+=wdt
      if(f.rad>2.3){f.rad=0;f.radN=(f.radN||0)+1 // 스파이럴 — 위상이 전진하는 링(레인이 돈다)
       const nb=10,ph=(f.radN*.5)%6.283
@@ -5553,6 +5576,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
      if(f.teleT<=0){f.teleT=9 // 게이트 텔레포트
       burst(m.position.x,m.position.z,0xb060ff,10)
       m.position.set(rnd(-FW*.55,FW*.55),0,rnd(-15,-11));ring(m.position.x,m.position.z,0xd6b8ff,3.8,.45);AU.warn()}
+     if(hpr<.66){f.lob-=wdt;if(f.lob<=0){f.lob=hpr<.33?2.4:3.4;for(const sx of [-1,1])ebShot(m.position.x+sx*1.9,m.position.z+1,sx*3.2,5.4,-sx*2.4)}} // 2단계부터 휘는 탄
      if(hpr<.33&&!f.enr){f.enr=1;banner('GATEKEEPER — FINAL PHASE','#ff5d6c');FLASH.c=.6}
      const pyl=m.userData.pylons // 파일런 코어 = HP 페이즈 시각화(66%/33% 소등)
      if(pyl){pyl[0].visible=hpr>.66;pyl[1].visible=hpr>.33}}}
@@ -5927,6 +5951,7 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
  spawnAt:(type,x,z)=>{const f=spawnFoe(type,x,z);return !!f}, feature:w=>waveFeature(w), lineOp:()=>Math.round(defLine.material.opacity*100)/100, // 3차 검증: 위치 지정 스폰·웨이브 특집·방어선 농도
  drop:(k,x,z)=>!!spawnDrop(k,x==null?0:x,z==null?-6:z), dropKinds:()=>drops.map(d=>d.k), b3:()=>({barrier:S.barrier,rerolls:S.rerolls,phoenix:S.phoenix,evo:Object.keys(E).filter(k=>E[k]),mag:performance.now()<S.magUntil,ulv:{...ULV}}), offerNow:()=>offer('LEVEL UP'), evoCheck:()=>checkEvo(), setPhoenix:()=>{S.phoenix=1}, setHp:n=>{S.hp=n}, uniq:k=>{const u=EPICU.find(x=>x.uniq===k);u&&u.ap()}, hurtNow:d=>{S.invUntil=0;hurt(d||10)}, // 3차-B 검증
+ boss:()=>{const f=foes.find(x=>x.boss);return f?{type:f.type,hp:f.hp,max:f.max,p2:f.p2||0,phase:f.phase,x:Math.round(f.m.position.x*10)/10,z:Math.round(f.m.position.z*10)/10}:null}, bossHp:r=>{const f=foes.find(x=>x.boss);if(f)f.hp=Math.round(f.max*r)}, spawnBoss:t=>{for(const f of [...foes])if(f.boss)releaseFoe(f);return !!spawnFoe(t,0,TOPZ)}, // 3차-C 검증
  foeTypes:()=>foes.map(f=>f.type),
  diffK:()=>({eb:S.diffEb,ed:S.diffDmg}),
  leakDmg:()=>{const sv={t:S.t,hp:S.hp,el:S.elite};const one=el=>{S.t=30;S.hp=S.maxhp;S.elite=el;S.leakIf=0;const h=S.hp;leak({type:'drone',m:{position:{x:0,z:0}}});return h-S.hp}
