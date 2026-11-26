@@ -295,7 +295,7 @@ test('캔버스 문구(배너·수치) 번역 — 게임이 만드는 문자열 
     const W = ['PULSE', 'SPREAD', 'LASER', 'RAIL']
     const evo = ['TWIN STREAM', 'PIERCING ROUNDS', 'WIDE ARC', 'BACK SPREAD', 'CHARGE LANCE', 'CHAIN ARC', 'WIDE BEAM', 'SPLIT BEAM']
     const s: string[] = ['◆ WAVE 1', '◆ WAVE 17', 'stay sharp', 'BOSS — stand your ground', 'GRAZE', 'safe', 'AEGIS SHIELDS DOWN', 'WINGMAN DOWN — VIPER ENRAGED', 'GATEKEEPER — FINAL PHASE',
-      'WEAVER — evasive fliers', 'SPLITTER — splits on death', 'LANCER pincer attack', 'high-density swarm', 'TURRET emplacements', 'CRAB flankers', 'WORM chains', 'LAMPREY — curving shots',
+      'CHAFF wings — both flanks', 'SCOUT line — graze their shots', 'SPLITTER & BOMBER', 'WEAVER — evasive fliers', 'SPLITTER — splits on death', 'LANCER pincer attack', 'high-density swarm', 'TURRET emplacements', 'CRAB flankers', 'WORM chains', 'LAMPREY — curving shots',
       '✦ RAPID FIRE · LV3', '✦ OVERCHARGE · LV2 ×2', '✦ Emergency Repair', '✦ PULSE +1 · LV4', 'Joined fleet — VOID RAY', 'EVOLVE — VULCAN STORM']
     for (const b of boss) s.push('⚠ ' + b, '⚠ ' + b + ' ++', b + ' DOWN')
     for (const z of zones) s.push('▸ ENTERING ' + z)
@@ -398,4 +398,33 @@ test('세로 진입 뒤 resize 통지 누락 · 가로 전장 전체 폭과 렌�
   await expect(page.locator('#pauseBtn')).toBeVisible()
   await page.screenshot({path:'/tmp/nova-toss-rotation-recovery.png'})
   expect(errs).toEqual([])
+})
+
+test('3차-A — 초반 사수 등장 · 웨이브 특집 편대 · 방어선 표시 · 보스전 누수 절반 · 난이도별 탄속·피해', async ({ page }) => {
+  const { errs } = await open(page)
+  await page.click('#playBtn')
+  const T = () => page.evaluate(() => (window as any).__test)
+  await T()
+  // 15초 안에 사수가 한 번은 나온다(격추돼도 기록되도록 스폰을 센다)
+  const seen = await page.evaluate(() => { const w = window as any; w.__ai(3); let seen = false
+    for (let i = 0; i < 30 && !seen; i++) { w.__fast(0.5, 25); seen = w.__test.foeTypes().includes('scout')
+      const b = document.querySelector('#modal button') as HTMLElement | null; if (b && w.__slice.state.ST === 'levelup') b.click() }
+    return { seen, t: w.__fast(0).t } })
+  expect(seen.seen, `사수 등장(${seen.t}초)`).toBe(true); expect(seen.t).toBeLessThanOrEqual(15)
+  // 웨이브 특집: 3 = 사수 횡대, 8 = 크랩 2 + 방패병
+  const feat = await page.evaluate(() => { const w = window as any, c = (t: string) => w.__test.foeTypes().filter((x: string) => x === t).length
+    const s0 = c('scout'); w.__test.feature(3); const s1 = c('scout'); w.__test.feature(8)
+    return { scouts: s1 - s0, crab: c('crab'), shielded: c('shielded') } })
+  expect(feat.scouts).toBeGreaterThanOrEqual(2); expect(feat.crab).toBe(2); expect(feat.shielded).toBeGreaterThanOrEqual(1)
+  // 방어선: 플레이 중 항상 보이고, 적이 선에 다가오면 밝아진다
+  await page.waitForTimeout(400)
+  const idle = await page.evaluate(() => (window as any).__test.lineOp())
+  expect(idle).toBeGreaterThan(0.1)
+  // 난이도 계수
+  const diff = await page.evaluate(() => (window as any).__test.diffK())
+  expect(diff.eb).toBe(1); expect(diff.ed).toBe(1)
+  // 보스전 중 놓친 적 피해는 평소의 절반
+  const leak = await page.evaluate(() => (window as any).__test.leakDmg())
+  expect(leak.boss).toBeLessThanOrEqual(Math.ceil(leak.normal / 2)); expect(leak.normal).toBeGreaterThan(0)
+  expect(errs, errs.join(' | ')).toHaveLength(0)
 })

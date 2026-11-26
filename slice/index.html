@@ -4393,6 +4393,12 @@ function mkTurret(){const g=new THREE.Group() // 정지 포탑 — 조준 연사
  const bg2=new THREE.CylinderGeometry(.11,.14,1.1,6);bg2.rotateX(Math.PI/2)
  const barrel=new THREE.Mesh(bg2,flat(0xd8b04a,0x6a5010,1.35));barrel.position.set(0,.25,.55);g.add(barrel)
  g.add(glowSprite(0xffcf4a,.9,.4));tagMats(g);scene.add(g);return g}
+function mkScout(){const g=new THREE.Group() // 정찰 사수 — 초반부터 느린 조준탄을 쏘는 약한 적(스치기 학습용). 탄 쏘는 적 = 호박색
+ g.add(new THREE.Mesh(wedge(.4,.5,-.4,.2),flat2(0xf0a83a,0x9a5a10,1.4)))
+ const bg=new THREE.CylinderGeometry(.06,.08,.6,6);bg.rotateX(Math.PI/2)
+ const barrel=new THREE.Mesh(bg,flat(0xffe0a0,0xffb84d,1.8));barrel.position.set(0,.06,.5);g.add(barrel)
+ const gl=glowSprite(0xffb84d,.7,.5);gl.position.z=-.35;g.add(gl)
+ tagMats(g);scene.add(g);return g}
 function mkCrab(){const g=new THREE.Group() // 게 — 쌍발 집게탄 + 버스트 대시(웨14+)
  const body=new THREE.Mesh(new THREE.OctahedronGeometry(.62,0),flat(0xff7a3d,0x8a3210,1.4));body.scale.set(1.5,.6,1);g.add(body)
  for(const sx of [-1,1]){const cg=new THREE.ConeGeometry(.2,.62,4);cg.rotateX(Math.PI/2)
@@ -4411,7 +4417,7 @@ function mkLamprey(){const g=new THREE.Group() // 나선 이동 + 휘는 탄(웨
 const ePool={chaff:Pool(mkChaff,14),drone:Pool(mkDrone,16),lancer:Pool(mkLancer,8),big:Pool(mkBig,3),stinger:Pool(mkStinger,3),diver:Pool(mkDiver,5),elite:Pool(mkElite,1),
  splitter:Pool(mkSplitter,5),weaver:Pool(mkWeaver,8),shard:Pool(mkChaff,10),bomber:Pool(mkBomber,3),shielded:Pool(mkShielded,3),warden:Pool(mkWarden,1),
  monarch:Pool(mkMonarch,1),hive:Pool(mkHive,1),twin:Pool(mkTwin,1),minelayer:Pool(mkMinelayer,1),aegis:Pool(mkAegis,1),gatekeeper:Pool(mkGatekeeper,1),
- mine:Pool(mkMine,6),turret:Pool(mkTurret,3),crab:Pool(mkCrab,6),worm:Pool(mkWorm,2),lamprey:Pool(mkLamprey,4)}
+ mine:Pool(mkMine,6),scout:Pool(mkScout,5),turret:Pool(mkTurret,3),crab:Pool(mkCrab,6),worm:Pool(mkWorm,2),lamprey:Pool(mkLamprey,4)}
 const foes=[]
 const BOSSNM={warden:'WARDEN',elite:'DREAD CROWN',monarch:'MONARCH',hive:'HIVE MOTHER',twin:'TWIN VIPERS',minelayer:'MINELAYER',aegis:'AEGIS RING',gatekeeper:'GATEKEEPER'} // 8보스(키 존재=보스 판정)
 const FOE={chaff:{hp:1,r:.55,dmg:6,xp:1,num:'+10'},drone:{hp:2,r:.8,dmg:12,xp:1,num:'+12'},
@@ -4422,7 +4428,7 @@ const FOE={chaff:{hp:1,r:.55,dmg:6,xp:1,num:'+10'},drone:{hp:2,r:.8,dmg:12,xp:1,
  monarch:{hp:480,r:2.0,dmg:30,xp:16,num:'+220'},hive:{hp:520,r:2.1,dmg:28,xp:16,num:'+220'}, // 신규 보스 6종(웨15/20/25/30/35/40)
  twin:{hp:560,r:1.5,dmg:26,xp:18,num:'+240'},minelayer:{hp:560,r:2.2,dmg:30,xp:18,num:'+240'},
  aegis:{hp:430,r:1.9,dmg:28,xp:18,num:'+240'},gatekeeper:{hp:700,r:2.3,dmg:34,xp:22,num:'+280'},
- mine:{hp:6,r:.55,dmg:10,xp:1,num:'+8'}, // MINELAYER 살포 기뢰(파괴 가능·기폭 시 방사탄)
+ mine:{hp:6,r:.55,dmg:10,xp:1,num:'+8'},scout:{hp:2,r:.7,dmg:8,xp:1,num:'+14'}, // MINELAYER 살포 기뢰(파괴 가능·기폭 시 방사탄)
  turret:{hp:16,r:1.0,dmg:18,xp:3,num:'+26'},crab:{hp:10,r:.95,dmg:14,xp:2,num:'+20'}, // 후반 신규 잡몹(웨12/14/16/18)
  worm:{hp:14,r:.9,dmg:14,xp:3,num:'+28'},lamprey:{hp:9,r:.8,dmg:12,xp:2,num:'+22'},
  splitter:{hp:7,r:.9,dmg:14,xp:2,num:'+20'},weaver:{hp:3,r:.7,dmg:11,xp:1,num:'+14'},shard:{hp:1,r:.45,dmg:8,xp:1,num:'+8'}}
@@ -4483,6 +4489,9 @@ function mkRing(){const m=new THREE.Mesh(new THREE.RingGeometry(.9,1.06,40),
  L(new THREE.MeshBasicMaterial({color:0x8bf3ff,transparent:true,opacity:.9,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})))
  m.rotation.x=-Math.PI/2;scene.add(m);return m}
 const rPool=Pool(mkRing,20),rings=[]
+// 방어선 — 적이 이 선을 넘어가면 체력이 깎인다는 규칙을 바닥에 보여 준다(평소엔 옅게, 넘기 직전 적이 있으면 밝게)
+const defLine=new THREE.Mesh(new THREE.PlaneGeometry(FW*2+3,.26),L(new THREE.MeshBasicMaterial({color:0xff5d6c,transparent:true,opacity:.14,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})))
+defLine.rotation.x=-Math.PI/2;defLine.position.set(0,-.05,PZ+1.5);scene.add(defLine)
 function mkPop(){const sp=glowSprite(0xffffff,1,1);scene.add(sp);return sp} // 격추·피격·서지 섬광(가산 스프라이트)
 const popPool=Pool(mkPop,20),pops=[]
 function pop(x,z,hex,to,dur){if(pops.length>28)return
@@ -4560,7 +4569,7 @@ function loadMeta(){try{const m=JSON.parse(localStorage.getItem('ns2_meta')||'nu
  if(m&&m.ships)return m}catch(e){}
  return {salv:0,diff:1,ships:{owned:['A'],sel:'A',up:{A:{hull:0,thr:0,ars:0,srg:0},B:{hull:0,thr:0,ars:0,srg:0},C:{hull:0,thr:0,ars:0,srg:0}}}}}
 const META=loadMeta();if(META.diff==null)META.diff=1 // 난이도 0=Easy 1=Normal 2=Hard
-const DIFF=[{nm:'EASY',sp:.72,lk:.65,rk:.8},{nm:'NORMAL',sp:1,lk:1,rk:1},{nm:'HARD',sp:1.4,lk:1.35,rk:1.5}]
+const DIFF=[{nm:'EASY',sp:.72,lk:.65,rk:.8,eb:.85,ed:.8},{nm:'NORMAL',sp:1,lk:1,rk:1,eb:1,ed:1},{nm:'HARD',sp:1.4,lk:1.35,rk:1.5,eb:1.18,ed:1.2}] // eb=적 탄속, ed=피탄·접촉 피해
 function updateStartBal(){const _b=document.getElementById('startBalV');if(_b)_b.textContent='◆ '+fmt(META.salv)} // 타이틀 보유 골드 갱신 — META와 같은 스코프(frame 루프는 별 IIFE라 META 미접근)
 function pSet(k,v){try{localStorage.setItem(k,v)}catch(e){};if(PF){PF.persist(k,v);return};try{if(CG_READY&&CG&&CG.data)CG.data.setItem(k,v)}catch(e){}} // 저장 이중화 — CG data 미러(iframe localStorage 유실 대비, v1 QA 전례)
 function saveMeta(){pSet('ns2_meta',JSON.stringify(META));updateStartBal()}
@@ -4904,6 +4913,7 @@ function spawnFoe(type,x,z){if(foes.length>90)return null
  if(type==='shard'){f.spd=rnd(5,6.5);f.hp=1}
  if(type==='bomber'){f.spd=rnd(2.8,3.4)*Math.min(sMul,1.3);f.stopZ=rnd(-13,-8);f.bombT=rnd(1.4,2.2)}
  if(type==='shielded')f.spd=rnd(1.4,1.9)*Math.min(sMul,1.3)
+ if(type==='scout'){f.spd=rnd(1.5,1.9);f.cool=rnd(.9,1.5);f.tell=0}
  if(type==='turret'){f.spd=2.6;f.stopZ=rnd(-13,-9);f.cool=rnd(1,1.6)} // 정지 포탑(웨12+)
  if(type==='crab'){f.spd=rnd(2.6,3.2)*Math.min(sMul,1.3);f.cool=rnd(1.2,2)} // 측면 게(웨14+)
  if(type==='worm')f.spd=rnd(2.2,2.8)*Math.min(sMul,1.3) // 분절 웜(웨16+)
@@ -4955,7 +4965,7 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
  ring(x,z,big?0xffd9f0:0xff9fd0,f.boss?5:(big?3.2:1.5),f.boss?.5:(big?.32:.2))
  num(x,z,c.num,big?'#ffcf4a':'#ffffff',big?16:13)
  const SALV={chaff:1,drone:2,lancer:2,stinger:4,big:6,diver:2,elite:150,splitter:5,weaver:2,shard:1,bomber:6,shielded:8,
-  turret:5,crab:3,worm:5,lamprey:3,mine:1,warden:150,monarch:170,hive:170,twin:180,minelayer:180,aegis:190,gatekeeper:220} // 신규 잡몹·8보스 샐비지
+  scout:2,turret:5,crab:3,worm:5,lamprey:3,mine:1,warden:150,monarch:170,hive:170,twin:180,minelayer:180,aegis:190,gatekeeper:220} // 신규 잡몹·8보스 샐비지
  const val=Math.ceil((SALV[f.type]||1)*(1+Math.min(S.combo,40)*.02)*(S.salvMult||1)*(f.vet?2:1))
  if((f.type==='big'||f.type==='stinger'||f.type==='splitter'||f.type==='bomber'||f.type==='shielded'||f.type==='turret'||f.type==='worm'||f.boss)&&z<PZ){ // 강적 = 보이는 골드 코인
   const n=f.boss?6:1
@@ -5030,7 +5040,8 @@ function leak(f){ // 통과 페널티 — 주차 봉쇄 + 버스트 즉사 방�
  const now=performance.now()
  if(now<S.leakIf){num(f.m.position.x,PZ+1.5,'safe','#8792b5',10);return} // 누수 무적 중 — 통과만, 무피해(한꺼번에 새도 즉사 불가)
  S.leakIf=now+600
- const ld=Math.max(1,Math.round((f.type==='chaff'?2:(4+S.wave*.6))*(S.diffLeak||1)));S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
+ const ld=Math.max(1,Math.round((f.type==='chaff'?2:(4+S.wave*.6))*(S.diffLeak||1)*(S.elite?.5:1))); // 보스전 중에는 놓친 적 피해 절반
+ S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
  FLASH.r=Math.max(FLASH.r,.55)
  if(now>S.leakToast&&(S.leakToastN||0)<2){S.leakToast=now+6000;S.leakToastN=(S.leakToastN||0)+1;toast('⚠ ENEMY BREACH — hold the line!',1800,'bad')}
  hpPulse();S.lastDmg='leak'
@@ -5056,6 +5067,17 @@ function pulse(){for(let i=0;i<3+Math.min(3,S.t/50|0);i++)spawnFoe('drone',rnd(-
  for(let i=0;i<n;i++){const k=(i%2?1:-1)*Math.ceil(i/2)
   const f=spawnFoe('chaff',clamp(lead+k*.75,-FW,FW),TOPZ-Math.ceil(i/2)*1.1)
   if(f)f.sway=k*.5}}
+// 웨이브 특집 편성 — 웨이브가 바뀔 때마다 그 웨이브의 주제가 되는 편대를 한 번 내보낸다(11 이후는 6~9·11 주제를 순환)
+function waveFeature(w){const k=w<=11?w:[6,7,8,9,11][(w-12)%5],X=()=>rnd(-FW*.7,FW*.7)
+ if(k===2){for(const side of [-1,1]){const lead=side*FW*.55 // 양쪽 날개 편대 돌입
+   for(let i=0;i<5;i++){const j=(i%2?1:-1)*Math.ceil(i/2),f=spawnFoe('chaff',clamp(lead+j*.75,-FW,FW),TOPZ-Math.ceil(i/2)*1.1-2);if(f)f.sway=j*.5}}}
+ else if(k===3){for(let i=-1;i<=1;i++)spawnFoe('scout',i*FW*.5,TOPZ-1)} // 사수 3기 횡대 — 스치기 연습
+ else if(k===4){for(let i=0;i<4;i++)spawnFoe('weaver',-FW*.6+i*FW*.4,TOPZ-i*1.2)}
+ else if(k===6){spawnFoe('splitter',-FW*.4,TOPZ-1);spawnFoe('splitter',FW*.4,TOPZ-1);spawnFoe('bomber',0,TOPZ-3)}
+ else if(k===7){spawnFoe('turret',X(),TOPZ-1);for(const side of [-1,1]){const f=spawnFoe('lancer',side*(FW+1.5),-12);if(f)f.vx=-side*2.6}}
+ else if(k===8){for(const side of [-1,1]){const f=spawnFoe('crab',side*(FW+1.5),-11);if(f)f.vx=-side*2.5};spawnFoe('shielded',0,TOPZ-2)}
+ else if(k===9){spawnFoe('worm',X(),TOPZ-1);spawnFoe('scout',-FW*.5,TOPZ-2);spawnFoe('scout',FW*.5,TOPZ-2)}
+ else if(k===11){spawnFoe('lamprey',-FW*.5,TOPZ-1);spawnFoe('lamprey',FW*.5,TOPZ-1)}}
 function director(wdt){
  // 보스가 살아 있는 동안 웨이브 시계는 멈추고 증원 밀도만 낮춘다.
  if(S.elite)wdt*=.35
@@ -5071,6 +5093,10 @@ function director(wdt){
    for(const side of sides){const n=2+(S.t>140?1:0)
     for(let i=0;i<n;i++){const f=spawnFoe('lancer',side*(FW+1.5),rnd(-16,-9)-i*1.4)
      if(f)f.vx=-side*rnd(2.2,3)}}}}
+ if(S.t>=10){S.spScout=(S.spScout==null?2:S.spScout)-wdt // 정찰 사수 — 12초 무렵 첫 등장(30초 안에 스치기 경험), 이후에도 낮은 빈도로 유지
+  if(S.spScout<=0){S.spScout=Math.max(5,8-S.wave*.25);let sn=0;for(const o of foes)if(o.type==='scout')sn++
+   if(sn<(S.wave<3?2:3)){spawnFoe('scout',rnd(-FW*.75,FW*.75))
+    if(!S.grazeToastDone){S.grazeToastDone=true;toast('Graze enemy shots to charge SURGE!',3200)}}}}
  if(S.t>=70){S.spDiver-=wdt
   if(S.spDiver<=0){S.spDiver=rnd(5.5,7)
    const n=1+(S.t>110?1:0)
@@ -5083,26 +5109,27 @@ function director(wdt){
     if(!S.grazeToastDone){S.grazeToastDone=true;toast('Graze enemy shots to charge SURGE!',3000)}}}}
  if(S.t>=50){S.spBig-=wdt
   if(S.spBig<=0){S.spBig=12;if(S.bigAlive<2)spawnFoe('big',rnd(-FW*.8,FW*.8))}}
- if(S.wave>=4){S.spWeaver=(S.spWeaver||0)-wdt // 회피형 — 웨이브4부터
+ if(S.wave>=3){S.spWeaver=(S.spWeaver||0)-wdt // 회피형 — 웨이브3부터
   if(S.spWeaver<=0){S.spWeaver=Math.max(3,5.5-S.wave*.12);const n=1+(S.wave>=8?1:0)
    for(let i=0;i<n;i++)spawnFoe('weaver',rnd(-FW,FW),TOPZ-rnd(0,4))}}
  if(S.wave>=6){S.spSplitter=(S.spSplitter||0)-wdt // 분열체 — 웨이브6부터
   if(S.spSplitter<=0){S.spSplitter=Math.max(5,9-S.wave*.2);spawnFoe('splitter',rnd(-FW*.8,FW*.8))}}
- if(S.wave>=8){S.spShield=(S.spShield||0)-wdt // 방패병 — 웨이브8부터
+ if(S.wave>=7){S.spShield=(S.spShield||0)-wdt // 방패병 — 웨이브7부터
   if(S.spShield<=0){S.spShield=Math.max(7,12-S.wave*.2);spawnFoe('shielded',rnd(-FW*.7,FW*.7))}}
- if(S.wave>=10){S.spBomber=(S.spBomber||0)-wdt // 폭탄병 — 웨이브10부터
-  if(S.spBomber<=0){S.spBomber=Math.max(6,12-S.wave*.2);spawnFoe('bomber',rnd(-FW*.7,FW*.7))}}
- if(S.wave>=12){S.spTurret=(S.spTurret||0)-wdt // 포탑 — 웨이브12부터(정지 화점, 우선 처리 압박)
-  if(S.spTurret<=0){S.spTurret=Math.max(8,13-S.wave*.15);let tn=0;for(const o of foes)if(o.type==='turret')tn++
-   if(tn<2)spawnFoe('turret',rnd(-FW*.7,FW*.7))}}
- if(S.wave>=14){S.spCrab=(S.spCrab||0)-wdt // 게 — 웨이브14부터(측면 대시 + 쌍발)
-  if(S.spCrab<=0){S.spCrab=Math.max(5,8-S.wave*.1)
+ if(S.wave>=6){S.spBomber=(S.spBomber||0)-wdt // 폭탄병 — 웨이브6부터(앞당김: 방사탄 = 스치기 기회)
+  if(S.spBomber<=0){S.spBomber=Math.max(6,13-S.wave*.2);let bn=0;for(const o of foes)if(o.type==='bomber')bn++
+   if(bn<(S.wave<10?1:3))spawnFoe('bomber',rnd(-FW*.7,FW*.7))}}
+ if(S.wave>=7){S.spTurret=(S.spTurret||0)-wdt // 포탑 — 웨이브7부터(앞당김, 12 전에는 동시 1기)
+  if(S.spTurret<=0){S.spTurret=Math.max(8,14-S.wave*.15);let tn=0;for(const o of foes)if(o.type==='turret')tn++
+   if(tn<(S.wave<12?1:2))spawnFoe('turret',rnd(-FW*.7,FW*.7))}}
+ if(S.wave>=8){S.spCrab=(S.spCrab||0)-wdt // 게 — 웨이브8부터(앞당김)
+  if(S.spCrab<=0){S.spCrab=Math.max(5,10-S.wave*.15)
    const side=Math.random()<.5?-1:1,cf=spawnFoe('crab',side*(FW+1.5),rnd(-14,-8));if(cf)cf.vx=-side*2.5}}
- if(S.wave>=16){S.spWorm=(S.spWorm||0)-wdt // 웜 — 웨이브16부터(사행 벽)
-  if(S.spWorm<=0){S.spWorm=Math.max(7,11-S.wave*.12);let wn=0;for(const o of foes)if(o.type==='worm')wn++
-   if(wn<2)spawnFoe('worm',rnd(-FW*.6,FW*.6))}}
- if(S.wave>=18){S.spLam=(S.spLam||0)-wdt // 램프리 — 웨이브18부터(휘는 탄)
-  if(S.spLam<=0){S.spLam=Math.max(5.5,9-S.wave*.1)
+ if(S.wave>=9){S.spWorm=(S.spWorm||0)-wdt // 웜 — 웨이브9부터(앞당김, 16 전에는 동시 1기)
+  if(S.spWorm<=0){S.spWorm=Math.max(7,13-S.wave*.12);let wn=0;for(const o of foes)if(o.type==='worm')wn++
+   if(wn<(S.wave<16?1:2))spawnFoe('worm',rnd(-FW*.6,FW*.6))}}
+ if(S.wave>=11){S.spLam=(S.spLam||0)-wdt // 램프리 — 웨이브11부터(앞당김)
+  if(S.spLam<=0){S.spLam=Math.max(5.5,10-S.wave*.1)
    const ln=1+(S.wave>=22?1:0);for(let k=0;k<ln;k++)spawnFoe('lamprey',rnd(-FW*.8,FW*.8))}}
  const w=1+((S.waveTime||0)/20|0)
  if(w!==S.wave){const prev=S.wave;S.wave=w
@@ -5114,10 +5141,10 @@ function director(wdt){
    S.hp=Math.min(S.maxhp,S.hp+15)
    spawnFoe(kind,0,TOPZ-2);banner('⚠ '+BOSSNM[kind]+(S.elitesKilled>=8?' ++':''),'#ff5d6c','BOSS — stand your ground');AU.boss();buzz(70)}
   else{S.hp=Math.min(S.maxhp,S.hp+15);AU.ready() // ③ 큰 WAVE N 인트로 + 부제
-   const intro={4:'WEAVER — evasive fliers',6:'SPLITTER — splits on death',8:'LANCER pincer attack',11:'high-density swarm',12:'TURRET emplacements',14:'CRAB flankers',16:'WORM chains',18:'LAMPREY — curving shots'}[w]
+   const intro={2:'CHAFF wings — both flanks',3:'SCOUT line — graze their shots',4:'WEAVER — evasive fliers',6:'SPLITTER & BOMBER',7:'TURRET emplacements',8:'CRAB flankers',9:'WORM chains',11:'LAMPREY — curving shots'}[w]
    const sub=zoneNew?('▸ ENTERING '+window.__zoneName(nz)):(intro||'stay sharp')
    banner('◆ WAVE '+w,zoneNew?'#ffcf4a':'#35e6ff',sub,2)}
-  pulse();S.salvRun+=10+w*2}}
+  pulse();if(w%5!==0)waveFeature(w);S.salvRun+=10+w*2}}
 
 /* ============ 메인 루프 ============ */
 const clock={last:performance.now()}
@@ -5228,14 +5255,15 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
    if(hitf||ms.life<=0){msPool.put(ms.m);missiles.splice(i,1)}}
   for(let i=ebullets.length-1;i>=0;i--){const b=ebullets[i]
    if(b.ax)b.vx+=b.ax*wdt // 커브탄(LAMPREY) — 측가속
-   b.m.position.x+=b.vx*wdt;b.m.position.z+=b.vz*wdt
+   {const eb=wdt*(S.diffEb||1);b.m.position.x+=b.vx*eb;b.m.position.z+=b.vz*eb}
    const dx=b.m.position.x-player.position.x,dz=b.m.position.z-player.position.z
    const d=Math.hypot(dx,dz)
-   if(d<.6){hurt(Math.round(9*zdm(S.zone||0)),500);ebPool.put(b.m);ebullets.splice(i,1);continue} // 존 배율
+   if(d<.6){hurt(Math.round(9*zdm(S.zone||0)*(S.diffDmg||1)),500);ebPool.put(b.m);ebullets.splice(i,1);continue} // 존 배율
    if(!b.grazed&&d<1.5){b.grazed=true
     const was=S.surge;S.surge=clamp(S.surge+6*(S.srgMult||1),0,100)
     spark(player.position.x+dx*.5,player.position.z+dz*.5);AU.graze();buzz(10)
-    num(player.position.x,player.position.z-1,'GRAZE','#8bf3ff',11)
+    num(player.position.x,player.position.z-1,'GRAZE','#8bf3ff',14);pop(player.position.x+dx*.5,player.position.z+dz*.5,0x8bf3ff,1.8,.2)
+    S.grazes=(S.grazes||0)+1;if(window.__firstGraze==null)window.__firstGraze=S.t
     if(was<100&&S.surge>=100){AU.ready();toast('SURGE READY — press the button!',2000)}}
    if(b.m.position.z>PZ+3||Math.abs(b.m.position.x)>FW+4){ebPool.put(b.m);ebullets.splice(i,1)}}
   for(let i=foes.length-1;i>=0;i--){const f=foes[i],m=f.m
@@ -5466,6 +5494,16 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
       const a=k/8*6.283+rnd(-.1,.1),b=ebPool.get();b.position.set(m.position.x,0,m.position.z)
       ebullets.push({m:b,vx:Math.cos(a)*5.2,vz:Math.sin(a)*5.2,grazed:false})}
      releaseFoe(f);continue}}
+   else if(f.type==='scout'){f.pt+=wdt // 정찰 사수 — 천천히 내려오며 예고(점멸) 뒤 느린 조준 단발
+    m.position.z+=f.spd*wdt;m.position.x=clamp(m.position.x+Math.sin(f.pt*1.3+f.sway)*.8*wdt,-FW,FW)
+    const dx=player.position.x-m.position.x,dz=player.position.z-m.position.z
+    m.rotation.y=Math.atan2(dx,dz)*.6
+    if(m.position.z<PZ-5){f.cool-=wdt
+     if(f.cool<=.4&&!f.tell){f.tell=1;f.flashOn=true;f.flashUntil=now+400;setFlash(m,true)}
+     if(f.cool<=0){f.cool=2.6;f.tell=0
+      const l=Math.hypot(dx,dz)||1,sp=5
+      if(ebullets.length<58){const b=ebPool.get();b.position.set(m.position.x,0,m.position.z+.5)
+       ebullets.push({m:b,vx:dx/l*sp,vz:dz/l*sp,grazed:false})}}}}
    else if(f.type==='turret'){f.pt+=wdt // 정지 포탑 — 조준 연사(우선 처리 압박)
     if(m.position.z<f.stopZ)m.position.z+=f.spd*wdt
     else{const dx=player.position.x-m.position.x,dz=player.position.z-m.position.z
@@ -5509,8 +5547,9 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
       ebullets.push({m:b,vx:dx/l*6.2,vz:dz/l*6.2,ax:(Math.random()<.5?-1:1)*4.2,grazed:false})}}} // 측가속 = 커브탄
    if(f.flashOn&&now>f.flashUntil&&!(f.type==='elite'&&f.phase==='tele')){f.flashOn=false;setFlash(m,false)}
    const pdx=m.position.x-player.position.x,pdz=m.position.z-player.position.z
-   if(Math.hypot(pdx,pdz)<f.r+.55){hurt(Math.round(FOE[f.type].dmg*zdm(S.zone||0))) // 존 배율 — 후반 접촉이 실제로 아픔
+   if(Math.hypot(pdx,pdz)<f.r+.55){hurt(Math.round(FOE[f.type].dmg*zdm(S.zone||0)*(S.diffDmg||1))) // 존 배율 — 후반 접촉이 실제로 아픔
     if(f.type!=='big'&&f.type!=='bomber'&&f.type!=='shielded'&&!f.boss){burst(m.position.x,m.position.z,0xff8fc4,6);releaseFoe(f);continue}}
+   if(!f.boss&&m.position.z>PZ-2.5)S.lineDanger=1 // 방어선 접근 경고
    if(!f.boss&&m.position.z>PZ+3){leak(f);releaseFoe(f);continue}
    let killed=false
    for(let j=bullets.length-1;j>=0;j--){const b=bullets[j]
@@ -5604,6 +5643,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
  for(let i=trails.length-1;i>=0;i--){const t=trails[i];t.life-=rdt
   t.sp.material.opacity=.5*(t.life/t.max);t.sp.position.z+=rdt*1.2
   if(t.life<=0){tPool.put(t.sp);trails.splice(i,1)}}
+ {const dl=ST==='play'?(S.lineDanger?.7+Math.sin(now*.02)*.22:.2):0;defLine.material.opacity+=(dl-defLine.material.opacity)*Math.min(1,rdt*10);defLine.visible=defLine.material.opacity>.01;S.lineDanger=0}
  S.shake*=Math.pow(.01,rdt)
  const shx=(Math.random()-.5)*S.shake*.05,shy=(Math.random()-.5)*S.shake*.05
  cam.position.set(CAMP.x+shx,CAMP.y+shy,CAMP.z)
@@ -5660,7 +5700,7 @@ function applyShip(){const sel=META.ships.sel||'A'
  S.srgMult=sh.mods.srg*(1+up.srg*.08)
  S.salvMult=sh.mods.salv
  S.dmgMult=sh.mods.dmg
- const dd=DIFF[META.diff]||DIFF[1];S.diffSpawn=dd.sp;S.diffLeak=dd.lk;S.diffRk=dd.rk} // 난이도 배율(스폰·누수·랭킹가중)
+ const dd=DIFF[META.diff]||DIFF[1];S.diffSpawn=dd.sp;S.diffLeak=dd.lk;S.diffRk=dd.rk;S.diffEb=dd.eb;S.diffDmg=dd.ed} // 난이도 배율(스폰·누수·랭킹가중)
 function begin(){AU.unlock();reset();applyShip()
  if(window.__hangarClose)window.__hangarClose()
  window.__setZone&&window.__setZone(0,true) // ⑥ 새 런 = 존1(딥 스페이스)로 즉시 리셋
@@ -5805,7 +5845,11 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  aegisSegs:()=>{const f=foes.find(x=>x.type==='aegis');return f?{alive:f.segsAlive,hp:[...f.segHp]}:null},
  setSalv:n=>{META.salv=n;saveMeta()},
  spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
+ spawnAt:(type,x,z)=>{const f=spawnFoe(type,x,z);return !!f}, feature:w=>waveFeature(w), lineOp:()=>Math.round(defLine.material.opacity*100)/100, // 3차 검증: 위치 지정 스폰·웨이브 특집·방어선 농도
  foeTypes:()=>foes.map(f=>f.type),
+ diffK:()=>({eb:S.diffEb,ed:S.diffDmg}),
+ leakDmg:()=>{const sv={t:S.t,hp:S.hp,el:S.elite};const one=el=>{S.t=30;S.hp=S.maxhp;S.elite=el;S.leakIf=0;const h=S.hp;leak({type:'drone',m:{position:{x:0,z:0}}});return h-S.hp}
+  const normal=one(null),boss=one({});S.t=sv.t;S.hp=sv.hp;S.elite=sv.el;return{normal,boss}}, // 누수 피해: 평시 vs 보스전
  setSurge:n=>{S.surge=n}, ebCount:()=>ebullets.length,
  foeCount:()=>foes.length,
  bulletCount:()=>bullets.length, streams:()=>S.streams, dmg:()=>S.dmg, plv:()=>S.plv,

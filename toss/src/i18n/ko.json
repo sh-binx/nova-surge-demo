@@ -171,7 +171,10 @@
     "Tap again to end this run": "한 번 더 누르면 이번 판을 끝내요",
     "Defense line broken — enemies slipped past": "놓친 적이 방어선을 넘었어요",
     "Hull destroyed by enemy fire": "적의 공격에 격추됐어요",
-    "NEW BEST": "최고 기록"
+    "NEW BEST": "최고 기록",
+    "CHAFF wings — both flanks": "양쪽에서 편대가 몰려와요",
+    "SCOUT line — graze their shots": "사수 편대 — 탄을 스쳐 서지를 채우세요",
+    "SPLITTER & BOMBER": "스플리터와 폭격기"
   },
   "patterns": [
     [
