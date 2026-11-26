@@ -4100,7 +4100,25 @@ const AU={ac:null,muted:false,sysMuted:false, // muted=광고 중 음소거 · s
   if(it>=1){const A=[0,1,2,1,0,2,1,2];if(it>=2||st%2===0){const i=it>=2?[0,1,2,3,2,1,2,3,0,1,2,3,2,3,1,2][st]:A[st>>1];this._mv(t,this._hz(ch[i%3]+12+(i>=3?12:0)),sd*.9,it>=2?.02:.024,'square',2300,.7,true)}} // 아르페지오
   if(it>=3&&!boss&&(cyc&1)){const n=this.LEAD[bar][st];if(n)this._mv(t,this._hz(n),sd*2.6,.032,'triangle',3200,.7,true)} // 선율(8마디마다 번갈아)
   if(boss&&st%8===0)this._mv(t,this._hz(ch[0]+12),sd*6,.02,'sawtooth',1300,2,true)},
- _sched(until){const M=this.M;if(!this.ac||!M||M.mode==='off'||(this._off&&!until))return;const now=this.ac.currentTime,end=until||now+.3
+ // 배경 음악 파일(Suno 제작 · 마디 경계에서 자른 루프). [파일, 44.1kHz 기준 루프 표본 수, 음량]. 못 읽으면 아래 합성 시퀀서가 대신 연주한다
+ BGM:{menu:['bgm-title.mp3',2488321,.55],play:['bgm-combat.mp3',2126848,.55],boss:['bgm-boss.mp3',1798144,.48]},
+ _load(k){const B=this._bg||(this._bg={});if(B[k])return B[k].p;const d=this.BGM[k],o=B[k]={}
+  return o.p=fetch(d[0]).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>new Promise((ok,no)=>{let dc=this.ac
+    try{dc=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(2,1,32000)}catch(e){} // 32kHz 로 풀어 메모리를 줄인다
+    const pr=dc.decodeAudioData(a,ok,no);pr&&pr.then&&pr.then(ok,no)}))
+   .then(b=>{const c=b.getChannelData(0),lim=Math.min(c.length,b.sampleRate*.06|0),L=d[1]/44100;let i=0;while(i<lim&&Math.abs(c[i])<.004)i++ // mp3 앞 채움은 디코더마다 달라(0·576·1105표본) 실제 무음 길이를 잰다
+    let st=i>=lim?0:i/b.sampleRate;if(st+L>b.duration+.002)st=Math.max(0,b.duration-L)
+    o.buf=b;o.st=st;o.en=Math.min(b.duration,st+L)}).catch(()=>{o.bad=1})},
+ _bgm(mode,t){const k=mode==='over'?'menu':mode,o=this._bg&&this._bg[k],c=this._tr
+  if(!o||!o.buf){if(c&&c.k&&c.k!==k){this._trStop(t);this._tr=null;this.M.next=t+.08;this.M.step=0}return}
+  if(c&&c.k===k)return
+  try{this._trStop(t);const ac=this.ac,src=ac.createBufferSource(),g=ac.createGain();g.gain.value=0
+  src.buffer=o.buf;src.loop=true;src.loopStart=o.st;src.loopEnd=o.en;src.connect(g);g.connect(this.mus)
+  g.gain.setTargetAtTime(this.BGM[k][2],t+(c?.15:0),c?.3:.5);src.start(t,o.st);this._tr={k,src,g}}catch(e){o.buf=null;o.bad=1;this._tr=null}},
+ _trStop(t){const c=this._tr;if(!c)return;try{c.g.gain.cancelScheduledValues(t);c.g.gain.setTargetAtTime(0,t,.14);c.src.stop(t+1.2)}catch(e){}},
+ _sched(until){const M=this.M;if(!this.ac||!M||M.mode==='off'||(this._off&&!until))return
+  if(!until&&this._tr)return // 파일 음악이 나오는 동안 합성 시퀀서는 쉰다
+  const now=this.ac.currentTime,end=until||now+.3
   if(!until&&(this.ac.state!=='running'||this._hid||!this._on()))return // 숨은 탭·음소거 중에는 음을 만들지 않는다
   if(!until)while(M.next<now+.01){M.next+=this.SD;M.step=(M.step+1)%256} // 늦은 스텝은 소리 없이 넘긴다(뭉쳐 나오지 않게)
   let g=0;while(M.next<end&&g++<4000){try{this._step(M.step,M.next)}catch(e){}M.next+=this.SD;M.step=(M.step+1)%256}},
@@ -4111,6 +4129,7 @@ const AU={ac:null,muted:false,sysMuted:false, // muted=광고 중 음소거 · s
   if(M.mode==='off'){M.mode=mode;M.next=t+.08;M.step=0}
   if(mode!==M.mode){M.mode=mode;M.step=0;M.cur=null} // 모드가 바뀌면 진행 첫 마디부터
   M.int=mode==='boss'?3:it
+  this._bgm(mode,t)
   const on=this._on()&&!this._hid,k=[on,mode,dim,slow].join()
   if(k!==this._k){this._k=k
    this.master.gain.setTargetAtTime(on?1:0,t,.03)
@@ -4814,6 +4833,7 @@ const MET={kills:[],lvls:[],hurts:[],leaks:[],evos:[],surges:[],hp:[],_ht:0}
 function metReset(){MET.kills.length=0;MET.lvls.length=0;MET.hurts.length=0;MET.leaks.length=0;MET.evos.length=0;MET.surges.length=0;MET.hp.length=0;MET._ht=0}
 window.__metrics=()=>({kills:MET.kills,lvls:MET.lvls,hurts:MET.hurts,leaks:MET.leaks,evos:MET.evos,surges:MET.surges,hp:MET.hp})
 let AILVL=0,aiT=0
+setTimeout(()=>{try{AU._load('menu').then(()=>AU._load('play')).then(()=>AU._load('boss'))}catch(e){}},900) // 배경 음악은 첫 터치를 기다리지 않고 미리 푼다(받기·풀기는 제스처가 필요 없다)
 const DEV=/[?&]dev/.test(location.search) // 측정/치팅 핸들 게이트 — 프로덕션(공개 데모) 노출 방지
 if(DEV)window.__ai=n=>{AILVL=n|0;aiT=0}
 // 측정용 가속기(DEV 전용·prod 무영향): 렌더 스킵 + 합성 performance.now로 프레임 동기 반복 → 전 웨이브 고속 시뮬(정확한 소스텝)
@@ -5234,7 +5254,7 @@ function die(){if(S.phoenix===1&&ST==='play'){S.phoenix=2;S.hp=Math.round(S.maxh
  $('over').classList.remove('off')}
 let hpPulseT=null
 function hpPulse(){const r=$('hpRow');r.classList.remove('hit');void r.offsetWidth;r.classList.add('hit');clearTimeout(hpPulseT);hpPulseT=setTimeout(()=>r.classList.remove('hit'),340)}
-const mercy=()=>S.wave<=2?.7:S.wave<=5?.85:1 // 첫 판 이탈 방지: 첫 보스까지는 받는 피해를 줄인다
+const mercy=()=>S.wave<=2?.7:S.wave<=5?.85:(S.elite&&S.elitesKilled<2)?.85:1 // 첫 판 이탈 방지: 초반 웨이브와 처음 두 보스전은 받는 피해를 줄인다
 function hurt(dmg,iframes){const now=performance.now();dmg=Math.max(1,Math.round(dmg*mercy()))
  if(now<S.invUntil||ST!=='play')return
  if(S.barrier>0){S.barrier--;S.barT=0;S.invUntil=now+700 // 방어막: 피격 1회 무효
@@ -5601,7 +5621,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
      const k=Math.min(1,f.pt/.55)
      m.position.z=-13+(PZ-2.4+13)*(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2)
      m.position.x+=(f.dx-m.position.x)*Math.min(1,wdt*6)
-     if(f.pt>.75){f.phase='back';f.pt=0;AU.boom(m.position.x);if(f.p2){ebRing(m.position.x,m.position.z,5.4,8,rnd(0,.7));ring(m.position.x,m.position.z,0xff5d6c,3.4,.35)}}} // 2단계: 착지 지점에서 8방 탄
+     if(f.pt>.75){f.phase='back';f.pt=0;AU.boom(m.position.x);if(f.p2){ebRing(m.position.x,m.position.z,S.elitesKilled<2?4.8:5.4,S.elitesKilled<2?6:8,rnd(0,.7));ring(m.position.x,m.position.z,0xff5d6c,3.4,.35)}}} // 2단계: 착지 지점에서 방사 탄(처음 두 보스전 6발 · 이후 8발)
     else if(f.phase==='back'){m.position.z+=(-13-m.position.z)*Math.min(1,wdt*2.2)
      if(f.pt>1.6){f.phase='hover';f.pt=0}}}
    else if(f.type==='monarch'){f.pt+=wdt // 텔레포트 왕관 — 점멸 + 링/부채탄(웨15)
@@ -6101,7 +6121,7 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  setSalv:n=>{META.salv=n;saveMeta()},
  spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
  spawnAt:(type,x,z)=>{const f=spawnFoe(type,x,z);return !!f}, feature:w=>waveFeature(w), lineOp:()=>Math.round(defLine.material.opacity*100)/100, // 3차 검증: 위치 지정 스폰·웨이브 특집·방어선 농도
- drop:(k,x,z)=>!!spawnDrop(k,x==null?0:x,z==null?-6:z), dropKinds:()=>drops.map(d=>d.k), b3:()=>({barrier:S.barrier,rerolls:S.rerolls,phoenix:S.phoenix,evo:Object.keys(E).filter(k=>E[k]),mag:performance.now()<S.magUntil,ulv:{...ULV}}), offerNow:()=>offer('LEVEL UP'), auState:()=>({ctx:AU.ac?AU.ac.state:'none',on:AU._on()&&!AU._hid,mode:AU.M?AU.M.mode:'off',int:AU.M?AU.M.int:0,step:AU.M?AU.M.step:0,master:AU.master?Math.round(AU.master.gain.value*100)/100:null}),
+ drop:(k,x,z)=>!!spawnDrop(k,x==null?0:x,z==null?-6:z), dropKinds:()=>drops.map(d=>d.k), b3:()=>({barrier:S.barrier,rerolls:S.rerolls,phoenix:S.phoenix,evo:Object.keys(E).filter(k=>E[k]),mag:performance.now()<S.magUntil,ulv:{...ULV}}), offerNow:()=>offer('LEVEL UP'), auState:()=>({track:AU._tr?AU._tr.k:null,bgm:Object.keys(AU._bg||{}).filter(k=>AU._bg[k].buf).map(k=>k+':'+AU._bg[k].st.toFixed(3)+':'+(AU._bg[k].buf.duration-AU._bg[k].en).toFixed(3)).join(),ctx:AU.ac?AU.ac.state:'none',on:AU._on()&&!AU._hid,mode:AU.M?AU.M.mode:'off',int:AU.M?AU.M.int:0,step:AU.M?AU.M.step:0,master:AU.master?Math.round(AU.master.gain.value*100)/100:null}),
  auNames:()=>Object.keys(AU).filter(k=>typeof AU[k]==='function'&&k[0]!=='_'&&!['unlock','tone','noise','duck','frame','laser','beam','flush','drop'].includes(k)),
  auRender:async spec=>{const sr=44100,n=sr*spec.secs|0,off=new OfflineAudioContext(2,n,sr),K=['ac','master','comp','sfx','mus','duckG','musF','dly','nb','lzG','bmG','M','_t','_k','_vw','_vn','muted','sysMuted'],keep={};for(const k of K)keep[k]=AU[k]
   AU._off=true;let buf;try{AU._init(off);AU.muted=AU.sysMuted=false

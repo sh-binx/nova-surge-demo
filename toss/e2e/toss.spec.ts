@@ -450,8 +450,9 @@ test('3차-B — 카드 재뽑기 · 필드 아이템 4종 · 방어막 · 진�
   await page.evaluate(x => (window as any).__test.drop('barrier', x, 4.2), await px())
   await expect.poll(() => T<any>('__test.b3().barrier')).toBe(1)
   const hp0 = await T<number>('__test.hp()')
-  await T('__test.hurtNow(30)')
-  expect(await T<number>('__test.hp()')).toBe(hp0); expect(await T<number>('__test.b3().barrier')).toBe(0)
+  // 직전에 실제 피격이 있었으면 무적 시간 동안 피격이 무시된다 — 방어막이 소모될 때까지 다시 건다
+  await expect.poll(async () => { await T('__test.hurtNow(30)'); return T<number>('__test.b3().barrier') }).toBe(0)
+  expect(await T<number>('__test.hp()')).toBe(hp0)
   // 수리 아이템
   await T('__test.setHp(40)')
   await page.evaluate(x => (window as any).__test.drop('heal', x, 4.2), await px())
@@ -508,6 +509,10 @@ test('소리 — 음악 모드 전환 · 효과음 전 종이 들리고 넘치�
   await page.click('#playBtn'); await page.waitForTimeout(900)
   const a = await T<{ ctx: string; mode: string; on: boolean }>('__test.auState()')
   expect(a.ctx).toBe('running'); expect(a.mode).toBe('play'); expect(a.on).toBe(true)
+  // 배경 음악 파일 3곡이 풀리고(루프 끝이 파일 길이 안), 전투 곡이 재생된다
+  await expect.poll(async () => (await T<{ bgm: string }>('__test.auState()')).bgm.split(',').length, { timeout: 20000 }).toBe(3)
+  for (const e of (await T<{ bgm: string }>('__test.auState()')).bgm.split(',')) { const [k, st, tail] = e.split(':'); expect(+st, k + ' 루프 시작').toBeLessThan(0.03); expect(+tail, k + ' 루프 끝이 파일 안').toBeGreaterThan(-0.0015) }
+  await expect.poll(async () => (await T<{ track: string }>('__test.auState()')).track).toBe('play')
   const names = await T<string[]>('__test.auNames()')
   expect(names.length, '효과음 종류').toBeGreaterThanOrEqual(30)
   const each = await T<[string, number, number][]>(`(async()=>{const o=[];for(const n of __test.auNames()){const r=await __test.auRender({secs:3.2,sfx:[[n,.1,4,0]]});o.push([n,r.peakDb,r.clip])}return o})()`)
@@ -520,6 +525,7 @@ test('소리 — 음악 모드 전환 · 효과음 전 종이 들리고 넘치�
   }
   await T(`__test.spawnBoss('warden')`)
   await expect.poll(async () => (await T<{ mode: string }>('__test.auState()')).mode).toBe('boss')
+  await expect.poll(async () => (await T<{ track: string }>('__test.auState()')).track).toBe('boss')
   await page.click('#pauseBtn'); await page.click('#aitSnd')
   await expect.poll(async () => (await T<{ on: boolean }>('__test.auState()')).on).toBe(false)
   await page.click('#aitSnd')
