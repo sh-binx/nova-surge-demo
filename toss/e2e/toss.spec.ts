@@ -469,8 +469,9 @@ test('3차-B — 카드 재뽑기 · 필드 아이템 4종 · 방어막 · 진�
   // 불사조: 치명 피해를 한 번 버틴다
   await T('(()=>{__test.setPhoenix();__test.hurtNow(9999)})()')
   const s2 = await st(page); expect(s2.ST).toBe('play'); expect(s2.hp).toBeGreaterThan(0)
-  await T('__test.hurtNow(9999)')
-  expect((await st(page)).ST).toBe('over')
+  // 그 뒤의 치명 피해는 격추(도중에 주운 방어막이 한 번 막을 수 있어 최대 3번까지 가한다)
+  for (let i = 0; i < 3 && (await st(page)).ST === 'play'; i++) await T('__test.hurtNow(9999)')
+  expect((await st(page)).ST).toBe('over'); expect(await T<number>('__test.b3().phoenix')).toBe(2)
   expect(errs, errs.join(' | ')).toHaveLength(0)
 })
 
@@ -493,8 +494,9 @@ test('3차-C — 보스 6종 2단계 전환 · 단계별 탄 패턴 · 페이지
     let b2: any = null // 돌진·점멸 중인 보스는 다음 대기 단계에서 전환한다(최대 5초)
     for (let i = 0; i < 10; i++) { await adv(.5); b2 = await T<any>('__test.boss()'); if (b2 && b2.p2) break }
     expect(b2 && b2.p2, type + ' 2단계 전환').toBe(1)
-    await adv(5)
-    expect(await T<number>('__test.ebCount()'), type + ' 2단계 탄').toBeGreaterThan(0)
+    let maxEb = 0 // 2단계에서 탄을 쏘는지: 8초 동안 0.5초마다 본 최댓값(연사 사이 빈 순간에 걸리지 않게)
+    for (let i = 0; i < 16; i++) { await adv(.5); maxEb = Math.max(maxEb, await T<number>('__test.ebCount()')) }
+    expect(maxEb, type + ' 2단계 탄').toBeGreaterThan(0)
   }
   expect(errs, errs.join(' | ')).toHaveLength(0)
 })
