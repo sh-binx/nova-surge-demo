@@ -296,7 +296,7 @@ test('캔버스 문구(배너·수치) 번역 — 게임이 만드는 문자열 
     const evo = ['TWIN STREAM', 'PIERCING ROUNDS', 'WIDE ARC', 'BACK SPREAD', 'CHARGE LANCE', 'CHAIN ARC', 'WIDE BEAM', 'SPLIT BEAM']
     const s: string[] = ['◆ WAVE 1', '◆ WAVE 17', 'stay sharp', 'BOSS — stand your ground', 'GRAZE', 'safe', 'AEGIS SHIELDS DOWN', 'WINGMAN DOWN — VIPER ENRAGED', 'GATEKEEPER — FINAL PHASE', 'WARDEN — OVERLOAD', 'DREAD CROWN — FRENZY', 'MONARCH — MIRAGE', 'HIVE MOTHER — BROOD FRENZY', 'MINELAYER — BROADSIDE',
       '✦ REPAIR', '✦ MAGNET', '✦ BOMB', '✦ BARRIER', '✦ SECOND WIND', 'CRIT', 'BLOCK',
-      'CHAFF wings — both flanks', 'SCOUT line — graze their shots', 'SPLITTER & BOMBER', 'WEAVER — evasive fliers', 'SPLITTER — splits on death', 'LANCER pincer attack', 'high-density swarm', 'TURRET emplacements', 'CRAB flankers', 'WORM chains', 'LAMPREY — curving shots',
+      'CHAFF wings — both flanks', 'SCOUT line & WEAVER', 'SPLITTER & BOMBER', 'WEAVER — evasive fliers', 'SPLITTER — splits on death', 'LANCER pincer attack', 'high-density swarm', 'TURRET emplacements', 'CRAB flankers', 'WORM chains', 'LAMPREY — curving shots',
       '✦ RAPID FIRE · LV3', '✦ OVERCHARGE · LV2 ×2', '✦ Emergency Repair', '✦ PULSE +1 · LV4', 'Joined fleet — VOID RAY', 'EVOLVE — VULCAN STORM']
     for (const b of boss) s.push('⚠ ' + b, '⚠ ' + b + ' ++', b + ' DOWN')
     for (const z of zones) s.push('▸ ENTERING ' + z)
@@ -438,6 +438,7 @@ test('3차-B — 카드 재뽑기 · 필드 아이템 4종 · 방어막 · 진�
   await T('__test.offerNow()')
   await expect(page.locator('#cards .card')).toHaveCount(3)
   await expect(page.locator('#rerollBtn')).toHaveText('다시 뽑기 · 2회 남음')
+  expect(await T<number>("(()=>{const s=new Set(__test.cardIcons());return s.size})()"), '카드 아이콘이 서로 다름').toBe(await T<number>('__test.cardIcons().length'))
   await koScan(page, '강화 카드')
   await page.click('#rerollBtn'); await page.click('#rerollBtn')
   await expect(page.locator('#rerollBtn')).toBeDisabled()
@@ -475,7 +476,7 @@ test('3차-B — 카드 재뽑기 · 필드 아이템 4종 · 방어막 · 진�
   expect(errs, errs.join(' | ')).toHaveLength(0)
 })
 
-test('3차-C — 보스 6종 2단계 전환 · 단계별 탄 패턴 · 페이지 에러 0', async ({ page }) => {
+test('3차-C — 보스 5종 2단계 전환 · 단계별 탄 패턴 · 페이지 에러 0', async ({ page }) => {
   const { errs } = await open(page)
   await page.click('#playBtn')
   const T = <R>(fn: string) => page.evaluate(fn) as Promise<R>

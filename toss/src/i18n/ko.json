@@ -184,7 +184,7 @@
     "EDGE RUNNER": "엣지 러너",
     "Graze range +20% · graze charge +30%": "스침 범위 +20% · 스침 서지 충전 +30%",
     "SHRAPNEL": "파편탄",
-    "Kills may explode and damage nearby foes": "격추한 적이 폭발해 주변 적에게 피해",
+    "Kills may explode and damage nearby foes": "격추한 적이 가끔 폭발해 주변 적에게 피해",
     "SURGE AMP": "서지 증폭",
     "SURGE damage +50% · heals on use": "서지 피해 +50% · 쓸 때 체력 회복",
     "SALVAGER": "수집가",
@@ -195,7 +195,7 @@
     "Fire rate +20% · Damage +1 · Speed +10%": "연사 +20% · 공격력 +1 · 이동 속도 +10%",
     "SECOND WIND": "불사조",
     "Once per run, survive a fatal hit with 40% HP": "한 판에 한 번, 격추될 때 체력 40%로 버텨요",
-    "Unique": "유일",
+    "Unique": "한정",
     "CRIT": "치명타",
     "BLOCK": "방어",
     "REPAIR": "수리",
@@ -214,7 +214,8 @@
     "DREAD CROWN — FRENZY": "드레드 크라운 — 광란",
     "MONARCH — MIRAGE": "모나크 — 신기루",
     "HIVE MOTHER — BROOD FRENZY": "하이브 마더 — 산란 폭주",
-    "MINELAYER — BROADSIDE": "마인레이어 — 일제 포격"
+    "MINELAYER — BROADSIDE": "마인레이어 — 일제 포격",
+    "SCOUT line & WEAVER": "사수 편대와 위버 — 탄을 스쳐 보세요"
   },
   "patterns": [
     [
