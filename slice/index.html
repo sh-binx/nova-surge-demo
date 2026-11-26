@@ -4422,12 +4422,12 @@ const foes=[]
 const BOSSNM={warden:'WARDEN',elite:'DREAD CROWN',monarch:'MONARCH',hive:'HIVE MOTHER',twin:'TWIN VIPERS',minelayer:'MINELAYER',aegis:'AEGIS RING',gatekeeper:'GATEKEEPER'} // 8보스(키 존재=보스 판정)
 const FOE={chaff:{hp:1,r:.55,dmg:6,xp:1,num:'+10'},drone:{hp:2,r:.8,dmg:12,xp:1,num:'+12'},
  lancer:{hp:2,r:.75,dmg:10,xp:1,num:'+15'},big:{hp:14,r:1.3,dmg:26,xp:3,num:'+30'},
- stinger:{hp:6,r:.9,dmg:14,xp:2,num:'+18'},diver:{hp:2,r:.6,dmg:14,xp:1,num:'+14'},elite:{hp:420,r:1.9,dmg:30,xp:14,num:'+200'},
+ stinger:{hp:6,r:.9,dmg:14,xp:2,num:'+18'},diver:{hp:2,r:.6,dmg:14,xp:1,num:'+14'},elite:{hp:700,r:1.9,dmg:30,xp:14,num:'+200'},
  bomber:{hp:9,r:.95,dmg:16,xp:3,num:'+24'},shielded:{hp:20,r:1.0,dmg:18,xp:3,num:'+26'},
- warden:{hp:360,r:2.4,dmg:28,xp:12,num:'+180'},
- monarch:{hp:480,r:2.0,dmg:30,xp:16,num:'+220'},hive:{hp:520,r:2.1,dmg:28,xp:16,num:'+220'}, // 신규 보스 6종(웨15/20/25/30/35/40)
- twin:{hp:560,r:1.5,dmg:26,xp:18,num:'+240'},minelayer:{hp:560,r:2.2,dmg:30,xp:18,num:'+240'},
- aegis:{hp:430,r:1.9,dmg:28,xp:18,num:'+240'},gatekeeper:{hp:700,r:2.3,dmg:34,xp:22,num:'+280'},
+ warden:{hp:520,r:2.4,dmg:28,xp:12,num:'+180'},
+ monarch:{hp:850,r:2.0,dmg:30,xp:16,num:'+220'},hive:{hp:950,r:2.1,dmg:28,xp:16,num:'+220'}, // 신규 보스 6종(웨15/20/25/30/35/40)
+ twin:{hp:1000,r:1.5,dmg:26,xp:18,num:'+240'},minelayer:{hp:1000,r:2.2,dmg:30,xp:18,num:'+240'},
+ aegis:{hp:750,r:1.9,dmg:28,xp:18,num:'+240'},gatekeeper:{hp:1400,r:2.3,dmg:34,xp:22,num:'+280'},
  mine:{hp:6,r:.55,dmg:10,xp:1,num:'+8'},scout:{hp:2,r:.7,dmg:8,xp:1,num:'+14'}, // MINELAYER 살포 기뢰(파괴 가능·기폭 시 방사탄)
  turret:{hp:16,r:1.0,dmg:18,xp:3,num:'+26'},crab:{hp:10,r:.95,dmg:14,xp:2,num:'+20'}, // 후반 신규 잡몹(웨12/14/16/18)
  worm:{hp:14,r:.9,dmg:14,xp:3,num:'+28'},lamprey:{hp:9,r:.8,dmg:12,xp:2,num:'+22'},
@@ -4949,6 +4949,14 @@ function fire(){const px=player.position.x,pz=player.position.z
   const b=lbPool.get();b.position.set(px,0,pz-2);b.scale.setScalar(1+(lv-1)*.16+hv*.3)
   lances.push({m:b,dmg:Math.round((6+lv*4+hv*6+(S.dmg-1)*3)*(S.dmgMult||1)*reso),hit:new Set(),chain:lv>=10});AU.tone(200,.16,'sawtooth',.07,90);return}
  AU.shot()} // laser는 연속빔이라 fire()에서 처리 안 함
+function estDps(){let best=0,held=0 // 든 무기의 추정 초당 피해. 단 가장 센 무기의 60%를 하한으로 둔다(약한 무기로 바꿔 들어 보스 체력을 낮추는 꼼수 방지)
+ for(const w of ['pulse','spread','rail','laser']){const lv=S.plvs[w]||1,dm=(S.dmg+(lv-1))*(S.dmgMult||1),fr=S.fireRate;let d
+  if(w==='pulse')d=(1+Math.floor(lv/2))*dm*(lv>=5?1.24:1)/fr
+  else if(w==='spread')d=(2+Math.ceil(lv/2))*dm*.6*.5/fr
+  else if(w==='rail')d=(6+lv*4+(lv>=5?6:0)+(S.dmg-1)*3)*(S.dmgMult||1)/Math.max(.42,fr*2.4)
+  else d=(3+lv*2+(lv>=5?3:0)+(S.dmg-1))*(S.dmgMult||1)/.1
+  best=Math.max(best,d);if(w===S.primary)held=d}
+ return Math.max(held,best*.6)*(1+ULV.crit*.12)+W.orbit*4+W.homing*5}
 function syncOrbs(){const target=W.orbit+(E.maelstrom&&W.orbit?2:0);while(orbs.length<target){const o=orbPool.get();orbs.push(o)}
  while(orbs.length>target){orbPool.put(orbs.pop())}}
 function spawnFoe(type,x,z){if(foes.length>90)return null
@@ -4976,11 +4984,12 @@ function spawnFoe(type,x,z){if(foes.length>90)return null
  if(type==='lamprey'){f.spd=rnd(2.8,3.4)*sMul;f.cx=x} // 나선(웨18+)
  if(type==='mine'){f.spd=.7;f.fuse=99} // 기뢰 — 기본 무기폭(minelayer가 수명·기폭 제어)
  if(BOSSNM[type]){f.spd=2.2;f.boss=1 // 8보스 공통 — 재등장=강화(elitesKilled 지수)
-  f.hp=Math.round(c.hp*Math.pow(1.35,S.elitesKilled));f.max=f.hp
+  const bpw=clamp(Math.pow(estDps()/30,.6),1,8) // 화력 보정 — 강한 빌드도 보스 패턴을 볼 만큼(약 12초 이상) 버티게, 대신 약한 빌드보다는 빨리 잡는다
+  f.hp=Math.round(c.hp*Math.pow(1.15,S.elitesKilled)*bpw);f.max=f.hp
   f.phase='enter';f.pt=0;f.rad=0;f.p2=0;f.vol=1.6;f.spiralT=0;f.lob=1.5;f.bs=1.2;f.enr=0;f.radN=0
   if(type==='twin'){f.wing=1;g.userData.vipers.forEach(v=>v.visible=true)} // 윙맨 복원(풀 재사용)
   if(type==='aegis'){f.segA=0;f.segsAlive=6;f.segHp=[] // 실드 세그 6기(전 피해 흡수)
-   const shp=Math.round(55*Math.pow(1.2,S.elitesKilled));for(let i=0;i<6;i++)f.segHp.push(shp)
+   const shp=Math.round(70*Math.pow(1.1,S.elitesKilled)*bpw);for(let i=0;i<6;i++)f.segHp.push(shp)
    g.userData.segs.forEach(s=>{s.visible=true})}
   if(type==='minelayer'){f.vx=1.3;f.mineT=2;f.detT=13}
   if(type==='monarch')f.teleT=4.2
@@ -5168,7 +5177,7 @@ function director(wdt){
      if(f)f.vx=-side*rnd(2.2,3)}}}}
  if(S.t>=10){S.spScout=(S.spScout==null?2:S.spScout)-wdt // 정찰 사수 — 12초 무렵 첫 등장(30초 안에 스치기 경험), 이후에도 낮은 빈도로 유지
   if(S.spScout<=0){S.spScout=Math.max(5,8-S.wave*.25);let sn=0;for(const o of foes)if(o.type==='scout')sn++
-   if(sn<(S.wave<3?2:3)){spawnFoe('scout',rnd(-FW*.75,FW*.75))
+   if(sn<(S.wave<3?1:(S.wave<6?2:3))){spawnFoe('scout',rnd(-FW*.75,FW*.75))
     if(!S.grazeToastDone){S.grazeToastDone=true;toast('Graze enemy shots to charge SURGE!',3200)}}}}
  if(S.t>=70){S.spDiver-=wdt
   if(S.spDiver<=0){S.spDiver=rnd(5.5,7)
@@ -5336,7 +5345,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
    {const eb=wdt*(S.diffEb||1);b.m.position.x+=b.vx*eb;b.m.position.z+=b.vz*eb}
    const dx=b.m.position.x-player.position.x,dz=b.m.position.z-player.position.z
    const d=Math.hypot(dx,dz)
-   if(d<.6){hurt(Math.round(9*zdm(S.zone||0)*(S.diffDmg||1)),500);ebPool.put(b.m);ebullets.splice(i,1);continue} // 존 배율
+   if(d<.6){hurt(Math.round((b.dmg||9)*zdm(S.zone||0)*(S.diffDmg||1)),500);ebPool.put(b.m);ebullets.splice(i,1);continue} // 존 배율
    if(!b.grazed&&d<1.5*(1+ULV.edge*.2)){b.grazed=true;if(S.shipK==='B')S.resoUntil=now+2000
     const was=S.surge;S.surge=clamp(S.surge+6*(S.srgMult||1)*(1+ULV.edge*.3),0,100)
     spark(player.position.x+dx*.5,player.position.z+dz*.5);AU.graze();buzz(10)
@@ -5411,10 +5420,10 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
      m.position.x+=(Math.sin(S.t*(f.p2?.55:.2))*(f.p2?5.4:3.8)-m.position.x)*Math.min(1,wdt*(f.p2?1.1:.6)) // 2단계: 넓고 빠르게 좌우 기동
      m.position.z+=(-12-m.position.z)*Math.min(1,wdt*1.5) // 피격 밀림 복귀
      if(f.phase==='hover'){f.beamCd-=wdt
-      f.vol-=wdt;if(f.vol<=0){f.vol=f.p2?1.9:2.6;ebAim(m.position.x,m.position.z+1.2,5.6,.16,f.p2?5:3);AU.tone(300,.08,'square',.04,200)} // 빔 사이 조준 연사(스치기 기회)
+      f.vol-=wdt;if(f.vol<=0){f.vol=f.p2?2.3:3;ebAim(m.position.x,m.position.z+1.2,5,.18,f.p2?3:2);AU.tone(300,.08,'square',.04,200)} // 빔 사이 조준 연사(스치기 기회)
       if(f.beamCd<=0){f.phase='charge';f.pt=0;f.beamDir=(Math.random()<.5?1:-1);f.flashOn=true;setFlash(m,true);f.flashUntil=now+9999;AU.warn()}} // 스윕 방향 결정 → 충전 중 예고선 표시
      else if(f.phase==='charge'){if(f.pt>1.25){f.phase='beam';f.pt=0;f.beamX=f.beamDir*(FW+1.5);f.flashOn=false;setFlash(m,false);AU.tone(110,2,'sawtooth',.13,70)}}
-     else if(f.phase==='beam'){const BDUR=f.p2?2.2:1.7,sX=f.beamDir*(FW+1.5),eX=f.p2?-f.beamDir*FW*.4:0;f.beamX=sX+(f.pt/BDUR)*(eX-sX) // 1단계: 끝→중앙 / 2단계: 끝→반대편 40%까지(먼 쪽 끝만 안전)
+     else if(f.phase==='beam'){const BDUR=f.p2?2.2:1.7,sX=f.beamDir*(FW+1.5),eX=f.p2?-f.beamDir*FW*.15:0;f.beamX=sX+(f.pt/BDUR)*(eX-sX) // 1단계: 끝→중앙 / 2단계: 중앙을 조금 넘어까지(반대쪽 40%는 안전)
       if(Math.abs(player.position.x-f.beamX)<.8&&player.position.z>m.position.z&&now>S.invUntil)hurt(Math.round(14*zdm(S.zone||0)),700)
       if(f.pt>BDUR){f.phase='hover';f.pt=0;f.beamCd=rnd(2.4,3.4)}}}
     if(f.phase==='beam'||f.phase==='charge'){if(!window.__wbeam){const bg=new THREE.Group()
@@ -5598,7 +5607,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
      if(f.cool<=0){f.cool=2.6;f.tell=0
       const l=Math.hypot(dx,dz)||1,sp=5
       if(ebullets.length<58){const b=ebPool.get();b.position.set(m.position.x,0,m.position.z+.5)
-       ebullets.push({m:b,vx:dx/l*sp,vz:dz/l*sp,grazed:false})}}}}
+       ebullets.push({m:b,vx:dx/l*sp,vz:dz/l*sp,grazed:false,dmg:6})}}}} // 사수 탄은 약하게(스치기 학습용)
    else if(f.type==='turret'){f.pt+=wdt // 정지 포탑 — 조준 연사(우선 처리 압박)
     if(m.position.z<f.stopZ)m.position.z+=f.spd*wdt
     else{const dx=player.position.x-m.position.x,dz=player.position.z-m.position.z
