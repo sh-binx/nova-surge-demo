@@ -4969,7 +4969,7 @@ function die(){S.hp=0;ST='over';cgEvt('gameplayStop') // CG 게임플레이 종�
  submitScore(score,S.wave,META.diff,Math.round(S.t))
  $('overStats').innerHTML='<div class="result-cause">'+(S.sectorCleared?'':(S.lastDmg==='leak'?'Defense line broken — enemies slipped past':'Hull destroyed by enemy fire'))+'</div><div class="result-label">SCORE'+(newBest?'<b class="result-best">NEW BEST</b>':'')+'</div><div class="result-score">'+fmt(score)+'</div><div class="result-metrics"><div><span>Wave</span><strong>'+S.wave+'</strong></div><div><span>Kills</span><strong>'+S.kills+'</strong></div><div><span>Max combo</span><strong>×'+S.comboMax+'</strong></div><div><span>Time</span><strong>'+$('time').textContent+'</strong></div></div>'
   +(S.sectorCleared?'<div class="result-clear">SECTOR CLEARED ✦ CLEAR BONUS +25,000</div>':'')
-  +'<div class="result-salvage"><span>SALVAGE</span><b>◆ +'+earned+'</b><span>Balance</span><strong>◆ '+META.salv+'</strong></div>'
+  +'<div class="result-salvage"><span>SALVAGE</span><b>◆ +'+earned+'</b><span>Balance</span><strong>◆ '+fmt(META.salv)+'</strong></div>'
  $('reviveAd').style.display=S.revived?'none':'block'
  $('salvAd').style.display=(earned>0&&!S.adSalvUsed)?'block':'none'
  $('hgBtn2').classList.toggle('can',META.salv>=400) // 가장 싼 강화(◆400)를 살 수 있으면 강조
@@ -5087,7 +5087,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
  const ts=slow?.35:1
  const wdt=frozen?0:rdt*ts
  const pdt=frozen?0:rdt
- if(ST==='hangar'&&HG.ready&&HG.grp){HG.grp.rotation.y+=rdt*.6;HG.grp.position.y=Math.sin(now*.0012)*.05;HG.r.render(HG.sc,HG.cam)}
+ if(ST==='hangar'&&HG.ready&&HG.grp){hgFit();HG.grp.rotation.y+=rdt*.6;HG.grp.position.y=Math.sin(now*.0012)*.05;HG.r.render(HG.sc,HG.cam)}
  window.__envSpin&&window.__envSpin()
  window.__zoneStep&&window.__zoneStep(wdt) // ⑥ 존 배경 크로스페이드
  for(let li=0;li<window.__stars.length;li++){const st=window.__stars[li],spd=(li===1?3.5:1.6),arr=st.geometry.attributes.position.array // 개별 정점 스크롤+개별 랩(z>14→뒤로 −74) — 그룹 %2 스냅백(끊김) 제거
@@ -5714,6 +5714,8 @@ function hgRefresh(){const key=HG.cur,sh=SHIPS[key]
  $('hBal').textContent='Balance ◆ '+fmt(META.salv)}
 window.__hangarRefresh=()=>{if(ST==='hangar')hgRefresh()}
 window.__hangarClose=()=>{$('hangar').classList.add('off')}
+function hgFit(){const cv=$('hcv'),w=cv.clientWidth,h=cv.clientHeight // 창 크기·회전·배치가 바뀌면 미리보기 비율을 다시 맞춘다(안 맞추면 기체가 눌려 보임)
+ if(w&&h&&(w!==HG.fw||h!==HG.fh)){HG.fw=w;HG.fh=h;HG.r.setSize(w,h,false);HG.cam.aspect=w/h;HG.cam.updateProjectionMatrix()}}
 function hgOpen(){AU.unlock();ST='hangar'
  $('start').classList.add('off');$('hangar').classList.remove('off') // 먼저 표시 → 실측 크기 확보
  hgInit()

@@ -184,3 +184,19 @@ button.card{display:grid;grid-template-rows:38px 24px 24px minmax(40px,auto);ali
  #over #hgBtn2{grid-column:3}
  #over #lbBtn2{grid-column:4}
 }
+
+/* 2026-11-26 UI 1차 — 독립 검토 반영 */
+@media(orientation:landscape){
+ #start .dchip{min-height:44px}
+ #hangar .hups{gap:8px 12px}
+ #hangar .hup .dt{background:#3b5564}
+ #hangar .hback{background:#1d3341;border-radius:8px;padding:0 14px;color:#c7f4ff}
+}
+.card .ds{word-break:keep-all}
+.result-cause{word-break:keep-all}
+@media(orientation:landscape) and (max-height:380px){
+ #hangar .hups{gap:6px 12px}
+ #hangar .hstats{gap:1px}
+ #hangar .hpass{margin:0;line-height:1.2}
+ #hangar .hact{margin-top:2px}
+}
