@@ -428,3 +428,47 @@ test('3차-A — 초반 사수 등장 · 웨이브 특집 편대 · 방어선 �
   expect(leak.boss).toBeLessThanOrEqual(Math.ceil(leak.normal / 2)); expect(leak.normal).toBeGreaterThan(0)
   expect(errs, errs.join(' | ')).toHaveLength(0)
 })
+
+test('3차-B — 카드 재뽑기 · 필드 아이템 4종 · 방어막 · 진화 · 불사조 · 한국어', async ({ page }) => {
+  const { errs } = await open(page)
+  await page.click('#playBtn')
+  const T = <R>(fn: string) => page.evaluate(fn) as Promise<R>
+  // 카드 3장 + 재뽑기 2회
+  await T('__test.offerNow()')
+  await expect(page.locator('#cards .card')).toHaveCount(3)
+  await expect(page.locator('#rerollBtn')).toHaveText('다시 뽑기 · 2회 남음')
+  await koScan(page, '강화 카드')
+  await page.click('#rerollBtn'); await page.click('#rerollBtn')
+  await expect(page.locator('#rerollBtn')).toBeDisabled()
+  await expect(page.locator('#cards .card')).toHaveCount(3)
+  await page.locator('#cards .card').first().click()
+  expect((await st(page)).ST).toBe('play')
+  // 방어막 아이템 → 피격 1회 무효
+  const px = async () => (await page.evaluate(() => (window as any).__snap())).px as number
+  await page.evaluate(x => (window as any).__test.drop('barrier', x, 4.2), await px())
+  await expect.poll(() => T<any>('__test.b3().barrier')).toBe(1)
+  const hp0 = await T<number>('__test.hp()')
+  await T('__test.hurtNow(30)')
+  expect(await T<number>('__test.hp()')).toBe(hp0); expect(await T<number>('__test.b3().barrier')).toBe(0)
+  // 수리 아이템
+  await T('__test.setHp(40)')
+  await page.evaluate(x => (window as any).__test.drop('heal', x, 4.2), await px())
+  await expect.poll(() => T<number>('__test.hp()')).toBeGreaterThanOrEqual(64)
+  // 폭탄: 적탄 소거 + 화면 안 적 피해
+  await T("(()=>{for(let i=0;i<6;i++)__test.spawnAt('drone',-5+i*2,-8)})()")
+  const n0 = await T<number>('__test.foeCount()')
+  await page.evaluate(x => (window as any).__test.drop('bomb', x, 4.2), await px())
+  await expect.poll(() => T<number>('__test.foeCount()')).toBeLessThan(n0 - 3)
+  // 자석
+  await page.evaluate(x => (window as any).__test.drop('magnet', x, 4.2), await px())
+  await expect.poll(() => T<boolean>('__test.b3().mag')).toBe(true)
+  // 진화: PULSE 6 + 속사 3 → 벌컨 스톰
+  await T("(()=>{__test.setWeapon('pulse',6);__test.setWeapon('rapid',3);__test.evoCheck()})()")
+  expect(await T<string[]>('__test.b3().evo')).toContain('vulcan')
+  // 불사조: 치명 피해를 한 번 버틴다
+  await T('(()=>{__test.setPhoenix();__test.hurtNow(9999)})()')
+  const s2 = await st(page); expect(s2.ST).toBe('play'); expect(s2.hp).toBeGreaterThan(0)
+  await T('__test.hurtNow(9999)')
+  expect((await st(page)).ST).toBe('over')
+  expect(errs, errs.join(' | ')).toHaveLength(0)
+})

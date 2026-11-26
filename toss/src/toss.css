@@ -195,8 +195,10 @@ button.card{display:grid;grid-template-rows:38px 24px 24px minmax(40px,auto);ali
 .card .ds{word-break:keep-all}
 .result-cause{word-break:keep-all}
 @media(orientation:landscape) and (max-height:380px){
- #hangar .hups{gap:6px 12px}
- #hangar .hstats{gap:1px}
+ #hangar .hups{gap:4px 12px}
+ #hangar .hup button{min-height:40px}
+ #hangar .hstats{gap:0}
+ #hangar .hst{line-height:1.25}
  #hangar .hpass{margin:0;line-height:1.2}
  #hangar .hact{margin-top:2px}
 }

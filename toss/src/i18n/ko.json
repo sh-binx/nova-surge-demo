@@ -174,7 +174,42 @@
     "NEW BEST": "최고 기록",
     "CHAFF wings — both flanks": "양쪽에서 편대가 몰려와요",
     "SCOUT line — graze their shots": "사수 편대 — 탄을 스쳐 서지를 채우세요",
-    "SPLITTER & BOMBER": "스플리터와 폭격기"
+    "SPLITTER & BOMBER": "스플리터와 폭격기",
+    "CRITICAL": "치명타",
+    "Crit chance +8% · crits deal ×2.5": "치명타 확률 +8% · 치명타 피해 2.5배",
+    "NANO REPAIR": "나노 수리",
+    "Regenerate 0.5 HP per second": "1초마다 체력 0.5 회복",
+    "BARRIER": "방어막",
+    "Blocks one hit · recharges over time": "피격 1회를 막아요 · 시간이 지나면 다시 생겨요",
+    "EDGE RUNNER": "엣지 러너",
+    "Graze range +20% · graze charge +30%": "스침 범위 +20% · 스침 서지 충전 +30%",
+    "SHRAPNEL": "파편탄",
+    "Kills may explode and damage nearby foes": "격추한 적이 폭발해 주변 적에게 피해",
+    "SURGE AMP": "서지 증폭",
+    "SURGE damage +50% · heals on use": "서지 피해 +50% · 쓸 때 체력 회복",
+    "SALVAGER": "수집가",
+    "Salvage gain +20%": "자원 획득 +20%",
+    "FORTUNE": "행운",
+    "Better rarity odds · more item drops": "희귀 카드 확률과 아이템 등장 증가",
+    "OVERDRIVE": "오버드라이브",
+    "Fire rate +20% · Damage +1 · Speed +10%": "연사 +20% · 공격력 +1 · 이동 속도 +10%",
+    "SECOND WIND": "불사조",
+    "Once per run, survive a fatal hit with 40% HP": "한 판에 한 번, 격추될 때 체력 40%로 버텨요",
+    "Unique": "유일",
+    "CRIT": "치명타",
+    "BLOCK": "방어",
+    "REPAIR": "수리",
+    "BOMB": "폭탄",
+    "Afterburner — after SURGE, fire rate +30% for 4s": "애프터버너 — 서지 직후 4초간 연사 +30%",
+    "Resonance — each graze gives damage +25% for 2s": "공명 — 적탄을 스칠 때마다 2초간 공격력 +25%",
+    "Void Shell — SURGE grants a barrier that blocks one hit": "공허 방벽 — 서지를 쓰면 피격 1회를 막는 방어막 생성",
+    "Max HP +10": "체력 +10",
+    "Move +4%": "속도 +4%",
+    "Start damage +1": "공격력 +1",
+    "Surge charge +8%": "서지 +8%",
+    "Balanced stats": "균형 잡힌 능력치",
+    "DMG +15% · Surge +20% / HP −20%": "공격력 +15% · 서지 +20% / 체력 −20%",
+    "HP +25% · Magnet +30% · Salvage +15% / Speed −10%": "체력 +25% · 자석 +30% · 자원 +15% / 속도 −10%"
   },
   "patterns": [
     [
@@ -268,6 +303,14 @@
     [
       "^AD · (\\d+)$",
       "광고 · $1"
+    ],
+    [
+      "^REROLL · (\\d+)$",
+      "다시 뽑기 · $1회 남음"
+    ],
+    [
+      "^Evolves: (.+)$",
+      "진화 재료 · §1"
     ]
   ]
 }
