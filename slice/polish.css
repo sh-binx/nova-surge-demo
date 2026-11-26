@@ -184,3 +184,4 @@ button.card{display:flex;flex-direction:column;align-items:flex-start;justify-co
 #wmastery{display:none}
 .lolv{color:#9fd8e6;font:600 11px system-ui,sans-serif}
 #sideL.mid .hp>i{background:#f0a94a}
+#toast{font-size:12px;padding:6px 12px;max-width:min(70vw,300px);background:#152b38e6}

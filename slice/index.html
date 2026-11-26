@@ -4270,14 +4270,14 @@ function wedge(w,zn,zt,th,notch){const N=[0,0,zn],Lw=[-w,0,zt],Rw=[w,0,zt],T=[0,
 const flat2=(c,e,i)=>{const m=flat(c,e,i);m.side=THREE.DoubleSide;return m}
 function spine(len,col,em,z){const m=new THREE.Mesh(new THREE.BoxGeometry(.07,.07,len),L(new THREE.MeshStandardMaterial({color:col,emissive:em,emissiveIntensity:1.9,flatShading:true})));m.position.set(0,.13,z||0);return m}
 function mkChaff(){const g=new THREE.Group() // 요격 다트 — 납작한 삼각 날개 + 발광 척추
- g.add(new THREE.Mesh(wedge(.46,.58,-.42,.17),flat2(0xd12a7c,0x7a1048,1.25)))
+ g.add(new THREE.Mesh(wedge(.46,.58,-.42,.17),flat2(0xe8348c,0xa8185e,1.45)))
  g.add(spine(.52,0xffb3dc,0xff3d9a,-.02))
  const gl=glowSprite(0xff3d9a,.6,.55);gl.position.z=-.36;g.add(gl)
  tagMats(g);scene.add(g);return g}
 function mkDrone(){const g=new THREE.Group() // 포드 드론 — 육각 선체 + 양옆 포드 + 앞 눈
- const hull=new THREE.CylinderGeometry(.42,.56,.26,6);g.add(new THREE.Mesh(hull,flat(0xc4256f,0x6e0f44,1.2)))
+ const hull=new THREE.CylinderGeometry(.42,.56,.26,6);g.add(new THREE.Mesh(hull,flat(0xe0308a,0x9c1656,1.4)))
  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.2,.3,.14,6),flat(0x3a1230,0x4a0f38,1));cap.position.y=.2;g.add(cap)
- for(const sx of [-1,1]){const pod=new THREE.Mesh(new THREE.BoxGeometry(.2,.16,.62),flat(0x4a1638,0x5a1040,1));pod.position.set(sx*.62,0,-.04);g.add(pod)
+ for(const sx of [-1,1]){const pod=new THREE.Mesh(new THREE.BoxGeometry(.2,.16,.62),flat(0x8a2460,0x6a1448,1.2));pod.position.set(sx*.62,0,-.04);g.add(pod)
   const tip=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,.12),L(new THREE.MeshStandardMaterial({color:0xffb3dc,emissive:0xff3d9a,emissiveIntensity:1.8,flatShading:true})));tip.position.set(sx*.62,0,.34);g.add(tip)}
  const eye=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),L(new THREE.MeshStandardMaterial({color:0xffd0e8,emissive:0xff2e8e,emissiveIntensity:1.7,flatShading:true})))
  eye.position.set(0,.02,.5);g.add(eye)
@@ -4493,10 +4493,10 @@ const tPool=Pool(mkTrail,90),trails=[]
 function trail(x,y,z,hex,scale,life){if(trails.length>110)return
  const sp=tPool.get();sp.material.color.setHex(hex).convertSRGBToLinear();sp.material.opacity=.55
  sp.position.set(x,y,z);sp.scale.set(scale,scale,1);trails.push({sp,life,max:life})}
-function ring(x,z,hex,to,dur){const m=rPool.get();m.material.color.setHex(hex).convertSRGBToLinear();m.material.opacity=.95
- m.position.set(x,0,z);m.scale.setScalar(.2);rings.push({m,t:0,dur,to})}
+function ring(x,z,hex,to,dur,op){const m=rPool.get();m.material.color.setHex(hex).convertSRGBToLinear();m.material.opacity=op||.95
+ m.position.set(x,0,z);m.scale.setScalar(.2);rings.push({m,t:0,dur,to,op:op||.95})}
 function burst(x,z,hex,n){for(let i=0;i<n;i++){if(debris.length>85)break
- const m=dPool.get();m.material.color.setHex(i%3===0?0xfff1f8:hex).convertSRGBToLinear() // 셋 중 하나는 흰 조각(달궈진 파편)
+ const m=dPool.get();m.material.color.setHex(i%3===0?0xffd29a:hex).convertSRGBToLinear() // 셋 중 하나는 흰 조각(달궈진 파편)
  m.position.set(x,0,z);const a=rnd(0,6.28),s=rnd(3,9)
  debris.push({m,vx:Math.cos(a)*s,vz:Math.sin(a)*s,vy:rnd(1,4),vr:rnd(-8,8),life:rnd(.4,.7)})}}
 
@@ -4509,11 +4509,11 @@ function num(wx,wz,txt,col,size){if(NUM.length>36)return;const p=toScr(wx,0,wz);
  NUM.push({x:p.x+rnd(-8,8),y,txt,col,size:size||13,life:1})}
 function spark(wx,wz){const p=toScr(wx,0,wz);for(let i=0;i<5;i++){if(SPARK.length>40)break
  const a=rnd(0,6.28),s=rnd(40,130);SPARK.push({x:p.x,y:p.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5})}}
-function banner(txt,col,sub,minor){BANNER={txt:T(txt),col:col||'#b4ff39',sub:T(sub||''),t:0,minor:!!minor}; // minor=획득·무기 전환 같은 작은 알림(전장을 덜 가리는 알약)
+function banner(txt,col,sub,minor){BANNER={txt:T(txt),col:col||'#b4ff39',sub:T(sub||''),t:0,minor:minor===true,mid:minor===2}; // minor=획득·무기 전환 같은 작은 알림(전장을 덜 가리는 알약)
  const te=$('toast');if(te)te.style.opacity=0} // 배너가 뜨면 같은 자리의 알림 띠는 내린다
 function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
  for(let i=NUM.length-1;i>=0;i--){const n=NUM[i];n.y-=52*rdt;n.life-=rdt*1.5
-  if(n.life<=0){NUM.splice(i,1);continue}
+  if(n.life<=0||(n.y<68&&Math.abs(n.x-VW/2)<120)){NUM.splice(i,1);continue} // 콤보 표시 영역에는 숫자를 두지 않는다
   fctx.globalAlpha=Math.min(1,n.life*1.6);fctx.font='800 '+n.size+'px ui-monospace,Menlo,monospace'
   fctx.textAlign='center';fctx.fillStyle=n.col;fctx.fillText(n.txt,n.x,n.y)}
  for(let i=SPARK.length-1;i>=0;i--){const s=SPARK[i];s.x+=s.vx*rdt;s.y+=s.vy*rdt;s.life-=rdt*2
@@ -4521,20 +4521,20 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
   fctx.globalAlpha=Math.max(0,s.life*2);fctx.fillStyle='#8bf3ff';fctx.fillRect(s.x-1.5,s.y-1.5,3,3)}
  fctx.globalAlpha=1
  if(BANNER){BANNER.t+=rdt;const k=BANNER.t
-  const mn=BANNER.minor,fo=mn?.9:1.6,end=mn?1.3:2.1
+  const mn=BANNER.minor,md=BANNER.mid,fo=mn?.9:(md?1.2:1.6),end=mn?1.3:(md?1.6:2.1) // 등급: 작은 알림(mn)·웨이브(md)·보스/진화(큰 배너)
   const a=k<.25?k/.25:(k>fo?Math.max(0,1-(k-fo)/(end-fo)):1)
   const sc=k<.25?.82+.18*(k/.25):1
-  fctx.save();fctx.translate(VW/2,mn?Math.max(84,VH*.215):VH*.30);fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
-  const title=BANNER.txt.replace(/^[◆⚠✦▸]\s*/,''),fontSize=mn?15:(VH<540?25:32)
+  fctx.save();fctx.translate(VW/2,mn?Math.max(84,VH*.215):(md?Math.max(92,VH*.235):VH*.30));fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
+  const title=BANNER.txt.replace(/^[◆⚠✦▸]\s*/,''),fontSize=mn?15:(md?19:(VH<540?25:32))
   fctx.font=(mn?'600 ':'700 ')+fontSize+'px system-ui,sans-serif';fctx.textAlign='center';fctx.textBaseline='middle'
   const maxWidth=Math.max(220,VW*.52),subT=(BANNER.sub&&!mn)?BANNER.sub.replace(/^▸\s*/,''):''
   let tw=fctx.measureText(title).width;if(subT){fctx.font='500 13px system-ui,sans-serif';tw=Math.max(tw,fctx.measureText(subT).width);fctx.font='700 '+fontSize+'px system-ui,sans-serif'} // 상자 폭은 제목·부제 중 긴 쪽에 맞춘다
   tw=Math.min(maxWidth,tw);const pw=tw/2+(mn?14:24)
-  const bh=mn?30:(BANNER.sub?82:52),bt=mn?-15:-26
-  fctx.fillStyle=mn?'rgba(8,16,24,.78)':'rgba(8,16,24,.94)';fctx.fillRect(-pw,bt,pw*2,bh)
+  const bh=mn?30:(md?(BANNER.sub?56:36):(BANNER.sub?82:52)),bt=mn?-15:(md?-18:-26)
+  fctx.fillStyle=md?'rgba(8,16,24,.86)':'rgba(8,16,24,.94)';fctx.fillRect(-pw,bt,pw*2,bh)
   fctx.fillStyle=BANNER.col;fctx.fillRect(-pw,bt,3,bh)
   fctx.fillStyle='#eef5fa';fctx.fillText(title,0,0,maxWidth)
-  if(BANNER.sub&&!mn){fctx.font='500 13px system-ui,sans-serif';fctx.fillStyle='#aebfce';fctx.fillText(BANNER.sub.replace(/^▸\s*/,''),0,34,maxWidth)}
+  if(BANNER.sub&&!mn){fctx.font='500 '+(md?12:13)+'px system-ui,sans-serif';fctx.fillStyle='#aebfce';fctx.fillText(BANNER.sub.replace(/^▸\s*/,''),0,md?24:34,maxWidth)}
   fctx.restore()
   if(k>end)BANNER=null}
  if(S.combo>1&&ST==='play'){const pop=1+S.comboPop*.55
@@ -4547,7 +4547,7 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
  if(FLASH.c>0){fctx.fillStyle='rgba(53,230,255,'+(FLASH.c*.22)+')';fctx.fillRect(0,0,VW,VH);FLASH.c=Math.max(0,FLASH.c-rdt*1.8)}
  if(FLASH.w>0){fctx.fillStyle='rgba(235,252,255,'+(FLASH.w*.42)+')';fctx.fillRect(0,0,VW,VH);FLASH.w=Math.max(0,FLASH.w-rdt*5)} // 서지 발동 순간의 흰 섬광
  if(ST==='play'||ST==='levelup'){const left=S.surgeUntil-performance.now()
-  if(left>0){const al=.2*Math.min(1,left/450),g=fctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.42,VW/2,VH/2,Math.max(VW,VH)*.72) // 서지 지속 중 화면 가장자리 청록 테
+  if(left>0){const al=.34*Math.min(1,left/450),g=fctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.42,VW/2,VH/2,Math.max(VW,VH)*.72) // 서지 지속 중 화면 가장자리 청록 테
    g.addColorStop(0,'rgba(53,230,255,0)');g.addColorStop(1,'rgba(53,230,255,'+al+')');fctx.fillStyle=g;fctx.fillRect(0,0,VW,VH)}
   if(S.surgeFx>0){const k=1-S.surgeFx/.6,pp=toScr(player.position.x,0,player.position.z),R=Math.hypot(VW,VH) // 발동 직후 기체에서 뻗는 방사선
    fctx.save();fctx.translate(pp.x,pp.y);fctx.strokeStyle='rgba(180,245,255,'+(.55*(1-k))+')';fctx.lineWidth=2;fctx.beginPath()
@@ -4712,7 +4712,7 @@ function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
  else $('ebar').style.display='none'}
 let toastT=null
 let toastQ=0
-function toast(txt,ms,type){clearTimeout(toastQ);if(BANNER){toastQ=setTimeout(()=>toast(txt,ms,type),Math.max(150,((BANNER.minor?1.35:2.15)-BANNER.t)*1000));return} // 배너와 겹치지 않게 배너가 끝난 뒤 띄운다
+function toast(txt,ms,type){clearTimeout(toastQ);if(BANNER){toastQ=setTimeout(()=>toast(txt,ms,type),Math.max(150,((BANNER.minor?1.35:(BANNER.mid?1.65:2.15))-BANNER.t)*1000));return} // 배너와 겹치지 않게 배너가 끝난 뒤 띄운다
  const el=$('toast');el.textContent=txt // type: good(골드)·bad(빨강)·기본(시안)
  const C=type==='good'?'#ffcf4a':type==='bad'?'#ff5d6c':'#35e6ff'
  el.style.color=C;el.style.borderColor=C+'66';el.style.textShadow='0 0 12px '+C+'99'
@@ -5019,7 +5019,7 @@ let hpPulseT=null
 function hpPulse(){const r=$('hpRow');r.classList.remove('hit');void r.offsetWidth;r.classList.add('hit');clearTimeout(hpPulseT);hpPulseT=setTimeout(()=>r.classList.remove('hit'),340)}
 function hurt(dmg,iframes){const now=performance.now()
  if(now<S.invUntil||ST!=='play')return
- S.invUntil=now+(iframes||950)
+ S.invUntil=now+(iframes||950);S.blinkUntil=S.invUntil // 깜박임은 피격 무적 표시 전용
  S.hp-=dmg;S.combo=0;MET.hurts.push({t:S.t,d:dmg});hpPulse();S.lastDmg='hit'
  FLASH.r=1;S.shake=Math.min(S.shake+9,12);S.freezeUntil=now+70
  pop(player.position.x,player.position.z,0xff5d6c,4.2,.3);ring(player.position.x,player.position.z,0xff8b98,2.6,.3)
@@ -5046,7 +5046,7 @@ function fireSurge(){if(ST!=='play'||S.surge<100)return
  S.novaT=0;FLASH.c=1;FLASH.w=1;S.surgeFx=.6;S.shake=Math.max(S.shake,10);S.freezeUntil=now+90
  AU.surge();buzz(80)
  const sx=player.position.x,sz=player.position.z
- ring(sx,sz,0xffffff,4,.4);ring(sx,sz,0x35e6ff,8.5,.7);ring(sx,sz,0xffffff,6,.55)
+ ring(sx,sz,0xffffff,4,.4);ring(sx,sz,0x35e6ff,8.5,.7,.4);ring(sx,sz,0xffffff,6,.55,.35)
  pop(sx,sz,0xffffff,9,.45);pop(sx,sz,0x35e6ff,16,.75)}
 let novaRing=null
 
@@ -5116,7 +5116,7 @@ function director(wdt){
   else{S.hp=Math.min(S.maxhp,S.hp+15);AU.ready() // ③ 큰 WAVE N 인트로 + 부제
    const intro={4:'WEAVER — evasive fliers',6:'SPLITTER — splits on death',8:'LANCER pincer attack',11:'high-density swarm',12:'TURRET emplacements',14:'CRAB flankers',16:'WORM chains',18:'LAMPREY — curving shots'}[w]
    const sub=zoneNew?('▸ ENTERING '+window.__zoneName(nz)):(intro||'stay sharp')
-   banner('◆ WAVE '+w,zoneNew?'#ffcf4a':'#35e6ff',sub)}
+   banner('◆ WAVE '+w,zoneNew?'#ffcf4a':'#35e6ff',sub,2)}
   pulse();S.salvRun+=10+w*2}}
 
 /* ============ 메인 루프 ============ */
@@ -5139,7 +5139,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
  if(window.__streaks){const arr=window.__streaks.geometry.attributes.position.array,v=(slow?9:24)*rdt
   for(let i=0;i<arr.length;i+=6){arr[i+2]+=v;arr[i+5]+=v;if(arr[i+2]>14){arr[i+2]-=74;arr[i+5]-=74}}
   window.__streaks.geometry.attributes.position.needsUpdate=true}
- player.visible=SHIP_READY&&!(performance.now()<S.invUntil&&((performance.now()/70|0)%2===0)) // 매 프레임: GLB 로드 전엔 기체 숨김(타이틀 로프트 플래시 제거)
+ player.visible=SHIP_READY&&!(performance.now()<(S.blinkUntil||0)&&((performance.now()/70|0)%2===0)) // 매 프레임: GLB 로드 전엔 기체 숨김(타이틀 로프트 플래시 제거)
  $('ui').classList.toggle('playing',ST==='play'||ST==='levelup'||ST==='reward') // 인게임 HUD는 인런(플레이·레벨업·보급) 상태에만 — 행어/타이틀/광고엔 숨김(startBal은 스코프 문제로 saveMeta/startup에서 갱신)
  for(const r of window.__roids){r.position.z+=r.userData.vz*rdt;r.rotation.x+=r.userData.vr*rdt;r.rotation.y+=r.userData.vr*.7*rdt
   if(r.position.z>12)r.position.z=-42}
@@ -5596,7 +5596,7 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
  for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t+=rdt
   const k=clamp(r.t/r.dur,0,1)
   r.m.scale.setScalar(Math.max(.05,r.to*(r.nova?k:(1-Math.pow(1-k,2)))))
-  r.m.material.opacity=.95*(1-k)
+  r.m.material.opacity=(r.op||.95)*(1-k)
   if(k>=1){rPool.put(r.m);rings.splice(i,1)}}
  for(let i=pops.length-1;i>=0;i--){const q=pops[i];q.t+=rdt;const k=clamp(q.t/q.dur,0,1),sc=Math.max(.05,q.to*(1-Math.pow(1-k,3)))
   q.sp.scale.set(sc,sc,1);q.sp.material.opacity=1-k*k
