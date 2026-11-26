@@ -202,13 +202,12 @@
 <div class="vig"></div>
 <div id="ui">
   <div class="side left" id="sideL">
-    <div class="ptitle">NOVA SURGE</div>
-    <div class="barwrap"><span class="ic24" id="icHp"></span><div class="bar hp"><i id="hpb" style="width:100%"></i></div></div>
+    <div class="barwrap hprow" id="hpRow"><span class="ic24" id="icHp"></span><div class="bar hp"><i id="hpb" style="width:100%"></i></div><span class="hpn" id="hpn">100</span></div>
     <div class="barwrap"><span class="lvl" id="lvl">LV 1</span><div class="bar xp"><i id="xpb" style="width:0%"></i></div></div>
     <div class="wselrow"><span class="plabel">WEAPON</span><span class="wmastery" id="wmastery">LV 1</span></div>
     <div class="wsel" id="wsel"></div>
     <div class="prow"><span class="k" id="kills">0</span><span class="t" id="time">0:00</span></div>
-    <div class="plabel lolabel">UPGRADES</div>
+    <div class="plabel lolabel" id="loLabel">UPGRADES</div>
     <div class="loadout" id="loadout"></div>
   </div>
   <div class="side right" id="sideR">
@@ -263,6 +262,7 @@
     <div class="btn ad" id="reviveAd" style="margin-bottom:12px">Watch ad · Revive<small>Gift · Free · Once</small></div>
     <div class="btn ad" id="salvAd" style="margin-bottom:12px;display:none">Watch ad · Double salvage<small>Gift · Free</small></div>
     <div class="play" id="retryBtn" style="background:#35e6ff">Restart</div>
+    <div class="hbtn" id="hgBtn2">Ships &amp; upgrades</div>
     <div class="hbtn" id="lbBtn2" style="margin-top:12px;color:#ffcf4a;background:rgba(255,207,74,.1);border-color:rgba(255,207,74,.5)">Leaderboard</div>
   </div>
 
@@ -285,7 +285,7 @@
   </div>
   <div class="center off" id="pause">
     <h1 style="font-size:32px">PAUSED</h1>
-    <div class="play" id="resumeBtn" style="background:#b4ff39">▶ Resume</div>
+    <div class="play" id="resumeBtn">▶ Resume</div>
     <div class="hbtn" id="quitBtn" style="margin-top:12px">← Quit to Menu</div>
   </div>
 </div>
@@ -4485,7 +4485,7 @@ function num(wx,wz,txt,col,size){if(NUM.length>36)return;const p=toScr(wx,0,wz);
  NUM.push({x:p.x+rnd(-8,8),y:p.y-8,txt,col,size:size||13,life:1})}
 function spark(wx,wz){const p=toScr(wx,0,wz);for(let i=0;i<5;i++){if(SPARK.length>40)break
  const a=rnd(0,6.28),s=rnd(40,130);SPARK.push({x:p.x,y:p.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5})}}
-function banner(txt,col,sub){BANNER={txt:T(txt),col:col||'#b4ff39',sub:T(sub||''),t:0}}
+function banner(txt,col,sub){BANNER={txt:T(txt),col:col||'#b4ff39',sub:T(sub||''),t:0};const te=$('toast');if(te)te.style.opacity=0} // 배너가 뜨면 같은 자리의 알림 띠는 내린다
 function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
  for(let i=NUM.length-1;i>=0;i--){const n=NUM[i];n.y-=52*rdt;n.life-=rdt*1.5
   if(n.life<=0){NUM.splice(i,1);continue}
@@ -4509,7 +4509,7 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
   fctx.restore()
   if(k>2.1)BANNER=null}
  if(S.combo>1&&ST==='play'){const pop=1+S.comboPop*.55
-  fctx.save();fctx.translate(VW/2,VH*.17);fctx.scale(pop,pop)
+  fctx.save();fctx.translate(VW/2,Math.max(34,VH*.115));fctx.scale(pop,pop)
   fctx.font='900 26px ui-monospace,Menlo,monospace';fctx.textAlign='center'
   fctx.fillStyle='#ffcf4a';fctx.shadowColor='rgba(255,180,40,.7)';fctx.shadowBlur=14
   fctx.fillText('×'+S.combo,0,0);fctx.restore()
@@ -4657,6 +4657,7 @@ $('crateIc').innerHTML=SVG.crate
 $('kills').insertAdjacentHTML('afterbegin','<span class="ic24" style="width:15px;height:15px;vertical-align:-2px">'+SVG.skull+'</span> ')
 const sbtn=$('sbtn')
 function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
+ $('hpn').textContent=Math.max(0,Math.ceil(S.hp));$('sideL').classList.toggle('low',S.hp/S.maxhp<=.3)
  $('xpb').style.width=clamp(S.xp/S.xpNext*100,0,100)+'%'
  $('lvl').textContent='LV '+S.lvl
  $('kills').lastChild.textContent=' '+S.kills
@@ -4672,7 +4673,9 @@ function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
   $('ebar').lastElementChild.textContent=S.elite.label||'BOSS'}
  else $('ebar').style.display='none'}
 let toastT=null
-function toast(txt,ms,type){const el=$('toast');el.textContent=txt // type: good(골드)·bad(빨강)·기본(시안)
+let toastQ=0
+function toast(txt,ms,type){clearTimeout(toastQ);if(BANNER){toastQ=setTimeout(()=>toast(txt,ms,type),Math.max(150,(2.15-BANNER.t)*1000));return} // 배너와 겹치지 않게 배너가 끝난 뒤 띄운다
+ const el=$('toast');el.textContent=txt // type: good(골드)·bad(빨강)·기본(시안)
  const C=type==='good'?'#ffcf4a':type==='bad'?'#ff5d6c':'#35e6ff'
  el.style.color=C;el.style.borderColor=C+'66';el.style.textShadow='0 0 12px '+C+'99'
  el.style.opacity=1
@@ -4747,7 +4750,8 @@ function renderWeaponSel(){const el=document.getElementById('wsel') // 온디맨
 function renderLoadout(){const el=document.getElementById('loadout');if(!el)return // 획득 업그레이드(보조·스탯) — 무기는 셀렉터에 별도
  const out=[]
  for(const u of UPG){if(u.wpn)continue;const lv=u.supp?W[u.id]:(ULV[u.id]||0);if(lv>0)out.push({ic:u.ic,nm:u.nm,lv})} // 무기는 셀렉터에 LV 표시
- el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">L'+it.lv+'</span></div>').join(''):'<div class="loempty">— NONE —</div>'}
+ el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">L'+it.lv+'</span></div>').join(''):''
+ $('sideL').classList.toggle('noload',!out.length)}
 function queueOffer(label){(S.offerLabels||(S.offerLabels=[])).push(label||'LEVEL UP');S.pendingOffers++} // 라벨별 픽 큐잉
 function maybeOffer(){if(ST!=='play'||S.pendingOffers<=0)return
  S.pendingOffers--;offer((S.offerLabels&&S.offerLabels.shift())||'LEVEL UP')}
@@ -4794,7 +4798,9 @@ function gainXP(n){S.xp+=n
 function spawnCrate(x,z){if(crates.length>2)return;const g=cratePool.get();g.visible=true // 보급 크레이트 하강(모달 대신)
  g.position.set(x==null?rnd(-FW*.7,FW*.7):x,0,z==null?TOPZ-2:z);g.rotation.set(0,0,0)
  crates.push({m:g});toast('◆ SUPPLY CRATE — fly in to grab it!',2200,'good');AU.ready()}
-function grabCrate(){claimBase();AU.pick();S.crateBonusPending=true;maybeOffer()} // 크레이트 = 즉시 수리+픽 → 픽 완료 후 보너스 프롬프트
+function grabCrate(){claimBase();AU.pick() // 보너스 광고 제안은 몰입 이후(60초~)·75초 간격으로만
+ if(S.t>=60&&S.t-(S.lastOfferT==null?-1e9:S.lastOfferT)>=75){S.crateBonusPending=true;S.lastOfferT=S.t}
+ maybeOffer()} // 크레이트 = 즉시 수리+픽 → 픽 완료 후 보너스 프롬프트
 function offerBonusPrompt(){ST='reward';$('reward').classList.add('on');cgEvt('gameplayStop')} // 픽 완료 후: 광고 보고 +1 보너스 픽
 function claimBase(){S.hp=Math.min(S.maxhp,S.hp+30);queueOffer('SUPPLY DROP')} // 기본: 수리 + 픽 1(SUPPLY DROP)
 function grantBonus(){S.hp=Math.min(S.maxhp,S.hp+20);queueOffer('BONUS')} // 광고: 추가 픽 1(BONUS)
@@ -4958,19 +4964,23 @@ function die(){S.hp=0;ST='over';cgEvt('gameplayStop') // CG 게임플레이 종�
  S.lastEarned=earned;S.salvRun=0 // 이중 정산 방지(부활 후 재사망)
  META.salv+=earned;saveMeta()
  const score=Math.round(Math.max(0,S.kills*10+(S.wave-1)*1000+S.comboMax*40+Math.round(earned)+(S.clearBonus||0))*(S.diffRk||1)) // +SECTOR CLEARED 보너스(난이도 가중 전 합산) // 리더보드 점수(난이도 가중: EASY×.8·HARD×1.5)
+ const newBest=score>PBEST&&PBEST>0
  if(score>PBEST){PBEST=score;pSet('ns2_best',''+PBEST)}
  submitScore(score,S.wave,META.diff,Math.round(S.t))
- $('overStats').innerHTML='<div class="result-label">SCORE</div><div class="result-score">'+fmt(score)+'</div><div class="result-metrics"><div><span>Wave</span><strong>'+S.wave+'</strong></div><div><span>Kills</span><strong>'+S.kills+'</strong></div><div><span>Max combo</span><strong>×'+S.comboMax+'</strong></div><div><span>Time</span><strong>'+$('time').textContent+'</strong></div></div>'
+ $('overStats').innerHTML='<div class="result-cause">'+(S.sectorCleared?'':(S.lastDmg==='leak'?'Defense line broken — enemies slipped past':'Hull destroyed by enemy fire'))+'</div><div class="result-label">SCORE'+(newBest?'<b class="result-best">NEW BEST</b>':'')+'</div><div class="result-score">'+fmt(score)+'</div><div class="result-metrics"><div><span>Wave</span><strong>'+S.wave+'</strong></div><div><span>Kills</span><strong>'+S.kills+'</strong></div><div><span>Max combo</span><strong>×'+S.comboMax+'</strong></div><div><span>Time</span><strong>'+$('time').textContent+'</strong></div></div>'
   +(S.sectorCleared?'<div class="result-clear">SECTOR CLEARED ✦ CLEAR BONUS +25,000</div>':'')
   +'<div class="result-salvage"><span>SALVAGE</span><b>◆ +'+earned+'</b><span>Balance</span><strong>◆ '+META.salv+'</strong></div>'
  $('reviveAd').style.display=S.revived?'none':'block'
  $('salvAd').style.display=(earned>0&&!S.adSalvUsed)?'block':'none'
+ $('hgBtn2').classList.toggle('can',META.salv>=400) // 가장 싼 강화(◆400)를 살 수 있으면 강조
  if(window.__hangarRefresh)window.__hangarRefresh()
  $('over').classList.remove('off')}
+let hpPulseT=null
+function hpPulse(){const r=$('hpRow');r.classList.remove('hit');void r.offsetWidth;r.classList.add('hit');clearTimeout(hpPulseT);hpPulseT=setTimeout(()=>r.classList.remove('hit'),340)}
 function hurt(dmg,iframes){const now=performance.now()
  if(now<S.invUntil||ST!=='play')return
  S.invUntil=now+(iframes||950)
- S.hp-=dmg;S.combo=0;MET.hurts.push({t:S.t,d:dmg})
+ S.hp-=dmg;S.combo=0;MET.hurts.push({t:S.t,d:dmg});hpPulse();S.lastDmg='hit'
  FLASH.r=1;S.shake=Math.min(S.shake+9,12);S.freezeUntil=now+70
  AU.hurt();buzz(55)
  if(S.hp<=0)die()}
@@ -4981,7 +4991,8 @@ function leak(f){ // 통과 페널티 — 주차 봉쇄 + 버스트 즉사 방�
  S.leakIf=now+600
  const ld=Math.max(1,Math.round((f.type==='chaff'?2:(4+S.wave*.6))*(S.diffLeak||1)));S.hp-=ld;S.leaks++;MET.leaks.push({t:S.t,d:ld})
  FLASH.r=Math.max(FLASH.r,.55)
- if(now>S.leakToast){S.leakToast=now+2500;toast('⚠ ENEMY BREACH — hold the line!',1400,'bad')}
+ if(now>S.leakToast&&(S.leakToastN||0)<2){S.leakToast=now+6000;S.leakToastN=(S.leakToastN||0)+1;toast('⚠ ENEMY BREACH — hold the line!',1800,'bad')}
+ hpPulse();S.lastDmg='leak'
  AU.tone(110,.12,'sine',.09,60);buzz(18)
  num(f.m.position.x,PZ+1.5,'-'+ld,'#ff5d6c',12)
  if(S.hp<=0)die()}
@@ -5567,7 +5578,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(let i=debris.length-1;i>=0;i--){dPool.put(debris[i].m)};debris.length=0
  for(let i=rings.length-1;i>=0;i--){rPool.put(rings[i].m)};rings.length=0
  for(let i=trails.length-1;i>=0;i--){tPool.put(trails[i].sp)};trails.length=0
- NUM.length=0;SPARK.length=0;BANNER=null;S.offerLabels=[]
+ NUM.length=0;SPARK.length=0;BANNER=null;clearTimeout(toastQ);S.offerLabels=[]
  W.orbit=0;W.homing=0
  for(const k in ULV)ULV[k]=0
  for(const k in E)E[k]=0
@@ -5634,7 +5645,11 @@ function quitToMenu(){const earned=S.salvRun;META.salv+=earned;saveMeta() // 메
  if(score>PBEST){PBEST=score;pSet('ns2_best',''+PBEST)}
  submitScore(score,S.wave,META.diff,Math.round(S.t));cgEvt('gameplayStop')
  reset();$('pause').classList.add('off');$('victory').classList.add('off');$('start').classList.remove('off');ST='start'}
-$('pauseBtn').onclick=pauseGame;$('resumeBtn').onclick=resumeGame;$('quitBtn').onclick=quitToMenu
+let quitArm=null
+function quitDisarm(){clearTimeout(quitArm);quitArm=null;$('quitBtn').textContent='← Quit to Menu';$('quitBtn').classList.remove('arm')}
+$('pauseBtn').onclick=pauseGame;$('resumeBtn').onclick=()=>{quitDisarm();resumeGame()}
+$('quitBtn').onclick=()=>{if(quitArm){quitDisarm();quitToMenu();return} // 실수로 판을 버리지 않게 한 번 더 확인
+ $('quitBtn').textContent='Tap again to end this run';$('quitBtn').classList.add('arm');quitArm=setTimeout(quitDisarm,3000)}
 /* ============ 행어(함대) ============ */
 const HG={cur:'A',ready:false,cache:{},r:null,sc:null,cam:null,grp:null}
 function fmt(n){return n.toLocaleString('en-US')}
@@ -5706,6 +5721,7 @@ function hgOpen(){AU.unlock();ST='hangar'
  if(r2.width>0){HG.r.setSize(r2.width,r2.height,false);HG.cam.aspect=r2.width/r2.height;HG.cam.updateProjectionMatrix()}
  hgShow(META.ships.sel||'A');hgRefresh()}
 $('hangarBtn').onclick=hgOpen
+$('hgBtn2').onclick=()=>{$('over').classList.add('off');reset();hgOpen()}
 $('hBack').onclick=()=>{ST='start';$('hangar').classList.add('off');$('start').classList.remove('off')}
 const ORDER=['A','B','C']
 $('hPrev').onclick=()=>{const i=ORDER.indexOf(HG.cur);hgShow(ORDER[(i+2)%3]);hgRefresh();AU.pick()}
@@ -5746,7 +5762,7 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  setMastery:n=>{const v=Math.min(MAXPLV,Math.max(1,n|0));for(const k in S.plvs)S.plvs[k]=v;renderWeaponSel()}, // 전 무기 일괄(하네스 호환)
  shipVis:()=>player.visible, shipKids:()=>player.children.length, starGz:()=>Math.round(window.__stars[0].position.z*1000)/1000, starV0z:()=>Math.round(window.__stars[0].geometry.attributes.position.array[2]*100)/100,
  hp:()=>S.hp, maxhp:()=>S.maxhp, kill:()=>{S.hp=0}, sysMuted:()=>AU.sysMuted, adMuted:()=>AU.muted, // 뮤트 검증
- crateCount:()=>crates.length, grab:()=>grabCrate(), // 크레이트 흐름 검증
+ crateCount:()=>crates.length, grab:()=>grabCrate(), bannerToast:(b,t)=>{banner(b);toast(t,2600,'good')}, // 크레이트 흐름 검증
  adThen:()=>{grantBonus();AU.pick();closeReward()}, // #rwAd 광고완료 콜백과 동일(로컬 CG 광고 우회 검증)
  killBoss:()=>{const f=foes.find(x=>x.boss);if(f)kill(f);return !!f}, // 보스→크레이트 경로 검증
  bgSRGB:()=>'#'+(scene.background?scene.background.clone().convertLinearToSRGB().getHexString():'000000') // 표시 sRGB 배경색

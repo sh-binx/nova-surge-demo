@@ -133,3 +133,49 @@ button.card{display:flex;flex-direction:column;align-items:flex-start;justify-co
 .result-salvage{display:grid;grid-template-columns:auto 1fr auto auto;align-items:baseline;gap:8px;margin-top:18px;font-size:12px;color:#9dafc0}
 .result-salvage b{color:#ffcf4a}.result-salvage strong{font-weight:500;color:#c4d5e1}
 .result-clear{font-size:12px;color:#ffcf4a;margin-top:8px}
+
+/* ===== 2026-11-26 UI 1차: HUD 우선순위 · 터치 영역 · 흐름 (docs/ui-pass1-20261126.md) ===== */
+/* 일시정지는 왼쪽 위 모서리 — 전장 가운데와 콤보 표시를 가리지 않는다 */
+#pauseBtn{left:max(12px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));transform:none;z-index:8}
+#pauseBtn:active{transform:scale(.94)}
+#sideL{padding-top:calc(max(10px,env(safe-area-inset-top)) + 54px)}
+/* 체력이 HUD 에서 가장 먼저 읽히게 */
+.hprow{gap:6px}.hprow .ic24{width:18px;height:18px;vertical-align:0;flex:none}
+.hprow .bar{height:10px;border-radius:3px}
+.hpn{flex:none;min-width:26px;text-align:right;font:700 13px/1 system-ui,sans-serif;color:#f6dbe1}
+#sideL.low .hp>i{background:#ff4d5e;animation:hpLow .7s ease-in-out infinite}
+#sideL.low .hpn{color:#ff8b98}
+.hprow.hit{animation:hpHit .32s ease-out}
+.hprow.hit .bar{box-shadow:0 0 0 2px #ff6b7d}
+@keyframes hpLow{50%{opacity:.45}}
+@keyframes hpHit{0%{transform:translateX(0)}25%{transform:translateX(-3px)}55%{transform:translateX(3px)}100%{transform:translateX(0)}}
+/* 무기 칩 2×2 — 터치 영역 44px */
+#wsel{display:grid;grid-template-columns:repeat(2,44px);gap:6px}
+#wsel .wchip{width:44px;height:44px;min-height:44px;max-width:none;aspect-ratio:auto}
+#wsel .wchip svg{width:20px;height:20px}
+#sideL.noload #loLabel{display:none}
+/* 자원은 전투 중 보조 정보 — 크기를 낮추고 웨이브를 올린다 */
+.pcard.gcard .plabel{display:none}
+.pcard.gcard{padding-bottom:2px}
+#salv{font-size:15px;font-weight:600;color:#d8c88e;line-height:1.2}
+#wtag{font-size:14px;font-weight:650;min-width:0;white-space:nowrap}
+/* 일시정지 */
+#pause{background:#061019e0;backdrop-filter:blur(6px)}
+#pause h1{margin-bottom:18px}
+#quitBtn.arm{background:#5b2532!important;color:#ffdfe3!important}
+/* 광고 제안: 거절도 같은 크기의 버튼 */
+.reward .btn{min-width:260px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;padding:8px 20px}
+.reward .btn.skip{margin-top:10px;background:#1d3341;color:#d3e2ec;font:600 15px system-ui,sans-serif}
+/* 결과: 원인 · 최고 기록 · 다음 행동 */
+.result-cause{font-size:12px;color:#e9a6b1;min-height:16px;margin-bottom:8px;letter-spacing:0}
+.result-best{display:inline-block;margin-left:8px;padding:1px 6px;border-radius:3px;background:#ffcf4a;color:#2b2206;font:700 11px/1.5 system-ui,sans-serif;letter-spacing:.02em;vertical-align:1px}
+#overStats .result-score{margin-bottom:14px}
+#hgBtn2.can{background:#274737!important;color:#dcf7e3!important}
+#hgBtn2.can::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ffcf4a;margin-left:8px;vertical-align:1px}
+@media(max-height:540px) and (orientation:landscape){
+ #sideL{padding-top:62px}
+ #hgBtn2{grid-column:2;grid-row:5;margin:0!important}
+}
+@media(prefers-reduced-motion:reduce){#sideL.low .hp>i,.hprow.hit{animation:none}}
+
+#resumeBtn{display:flex;align-items:center;justify-content:center}

@@ -167,7 +167,11 @@
     "Kills": "격추",
     "Max combo": "최대 콤보",
     "Time": "시간",
-    "Balance": "보유"
+    "Balance": "보유",
+    "Tap again to end this run": "한 번 더 누르면 이번 판을 끝내요",
+    "Defense line broken — enemies slipped past": "놓친 적이 방어선을 넘어 기체가 버티지 못했어요",
+    "Hull destroyed by enemy fire": "적의 공격에 기체가 격추됐어요",
+    "NEW BEST": "최고 기록"
   },
   "patterns": [
     [

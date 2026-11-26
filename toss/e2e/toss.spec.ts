@@ -115,9 +115,18 @@ test('한 판 플레이 — 레벨업 카드 · 보스 · 크레이트 보너스
   expect(await page.evaluate(() => (window as any).__test.killBoss())).toBe(true)
 
   // 크레이트 → 기본 픽 → 보너스 프롬프트 → 보상형(보상 지급)
+  // 시작 60초 전에는 광고를 제안하지 않는다(2026-11-26 UI 1차) — 기본 픽만 주고 바로 전투로
+  await page.evaluate(() => (window as any).__test.grab())
+  while (await page.locator('#modal.on').count()) { await page.locator('#cards .card').first().click(); await page.waitForTimeout(80) }
+  await expect(page.locator('#reward')).not.toHaveClass(/on/)
+  await page.evaluate(() => (window as any).__test.setT(61))
   await page.evaluate(() => (window as any).__test.grab())
   while (await page.locator('#modal.on').count()) { await page.locator('#cards .card').first().click(); await page.waitForTimeout(80) }
   await expect(page.locator('#reward')).toHaveClass(/on/)
+  { // 거절 버튼은 광고 버튼과 같은 크기
+    const [ad, skip] = await page.locator('#rwAd,#rwCont').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return [r.width, r.height] }))
+    expect(Math.abs(ad![0]! - skip![0]!)).toBeLessThan(1); expect(Math.abs(ad![1]! - skip![1]!)).toBeLessThan(1)
+  }
   await koScan(page, '보너스 프롬프트')
   await page.click('#rwAd')
   await expect.poll(() => mock(page, 'window.__mock.adShows.length')).toBe(1)
@@ -321,7 +330,7 @@ test('가로 결과 화면은 모든 보상 버튼이 보여도 겹치지 않는
   await expect(page.locator('#over')).not.toHaveClass(/off/)
   await expect(page.locator('#salvAd')).toBeVisible()
   await koScan(page,'최종 결과')
-  const boxes = await page.locator('#over h1,#overStats,#reviveAd,#salvAd,#retryBtn,#lbBtn2').evaluateAll(els => els.map(el=>{const r=el.getBoundingClientRect();return {id:el.id||'heading',x:r.x,y:r.y,right:r.right,bottom:r.bottom}}))
+  const boxes = await page.locator('#over h1,#overStats,#reviveAd,#salvAd,#retryBtn,#hgBtn2,#lbBtn2').evaluateAll(els => els.map(el=>{const r=el.getBoundingClientRect();return {id:el.id||'heading',x:r.x,y:r.y,right:r.right,bottom:r.bottom}}))
   for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
     const a=boxes[i]!,b=boxes[j]!
     expect(a.x<b.right&&a.right>b.x&&a.y<b.bottom&&a.bottom>b.y,`${a.id} / ${b.id} 겹침`).toBe(false)
@@ -332,9 +341,13 @@ test('가로 결과 화면은 모든 보상 버튼이 보여도 겹치지 않는
     await page.setViewportSize({width,height:375})
     const layout=await page.evaluate(()=>{
       const stats=document.querySelector('#overStats')!.getBoundingClientRect()
-      const btns=['reviveAd','salvAd','retryBtn','lbBtn2'].map(id=>document.getElementById(id)!.getBoundingClientRect())
-      return {gap:Math.min(...btns.map(r=>r.left))-stats.right,widths:btns.map(r=>r.width),bottom:Math.max(stats.bottom,...btns.map(r=>r.bottom)),height:innerHeight}
+      const btns=['reviveAd','salvAd','retryBtn'].map(id=>document.getElementById(id)!.getBoundingClientRect())
+      const half=['hgBtn2','lbBtn2'].map(id=>document.getElementById(id)!.getBoundingClientRect())
+      return {gap:Math.min(...btns.map(r=>r.left))-stats.right,widths:btns.map(r=>r.width),bottom:Math.max(stats.bottom,...btns.map(r=>r.bottom),...half.map(r=>r.bottom)),height:innerHeight,
+        halfSpan:half[1]!.right-half[0]!.left,halfH:Math.min(...half.map(r=>r.height)),full:btns[2]!.width}
     })
+    expect(Math.abs(layout.halfSpan-layout.full)).toBeLessThan(1) // 기체 강화 · 랭킹 두 칸이 주 버튼 폭과 맞는다
+    expect(layout.halfH).toBeGreaterThanOrEqual(44)
     expect(layout.gap).toBeGreaterThanOrEqual(36)
     expect(Math.max(...layout.widths)-Math.min(...layout.widths)).toBeLessThan(1)
     expect(layout.bottom).toBeLessThanOrEqual(layout.height-21)
