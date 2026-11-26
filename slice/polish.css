@@ -196,3 +196,6 @@ button.card{display:flex;flex-direction:column;align-items:flex-start;justify-co
 .hup .lbl{display:flex;flex-direction:column;gap:1px;width:auto;min-width:64px}.hup .lbl>span{white-space:nowrap}.hup .ue{font-size:11px;font-weight:400;color:#8fa6b6}
 @media(max-height:400px){.reroll{margin-top:8px}}
 @media(max-height:380px){#loadout.cmp{gap:1px 9px}#loadout.cmp .loic,#loadout.cmp .loic svg{width:15px;height:15px}}
+/* 글자 하한 12px — 화면 전 지면 공통(작은 라벨·칩 숫자·보스 이름 포함) */
+.wclv,#ebar>span,.lonm,.hrole,.ptitle,.plabel,.card .rr,.result-best,.lolv,#loadout.cmp .lolv,.hup .ue,.startbal small,.loempty,.wrem,.btn.ad small,.center .difflabel,#lb .lbsub,.lbrow .df,.lbrow .wv,.tagmini,.hst,.hst .dl,.hup button,.card .ds{font-size:12px!important}
+.card .ds{font-size:13px!important}

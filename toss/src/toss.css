@@ -202,3 +202,5 @@ button.card{display:grid;grid-template-rows:38px 24px 24px minmax(40px,auto) 14p
  #hangar .hpass{margin:0;line-height:1.2}
  #hangar .hact{margin-top:2px}
 }
+/* 글자 하한 12px */
+.center .hint,.hpass,#over .btn small{font-size:12px!important}
