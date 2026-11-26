@@ -4075,6 +4075,13 @@ function glowSprite(hex,scale,op){const m=L(new THREE.SpriteMaterial({map:glowTe
  const neb=[[0x1e6dff,-14,9,-36,50,.34],[0xff3d9a,13,3,-40,56,.26],[0x8a4fff,2,-8,-32,40,.22]] // 존별 색 헤이즈 강화(불투명도·크기↑)
  const nebSp=[]
  for(const [c,x,y,z,s,o] of neb){const sp=glowSprite(c,s,o);sp.position.set(x,y,z);scene.add(sp);nebSp.push(sp)}
+ // 전장 아래 깔리는 큰 성운 — 검은 바닥 대신 깊이감(존 색을 따라간다)
+ for(const [c,x,y,z,s,o] of [[0x1e6dff,-9,-11,-16,46,.2],[0xff3d9a,10,-12,-6,40,.15],[0x8a4fff,1,-13,-28,52,.17]]){const sp=glowSprite(c,s,o);sp.position.set(x,y,z);scene.add(sp);nebSp.push(sp)}
+ // 속도선 — 앞으로 나아가는 느낌(전장 아래 층이라 탄·적과 겹치지 않는다)
+ {const n=44,p=new Float32Array(n*6);for(let i=0;i<n;i++){const x=rnd(-24,24),y=rnd(-8,-2),z=rnd(-60,14),l=rnd(.9,2.4);p.set([x,y,z,x,y,z+l],i*6)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3))
+  const ln=new THREE.LineSegments(g,L(new THREE.LineBasicMaterial({color:0x8fbfff,transparent:true,opacity:.15,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})))
+  scene.add(ln);window.__streaks=ln}
  const planet=new THREE.Mesh(new THREE.SphereGeometry(5.6,24,18),flat(0x24549a,0x0a1d3e,1.1))
  planet.position.set(-10.5,7,-40);scene.add(planet)
  const pring=new THREE.Mesh(new THREE.RingGeometry(7.2,9.8,48),L(new THREE.MeshBasicMaterial({color:0xb779ff,transparent:true,opacity:.22,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})))
@@ -4099,11 +4106,11 @@ function glowSprite(hex,scale,op){const m=L(new THREE.SpriteMaterial({map:glowTe
  window.__zoneName=i=>ZONES[((i%5)+5)%5].nm
  window.__setZone=(i,instant)=>{const z=ZONES[((i%5)+5)%5]
   zt.bg=zc(z.bg);zt.rim=new THREE.Color(z.rim);zt.pl=zc(z.pl);zt.ple=zc(z.ple);zt.neb=znb(z.neb)
-  if(instant){scene.background.copy(zt.bg);scene.fog.color.copy(zt.bg);rim.color.copy(zt.rim);planet.material.color.copy(zt.pl);planet.material.emissive.copy(zt.ple);nebSp.forEach((sp,j)=>zt.neb[j]&&sp.material.color.copy(zt.neb[j]))}}
+  if(instant){scene.background.copy(zt.bg);scene.fog.color.copy(zt.bg);rim.color.copy(zt.rim);planet.material.color.copy(zt.pl);planet.material.emissive.copy(zt.ple);nebSp.forEach((sp,j)=>sp.material.color.copy(zt.neb[j%3]))}}
  window.__zoneStep=dt=>{const a=Math.min(1,dt*.6)
   scene.background.lerp(zt.bg,a);scene.fog.color.lerp(zt.bg,a);rim.color.lerp(zt.rim,a)
   planet.material.color.lerp(zt.pl,a);planet.material.emissive.lerp(zt.ple,a)
-  nebSp.forEach((sp,j)=>{if(zt.neb[j])sp.material.color.lerp(zt.neb[j],a)})}
+  nebSp.forEach((sp,j)=>{sp.material.color.lerp(zt.neb[j%3],a)})}
  function mkStars(n,size,op,spread){const g=new THREE.BufferGeometry(),p=new Float32Array(n*3)
   for(let i=0;i<n;i++){p[i*3]=rnd(-spread,spread);p[i*3+1]=rnd(-14,10);p[i*3+2]=rnd(-60,14)}
   g.setAttribute('position',new THREE.BufferAttribute(p,3))
@@ -4256,20 +4263,31 @@ function Pool(make,n){const free=[],all=[]
 /* ============ 적 메시 ============ */
 function tagMats(g){g.traverse(o=>{if(o.isMesh){o.userData.bc=o.material.color.getHex();o.userData.be=o.material.emissive?o.material.emissive.getHex():0}})}
 function setFlash(g,on){g.traverse(o=>{if(o.isMesh&&o.material.emissive){o.material.color.setHex(on?0xffffff:(o.userData.bcCur!=null?o.userData.bcCur:o.userData.bc));o.material.emissive.setHex(on?0xffffff:(o.userData.beCur!=null?o.userData.beCur:o.userData.be))}})} // bcCur=베테랑 틴트 등 스폰별 현재색(있으면 우선)
-function mkChaff(){const g=new THREE.Group()
- const geo=new THREE.ConeGeometry(.27,.8,4);geo.rotateX(Math.PI/2)
- g.add(new THREE.Mesh(geo,flat(0xff2e8e,0xb01a63,1.5)))
- const gl=glowSprite(0xff3d9a,.55,.5);gl.position.z=-.2;g.add(gl)
+// 쐐기 선체: 기수(+z)·좌우 날개 끝·등 능선·배 — 단색 도형 대신 기체 실루엣을 만든다(판정 반경 FOE.r 은 그대로)
+function wedge(w,zn,zt,th,notch){const N=[0,0,zn],Lw=[-w,0,zt],Rw=[w,0,zt],T=[0,th,zt*(notch==null?.55:notch)],B=[0,-th*.5,zt*.5]
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([].concat(N,Lw,T, N,T,Rw, Lw,B,T, B,Rw,T, N,B,Lw, N,Rw,B)),3))
+ g.computeVertexNormals();return g}
+const flat2=(c,e,i)=>{const m=flat(c,e,i);m.side=THREE.DoubleSide;return m}
+function spine(len,col,em,z){const m=new THREE.Mesh(new THREE.BoxGeometry(.07,.07,len),L(new THREE.MeshStandardMaterial({color:col,emissive:em,emissiveIntensity:1.9,flatShading:true})));m.position.set(0,.13,z||0);return m}
+function mkChaff(){const g=new THREE.Group() // 요격 다트 — 납작한 삼각 날개 + 발광 척추
+ g.add(new THREE.Mesh(wedge(.46,.58,-.42,.17),flat2(0xd12a7c,0x7a1048,1.25)))
+ g.add(spine(.52,0xffb3dc,0xff3d9a,-.02))
+ const gl=glowSprite(0xff3d9a,.6,.55);gl.position.z=-.36;g.add(gl)
  tagMats(g);scene.add(g);return g}
-function mkDrone(){const g=new THREE.Group()
- g.add(new THREE.Mesh(new THREE.OctahedronGeometry(.56,0),flat(0xff2e8e,0xa3155a,1.45)))
- const eye=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),L(new THREE.MeshStandardMaterial({color:0xff77b8,emissive:0xff2e8e,emissiveIntensity:1.2,flatShading:true})))
- eye.position.set(0,0,.42);g.add(eye)
+function mkDrone(){const g=new THREE.Group() // 포드 드론 — 육각 선체 + 양옆 포드 + 앞 눈
+ const hull=new THREE.CylinderGeometry(.42,.56,.26,6);g.add(new THREE.Mesh(hull,flat(0xc4256f,0x6e0f44,1.2)))
+ const cap=new THREE.Mesh(new THREE.CylinderGeometry(.2,.3,.14,6),flat(0x3a1230,0x4a0f38,1));cap.position.y=.2;g.add(cap)
+ for(const sx of [-1,1]){const pod=new THREE.Mesh(new THREE.BoxGeometry(.2,.16,.62),flat(0x4a1638,0x5a1040,1));pod.position.set(sx*.62,0,-.04);g.add(pod)
+  const tip=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,.12),L(new THREE.MeshStandardMaterial({color:0xffb3dc,emissive:0xff3d9a,emissiveIntensity:1.8,flatShading:true})));tip.position.set(sx*.62,0,.34);g.add(tip)}
+ const eye=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),L(new THREE.MeshStandardMaterial({color:0xffd0e8,emissive:0xff2e8e,emissiveIntensity:1.7,flatShading:true})))
+ eye.position.set(0,.02,.5);g.add(eye)
+ const gl=glowSprite(0xff3d9a,.7,.35);gl.position.z=-.4;g.add(gl)
  tagMats(g);scene.add(g);return g}
-function mkLancer(){const g=new THREE.Group() // 레드 다트 — 측면 강습(마젠타 계열과 색 분화)
- const geo=new THREE.OctahedronGeometry(.5,0);geo.scale(.5,.5,1.7)
- g.add(new THREE.Mesh(geo,flat(0xff5236,0x9a2612,1.5)))
- const gl=glowSprite(0xff6a45,.5,.5);g.add(gl)
+function mkLancer(){const g=new THREE.Group() // 레드 다트 — 측면 강습(마젠타 계열과 색 분화): 긴 바늘 선체 + 뒷날개
+ g.add(new THREE.Mesh(wedge(.24,1.0,-.6,.2,.3),flat2(0xff5236,0x9a2612,1.45)))
+ const fin=new THREE.Mesh(wedge(.52,-.1,-.72,.08),flat2(0x7a1c10,0x5a1408,1));g.add(fin)
+ g.add(spine(.7,0xffd0b8,0xff6a45,.05))
+ const gl=glowSprite(0xff6a45,.55,.55);gl.position.z=-.62;g.add(gl)
  tagMats(g);scene.add(g);return g}
 function mkBig(){const g=new THREE.Group()
  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.0,0),flat(0xa66bff,0x5526a8,1.35)))
@@ -4282,10 +4300,10 @@ function mkStinger(){const g=new THREE.Group()
  const ring=new THREE.Mesh(rg,flat(0xff77bd,0xa3155a,1.4));g.add(ring);g.userData.ring=ring
  const gl=glowSprite(0xff3d9a,.8,.4);g.add(gl)
  tagMats(g);scene.add(g);return g}
-function mkDiver(){const g=new THREE.Group()
- const geo=new THREE.ConeGeometry(.3,1.1,4);geo.rotateX(Math.PI/2)
- g.add(new THREE.Mesh(geo,flat(0xff7a3d,0xc2481a,1.5)))
- const gl=glowSprite(0xff8a4d,.7,.6);gl.position.z=-.2;g.add(gl)
+function mkDiver(){const g=new THREE.Group() // 급강하기 — 넓은 삼각 날개 + 쌍발 엔진
+ g.add(new THREE.Mesh(wedge(.58,.72,-.46,.2),flat2(0xff7a3d,0xc2481a,1.4)))
+ g.add(spine(.6,0xffe0c0,0xff8a4d,.02))
+ for(const sx of [-1,1]){const gl=glowSprite(0xff8a4d,.5,.6);gl.position.set(sx*.22,0,-.46);g.add(gl)}
  tagMats(g);scene.add(g);return g}
 function mkElite(){const g=new THREE.Group()
  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.5,0),flat(0xa66bff,0x5b2bb5,1.4)))
@@ -4464,7 +4482,12 @@ const dPool=Pool(mkDeb,70),debris=[]
 function mkRing(){const m=new THREE.Mesh(new THREE.RingGeometry(.9,1.06,40),
  L(new THREE.MeshBasicMaterial({color:0x8bf3ff,transparent:true,opacity:.9,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})))
  m.rotation.x=-Math.PI/2;scene.add(m);return m}
-const rPool=Pool(mkRing,8),rings=[]
+const rPool=Pool(mkRing,20),rings=[]
+function mkPop(){const sp=glowSprite(0xffffff,1,1);scene.add(sp);return sp} // 격추·피격·서지 섬광(가산 스프라이트)
+const popPool=Pool(mkPop,20),pops=[]
+function pop(x,z,hex,to,dur){if(pops.length>28)return
+ const sp=popPool.get();sp.material.color.setHex(hex).convertSRGBToLinear();sp.material.opacity=1
+ sp.position.set(x,.35,z);sp.scale.set(.3,.3,1);pops.push({sp,t:0,dur:dur||.22,to})}
 function mkTrail(){const sp=glowSprite(0x35e6ff,.5,.5);scene.add(sp);return sp}
 const tPool=Pool(mkTrail,90),trails=[]
 function trail(x,y,z,hex,scale,life){if(trails.length>110)return
@@ -4473,19 +4496,21 @@ function trail(x,y,z,hex,scale,life){if(trails.length>110)return
 function ring(x,z,hex,to,dur){const m=rPool.get();m.material.color.setHex(hex).convertSRGBToLinear();m.material.opacity=.95
  m.position.set(x,0,z);m.scale.setScalar(.2);rings.push({m,t:0,dur,to})}
 function burst(x,z,hex,n){for(let i=0;i<n;i++){if(debris.length>85)break
- const m=dPool.get();m.material.color.setHex(hex).convertSRGBToLinear()
+ const m=dPool.get();m.material.color.setHex(i%3===0?0xfff1f8:hex).convertSRGBToLinear() // 셋 중 하나는 흰 조각(달궈진 파편)
  m.position.set(x,0,z);const a=rnd(0,6.28),s=rnd(3,9)
  debris.push({m,vx:Math.cos(a)*s,vz:Math.sin(a)*s,vy:rnd(1,4),vr:rnd(-8,8),life:rnd(.4,.7)})}}
 
 /* ============ FX 오버레이 ============ */
-const NUM=[],SPARK=[];const FLASH={r:0,c:0};let BANNER=null
+const NUM=[],SPARK=[];const FLASH={r:0,c:0,w:0};let BANNER=null
 const _v=new THREE.Vector3()
 function toScr(x,y,z){_v.set(x,y,z).project(cam);return{x:(_v.x+1)/2*VW,y:(-_v.y+1)/2*VH}}
 function num(wx,wz,txt,col,size){if(NUM.length>36)return;const p=toScr(wx,0,wz);txt=T(txt)
- NUM.push({x:p.x+rnd(-8,8),y:p.y-8,txt,col,size:size||13,life:1})}
+ let y=p.y-8;for(const n of NUM)if(n.life>.5&&Math.abs(n.x-p.x)<30&&Math.abs(n.y-y)<12)y-=13 // 가까운 숫자와 겹치지 않게 위로 쌓는다
+ NUM.push({x:p.x+rnd(-8,8),y,txt,col,size:size||13,life:1})}
 function spark(wx,wz){const p=toScr(wx,0,wz);for(let i=0;i<5;i++){if(SPARK.length>40)break
  const a=rnd(0,6.28),s=rnd(40,130);SPARK.push({x:p.x,y:p.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5})}}
-function banner(txt,col,sub){BANNER={txt:T(txt),col:col||'#b4ff39',sub:T(sub||''),t:0};const te=$('toast');if(te)te.style.opacity=0} // 배너가 뜨면 같은 자리의 알림 띠는 내린다
+function banner(txt,col,sub,minor){BANNER={txt:T(txt),col:col||'#b4ff39',sub:T(sub||''),t:0,minor:!!minor}; // minor=획득·무기 전환 같은 작은 알림(전장을 덜 가리는 알약)
+ const te=$('toast');if(te)te.style.opacity=0} // 배너가 뜨면 같은 자리의 알림 띠는 내린다
 function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
  for(let i=NUM.length-1;i>=0;i--){const n=NUM[i];n.y-=52*rdt;n.life-=rdt*1.5
   if(n.life<=0){NUM.splice(i,1);continue}
@@ -4496,18 +4521,22 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
   fctx.globalAlpha=Math.max(0,s.life*2);fctx.fillStyle='#8bf3ff';fctx.fillRect(s.x-1.5,s.y-1.5,3,3)}
  fctx.globalAlpha=1
  if(BANNER){BANNER.t+=rdt;const k=BANNER.t
-  const a=k<.25?k/.25:(k>1.6?Math.max(0,1-(k-1.6)/.5):1)
+  const mn=BANNER.minor,fo=mn?.9:1.6,end=mn?1.3:2.1
+  const a=k<.25?k/.25:(k>fo?Math.max(0,1-(k-fo)/(end-fo)):1)
   const sc=k<.25?.82+.18*(k/.25):1
-  fctx.save();fctx.translate(VW/2,VH*.30);fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
-  const title=BANNER.txt.replace(/^[◆⚠✦▸]\s*/,''),fontSize=VH<540?25:32
-  fctx.font='700 '+fontSize+'px system-ui,sans-serif';fctx.textAlign='center';fctx.textBaseline='middle'
-  const maxWidth=Math.max(220,VW*.52),tw=Math.min(maxWidth,fctx.measureText(title).width),pw=tw/2+24
-  fctx.fillStyle='rgba(8,16,24,.94)';fctx.fillRect(-pw,-26,pw*2,BANNER.sub?82:52)
-  fctx.fillStyle=BANNER.col;fctx.fillRect(-pw,-26,3,BANNER.sub?82:52)
+  fctx.save();fctx.translate(VW/2,mn?Math.max(84,VH*.215):VH*.30);fctx.scale(sc,sc);fctx.globalAlpha=Math.max(0,a)
+  const title=BANNER.txt.replace(/^[◆⚠✦▸]\s*/,''),fontSize=mn?15:(VH<540?25:32)
+  fctx.font=(mn?'600 ':'700 ')+fontSize+'px system-ui,sans-serif';fctx.textAlign='center';fctx.textBaseline='middle'
+  const maxWidth=Math.max(220,VW*.52),subT=(BANNER.sub&&!mn)?BANNER.sub.replace(/^▸\s*/,''):''
+  let tw=fctx.measureText(title).width;if(subT){fctx.font='500 13px system-ui,sans-serif';tw=Math.max(tw,fctx.measureText(subT).width);fctx.font='700 '+fontSize+'px system-ui,sans-serif'} // 상자 폭은 제목·부제 중 긴 쪽에 맞춘다
+  tw=Math.min(maxWidth,tw);const pw=tw/2+(mn?14:24)
+  const bh=mn?30:(BANNER.sub?82:52),bt=mn?-15:-26
+  fctx.fillStyle=mn?'rgba(8,16,24,.78)':'rgba(8,16,24,.94)';fctx.fillRect(-pw,bt,pw*2,bh)
+  fctx.fillStyle=BANNER.col;fctx.fillRect(-pw,bt,3,bh)
   fctx.fillStyle='#eef5fa';fctx.fillText(title,0,0,maxWidth)
-  if(BANNER.sub){fctx.font='500 13px system-ui,sans-serif';fctx.fillStyle='#aebfce';fctx.fillText(BANNER.sub.replace(/^▸\s*/,''),0,34,maxWidth)}
+  if(BANNER.sub&&!mn){fctx.font='500 13px system-ui,sans-serif';fctx.fillStyle='#aebfce';fctx.fillText(BANNER.sub.replace(/^▸\s*/,''),0,34,maxWidth)}
   fctx.restore()
-  if(k>2.1)BANNER=null}
+  if(k>end)BANNER=null}
  if(S.combo>1&&ST==='play'){const pop=1+S.comboPop*.55
   fctx.save();fctx.translate(VW/2,Math.max(34,VH*.115));fctx.scale(pop,pop)
   fctx.font='900 26px ui-monospace,Menlo,monospace';fctx.textAlign='center'
@@ -4515,7 +4544,16 @@ function drawFX(rdt){fctx.clearRect(0,0,VW,VH)
   fctx.fillText('×'+S.combo,0,0);fctx.restore()
   S.comboPop=Math.max(0,S.comboPop-rdt*4)}
  if(FLASH.r>0){fctx.fillStyle='rgba(255,60,80,'+(FLASH.r*.32)+')';fctx.fillRect(0,0,VW,VH);FLASH.r=Math.max(0,FLASH.r-rdt*2.4)}
- if(FLASH.c>0){fctx.fillStyle='rgba(53,230,255,'+(FLASH.c*.22)+')';fctx.fillRect(0,0,VW,VH);FLASH.c=Math.max(0,FLASH.c-rdt*1.8)}}
+ if(FLASH.c>0){fctx.fillStyle='rgba(53,230,255,'+(FLASH.c*.22)+')';fctx.fillRect(0,0,VW,VH);FLASH.c=Math.max(0,FLASH.c-rdt*1.8)}
+ if(FLASH.w>0){fctx.fillStyle='rgba(235,252,255,'+(FLASH.w*.42)+')';fctx.fillRect(0,0,VW,VH);FLASH.w=Math.max(0,FLASH.w-rdt*5)} // 서지 발동 순간의 흰 섬광
+ if(ST==='play'||ST==='levelup'){const left=S.surgeUntil-performance.now()
+  if(left>0){const al=.2*Math.min(1,left/450),g=fctx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.42,VW/2,VH/2,Math.max(VW,VH)*.72) // 서지 지속 중 화면 가장자리 청록 테
+   g.addColorStop(0,'rgba(53,230,255,0)');g.addColorStop(1,'rgba(53,230,255,'+al+')');fctx.fillStyle=g;fctx.fillRect(0,0,VW,VH)}
+  if(S.surgeFx>0){const k=1-S.surgeFx/.6,pp=toScr(player.position.x,0,player.position.z),R=Math.hypot(VW,VH) // 발동 직후 기체에서 뻗는 방사선
+   fctx.save();fctx.translate(pp.x,pp.y);fctx.strokeStyle='rgba(180,245,255,'+(.55*(1-k))+')';fctx.lineWidth=2;fctx.beginPath()
+   for(let i=0;i<26;i++){const a=i/26*6.283+(i%2)*.07,r0=R*(.06+k*.5),r1=r0+R*(.08+((i*7)%5)*.02)
+    fctx.moveTo(Math.cos(a)*r0,Math.sin(a)*r0);fctx.lineTo(Math.cos(a)*r1,Math.sin(a)*r1)}
+   fctx.stroke();fctx.restore();S.surgeFx=Math.max(0,S.surgeFx-rdt)}}}
 
 /* ============ 메타(영구): 샐비지·함대 ============ */
 function loadMeta(){try{const m=JSON.parse(localStorage.getItem('ns2_meta')||'null')
@@ -4657,7 +4695,7 @@ $('crateIc').innerHTML=SVG.crate
 $('kills').insertAdjacentHTML('afterbegin','<span class="ic24" style="width:15px;height:15px;vertical-align:-2px">'+SVG.skull+'</span> ')
 const sbtn=$('sbtn')
 function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
- $('hpn').textContent=Math.max(0,Math.ceil(S.hp));$('sideL').classList.toggle('low',S.hp/S.maxhp<=.3)
+ $('hpn').textContent=Math.max(0,Math.ceil(S.hp));$('sideL').classList.toggle('low',S.hp/S.maxhp<=.3);$('sideL').classList.toggle('mid',S.hp/S.maxhp<=.6&&S.hp/S.maxhp>.3)
  $('xpb').style.width=clamp(S.xp/S.xpNext*100,0,100)+'%'
  $('lvl').textContent='LV '+S.lvl
  $('kills').lastChild.textContent=' '+S.kills
@@ -4674,7 +4712,7 @@ function setUI(){$('hpb').style.width=Math.max(0,S.hp/S.maxhp*100)+'%'
  else $('ebar').style.display='none'}
 let toastT=null
 let toastQ=0
-function toast(txt,ms,type){clearTimeout(toastQ);if(BANNER){toastQ=setTimeout(()=>toast(txt,ms,type),Math.max(150,(2.15-BANNER.t)*1000));return} // 배너와 겹치지 않게 배너가 끝난 뒤 띄운다
+function toast(txt,ms,type){clearTimeout(toastQ);if(BANNER){toastQ=setTimeout(()=>toast(txt,ms,type),Math.max(150,((BANNER.minor?1.35:2.15)-BANNER.t)*1000));return} // 배너와 겹치지 않게 배너가 끝난 뒤 띄운다
  const el=$('toast');el.textContent=txt // type: good(골드)·bad(빨강)·기본(시안)
  const C=type==='good'?'#ffcf4a':type==='bad'?'#ff5d6c':'#35e6ff'
  el.style.color=C;el.style.borderColor=C+'66';el.style.textShadow='0 0 12px '+C+'99'
@@ -4750,7 +4788,7 @@ function renderWeaponSel(){const el=document.getElementById('wsel') // 온디맨
 function renderLoadout(){const el=document.getElementById('loadout');if(!el)return // 획득 업그레이드(보조·스탯) — 무기는 셀렉터에 별도
  const out=[]
  for(const u of UPG){if(u.wpn)continue;const lv=u.supp?W[u.id]:(ULV[u.id]||0);if(lv>0)out.push({ic:u.ic,nm:u.nm,lv})} // 무기는 셀렉터에 LV 표시
- el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">L'+it.lv+'</span></div>').join(''):''
+ el.innerHTML=out.length?out.map(it=>'<div class="loi"><span class="loic">'+it.ic+'</span><span class="lonm">'+it.nm+'</span><span class="lolv">LV '+it.lv+'</span></div>').join(''):''
  $('sideL').classList.toggle('noload',!out.length)}
 function queueOffer(label){(S.offerLabels||(S.offerLabels=[])).push(label||'LEVEL UP');S.pendingOffers++} // 라벨별 픽 큐잉
 function maybeOffer(){if(ST!=='play'||S.pendingOffers<=0)return
@@ -4784,7 +4822,7 @@ function offer(label){ST='levelup';AU.lvl();buzz(30);const _h=$('modal').querySe
    if(rar==='epic')AU.epic()
    for(let t=0;t<times;t++){if(u.id&&lvOf(u)>=maxOf(u))break;u.ap()}
    if(rar==='rare')S.hp=Math.min(S.maxhp,S.hp+8)
-   {const lvl=u.wpn?S.plvs[u.wpn]:(u.supp?W[u.id]:(u.max?ULV[u.id]:null));banner('✦ '+u.nm+(lvl!=null?' · LV'+lvl:'')+(rar==='epic'?' ×2':''),'#b4ff39')} // 획득 피드백
+   {const lvl=u.wpn?S.plvs[u.wpn]:(u.supp?W[u.id]:(u.max?ULV[u.id]:null));banner('✦ '+u.nm+(lvl!=null?' · LV'+lvl:'')+(rar==='epic'?' ×2':''),'#b4ff39','',true)} // 획득 피드백
    renderLoadout();renderWeaponSel() // 로드아웃·무기 셀렉터(마스터리) 갱신
    $('modal').classList.remove('on');ST='play';maybeOffer()
    if(ST==='play'&&S.crateBonusPending){S.crateBonusPending=false;offerBonusPrompt()}} // 크레이트 픽 전부 소진 → 보너스 광고 프롬프트
@@ -4826,7 +4864,7 @@ function setPrimary(id){ // 온디맨드 전환: 무기 종류 교체 — 발사
  if(S.primary===id||!WNAMES[id])return
  S.primary=id;if(window.__beam)window.__beam.visible=false
  if(window.__beam2)window.__beam2.visible=false
- banner('▸ '+WNAMES[id]+' · LV'+S.plv,'#35e6ff');AU.pick();renderLoadout();renderWeaponSel()}
+ banner('▸ '+WNAMES[id]+' · LV'+S.plv,'#35e6ff','',true);AU.pick();renderLoadout();renderWeaponSel()}
 function fire(){const px=player.position.x,pz=player.position.z
  const dm=(S.dmg+(S.plv-1))*(S.dmgMult||1) // 데미지 = 기본+든 무기 자기 레벨
  if(S.primary==='pulse'){const lv=S.plvs.pulse,n=1+Math.floor(lv/2),bs=1+(lv-1)*.12,twin=lv>=5,prc=lv>=10?1:0 // LV5 트윈 스트림 · LV10 관통
@@ -4911,8 +4949,10 @@ function kill(f,byNova){const c=FOE[f.type],x=f.m.position.x,z=f.m.position.z,no
  if(f.type==='splitter'&&z<PZ){for(let k=0;k<2;k++){const sh=spawnFoe('shard',x+((k?1:-1)*.5),z) // 분열: 2조각 확산
   if(sh)sh.vx=(k?1:-1)*rnd(2.5,4)}}
  const big=f.type==='big'||f.type==='stinger'||f.type==='bomber'||f.type==='shielded'||f.type==='turret'||f.type==='worm'||f.boss
- burst(x,z,(f.type==='big'||f.boss)?0xb98cff:0xff5fae,f.boss?20:(big?12:7))
- if(big)ring(x,z,0xffd9f0,f.boss?5:3.2,f.boss?.5:.32)
+ const xc=(f.type==='big'||f.boss)?0xb98cff:0xff5fae
+ burst(x,z,xc,f.boss?20:(big?12:8))
+ pop(x,z,0xffffff,f.boss?9:(big?4.4:2.3),f.boss?.4:(big?.28:.18));pop(x,z,xc,f.boss?14:(big?6.5:3.4),f.boss?.6:(big?.42:.3))
+ ring(x,z,big?0xffd9f0:0xff9fd0,f.boss?5:(big?3.2:1.5),f.boss?.5:(big?.32:.2))
  num(x,z,c.num,big?'#ffcf4a':'#ffffff',big?16:13)
  const SALV={chaff:1,drone:2,lancer:2,stinger:4,big:6,diver:2,elite:150,splitter:5,weaver:2,shard:1,bomber:6,shielded:8,
   turret:5,crab:3,worm:5,lamprey:3,mine:1,warden:150,monarch:170,hive:170,twin:180,minelayer:180,aegis:190,gatekeeper:220} // 신규 잡몹·8보스 샐비지
@@ -4982,6 +5022,7 @@ function hurt(dmg,iframes){const now=performance.now()
  S.invUntil=now+(iframes||950)
  S.hp-=dmg;S.combo=0;MET.hurts.push({t:S.t,d:dmg});hpPulse();S.lastDmg='hit'
  FLASH.r=1;S.shake=Math.min(S.shake+9,12);S.freezeUntil=now+70
+ pop(player.position.x,player.position.z,0xff5d6c,4.2,.3);ring(player.position.x,player.position.z,0xff8b98,2.6,.3)
  AU.hurt();buzz(55)
  if(S.hp<=0)die()}
 function leak(f){ // 통과 페널티 — 주차 봉쇄 + 버스트 즉사 방지(0.6s 누수 무적)
@@ -5002,9 +5043,11 @@ function fireSurge(){if(ST!=='play'||S.surge<100)return
  const now=performance.now()
  S.surge=0;S.surgeFired++;MET.surges.push(S.t)
  S.surgeUntil=now+2400;S.invUntil=Math.max(S.invUntil,now+2600)
- S.novaT=0;FLASH.c=1;S.freezeUntil=now+90
+ S.novaT=0;FLASH.c=1;FLASH.w=1;S.surgeFx=.6;S.shake=Math.max(S.shake,10);S.freezeUntil=now+90
  AU.surge();buzz(80)
- ring(player.position.x,player.position.z,0xffffff,4,.4)}
+ const sx=player.position.x,sz=player.position.z
+ ring(sx,sz,0xffffff,4,.4);ring(sx,sz,0x35e6ff,8.5,.7);ring(sx,sz,0xffffff,6,.55)
+ pop(sx,sz,0xffffff,9,.45);pop(sx,sz,0x35e6ff,16,.75)}
 let novaRing=null
 
 /* ============ 스폰 디렉터(웨이브 펄스 + 엘리트) ============ */
@@ -5093,6 +5136,9 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
  for(let li=0;li<window.__stars.length;li++){const st=window.__stars[li],spd=(li===1?3.5:1.6),arr=st.geometry.attributes.position.array // 개별 정점 스크롤+개별 랩(z>14→뒤로 −74) — 그룹 %2 스냅백(끊김) 제거
   for(let i=2;i<arr.length;i+=3){arr[i]+=spd*rdt;if(arr[i]>14)arr[i]-=74}
   st.geometry.attributes.position.needsUpdate=true}
+ if(window.__streaks){const arr=window.__streaks.geometry.attributes.position.array,v=(slow?9:24)*rdt
+  for(let i=0;i<arr.length;i+=6){arr[i+2]+=v;arr[i+5]+=v;if(arr[i+2]>14){arr[i+2]-=74;arr[i+5]-=74}}
+  window.__streaks.geometry.attributes.position.needsUpdate=true}
  player.visible=SHIP_READY&&!(performance.now()<S.invUntil&&((performance.now()/70|0)%2===0)) // 매 프레임: GLB 로드 전엔 기체 숨김(타이틀 로프트 플래시 제거)
  $('ui').classList.toggle('playing',ST==='play'||ST==='levelup'||ST==='reward') // 인게임 HUD는 인런(플레이·레벨업·보급) 상태에만 — 행어/타이틀/광고엔 숨김(startBal은 스코프 문제로 saveMeta/startup에서 갱신)
  for(const r of window.__roids){r.position.z+=r.userData.vz*rdt;r.rotation.x+=r.userData.vr*rdt;r.rotation.y+=r.userData.vr*.7*rdt
@@ -5552,6 +5598,9 @@ function frame(now){if(!window.__manual)requestAnimationFrame(frame)
   r.m.scale.setScalar(Math.max(.05,r.to*(r.nova?k:(1-Math.pow(1-k,2)))))
   r.m.material.opacity=.95*(1-k)
   if(k>=1){rPool.put(r.m);rings.splice(i,1)}}
+ for(let i=pops.length-1;i>=0;i--){const q=pops[i];q.t+=rdt;const k=clamp(q.t/q.dur,0,1),sc=Math.max(.05,q.to*(1-Math.pow(1-k,3)))
+  q.sp.scale.set(sc,sc,1);q.sp.material.opacity=1-k*k
+  if(k>=1){popPool.put(q.sp);pops.splice(i,1)}}
  for(let i=trails.length-1;i>=0;i--){const t=trails[i];t.life-=rdt
   t.sp.material.opacity=.5*(t.life/t.max);t.sp.position.z+=rdt*1.2
   if(t.life<=0){tPool.put(t.sp);trails.splice(i,1)}}
@@ -5577,6 +5626,7 @@ function reset(){for(const f of [...foes])releaseFoe(f)
  for(let i=crates.length-1;i>=0;i--){cratePool.put(crates[i].m)};crates.length=0
  for(let i=debris.length-1;i>=0;i--){dPool.put(debris[i].m)};debris.length=0
  for(let i=rings.length-1;i>=0;i--){rPool.put(rings[i].m)};rings.length=0
+ for(let i=pops.length-1;i>=0;i--){popPool.put(pops[i].sp)};pops.length=0
  for(let i=trails.length-1;i>=0;i--){tPool.put(trails[i].sp)};trails.length=0
  NUM.length=0;SPARK.length=0;BANNER=null;clearTimeout(toastQ);S.offerLabels=[]
  W.orbit=0;W.homing=0

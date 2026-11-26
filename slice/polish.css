@@ -179,3 +179,8 @@ button.card{display:flex;flex-direction:column;align-items:flex-start;justify-co
 @media(prefers-reduced-motion:reduce){#sideL.low .hp>i,.hprow.hit{animation:none}}
 
 #resumeBtn{display:flex;align-items:center;justify-content:center}
+
+/* 2026-11-26 UI 2차 — 레벨 표기 정리·체력 중간 단계 */
+#wmastery{display:none}
+.lolv{color:#9fd8e6;font:600 11px system-ui,sans-serif}
+#sideL.mid .hp>i{background:#f0a94a}
