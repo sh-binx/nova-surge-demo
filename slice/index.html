@@ -4018,7 +4018,7 @@ const AU={ac:null,muted:false,sysMuted:false,musOff:false,sfxOff:false, // musOf
  flush(){if(!this.ac)return;if(!this._sb)this._ls();try{this.sfx.disconnect()}catch(e){}this.sfx=this.ac.createGain();this.sfx.gain.value=this.sfxOff?0:1;this.sfx.connect(this.master);this._t={}}, // 새 판: 지난 판의 예약음(격추·기록 징글 꼬리)을 끊는다
  // ── 전투 ──
  // 제작된 효과음(CC0 재료를 다듬어 한 파일로 묶음 · slice/sfx.wav). 이름:[시작초, 길이초, 음량]. 파일을 못 읽으면 각 함수의 합성음이 대신 난다
- SMP:{shot:[0.02,0.16,0.0451],shot2:[0.21,0.2,0.0371],rail:[0.44,0.55,0.164],eshot:[1.02,0.22,0.0269],hit:[1.27,0.13,0.0354],kill:[1.43,0.38,0.1072],pop:[1.84,0.22,0.0698],blastS:[2.09,0.42,0.1428],boom:[2.54,0.9,0.202],bigKill:[3.47,1.1,0.26],bomb:[4.6,1.8,0.2984],bossDown:[6.43,1.9,0.3019],death:[8.36,1.7,0.2189],hurt:[10.09,0.42,0.1737],surge:[10.54,1.0,0.2985],block:[11.57,0.45,0.1202],barUp:[12.05,0.3599,0.1272],shieldDown:[12.4399,0.32,0.1699],heal:[12.7899,0.46,0.138],magnet:[13.2799,0.4064,0.1203],pick:[13.7163,0.32,0.1348],coin:[14.0663,0.0995,0.0676],crate:[14.1958,0.6,0.1412],ready:[14.8258,0.476,0.1203],lvl:[15.3319,1.1378,0.1529],epic:[16.4997,1.1262,0.1737],evolve:[17.6558,1.0681,0.2292],buy:[18.754,0.539,0.1347],reroll:[19.323,0.3,0.0989],revive:[19.653,0.7779,0.1759],ui:[20.4609,0.0971,0.0609],dash:[20.588,0.4,0.1012],blink:[21.018,0.37,0.101]},
+ SMP:{shot:[0.02,0.18,0.0563],shot2:[0.23,0.2,0.0526],rail:[0.46,0.55,0.2516],eshot:[1.04,0.22,0.0404],hit:[1.29,0.1,0.0748],kill:[1.42,0.38,0.1893],pop:[1.83,0.22,0.0942],blastS:[2.08,0.42,0.1321],boom:[2.53,0.9,0.2142],bigKill:[3.46,1.1,0.2651],bomb:[4.59,1.8,0.269],bossDown:[6.42,1.9,0.2663],death:[8.35,1.25,0.2626],hurt:[9.63,0.34,0.2635],surge:[10.0,1.0,0.2374],block:[11.03,0.4,0.1405],barUp:[11.46,0.3599,0.0918],shieldDown:[11.8499,0.32,0.1291],heal:[12.1999,0.46,0.1178],magnet:[12.6899,0.4064,0.1915],pick:[13.1263,0.2322,0.0736],coin:[13.3885,0.0995,0.15],crate:[13.5181,0.6,0.096],ready:[14.1481,0.476,0.0619],lvl:[14.6541,1.1378,0.1663],epic:[15.8219,1.1262,0.1203],evolve:[16.9781,1.0681,0.1861],buy:[18.0762,0.539,0.0867],reroll:[18.6452,0.3,0.1841],revive:[18.9752,0.7779,0.1334],ui:[19.7831,0.12,0.0844],dash:[19.9331,0.36,0.0882],blink:[20.3231,0.37,0.121]},
  _ls(){if(this._sp)return this._sp;return this._sp=fetch('sfx.wav').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>new Promise((ok,no)=>{let dc=this.ac
    try{dc=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,1,32000)}catch(e){}
    const pr=dc.decodeAudioData(a,ok,no);pr&&pr.then&&pr.then(ok,no)})).then(b=>{this._sb=b}).catch(()=>{this._sp=null})}, // 실패하면 다음 기회(첫 터치·새 판)에 다시 받는다
@@ -4032,20 +4032,20 @@ const AU={ac:null,muted:false,sysMuted:false,musOff:false,sfxOff:false, // musOf
  laser(){this._lz=this.ac?this.ac.currentTime+.22:0},
  beam(){this._bm=this.ac?this.ac.currentTime+.15:0},
  hit(x,boss){if(!this._on()||!this._g('hit',.045))return;if(this._s('hit',boss?1.25:1,(boss?.8:1)*this._r(.08),this._px(x)))return;this.tone((boss?310:560)*this._r(.08),.04,'triangle',.04,boss?170:360,0,this._px(x))},
- crit(){if(!this._on()||!this._g('crit',.09))return;this.tone(2100,.06,'sine',.045,3200);this.tone(1400,.05,'triangle',.03)},
+ crit(){if(!this._on()||!this._g('crit',.09))return;this.tone(2100,.06,'sine',.07,3200);this.tone(1400,.05,'triangle',.047)},
  kill(c,x){if(!this._on()||!this._g('kill',.035))return;const p=this._px(x);if(this._s('kill',1,(1+Math.min(c,16)*.012)*this._r(.05),p))return
   this.tone(150+Math.min(c,16)*14,.16,'sawtooth',.05,48,0,p,2600);this.noise(.17,.085,0,1900,'lowpass',.7,280,p);this.tone(92,.14,'sine',.075,40,0,p)},
  pop(c,x){if(!this._on()||!this._g('pop',.03))return;const p=this._px(x);if(this._s('pop',1,(1+Math.min(c,16)*.015)*this._r(.05),p))return;this.tone(520+Math.min(c,16)*28,.07,'triangle',.04,180,0,p);this.noise(.04,.028,0,5200,'highpass',0,0,p)},
- xp(i){if(!this._on()||!this._g('xp',.025))return;const P=[392,440,523,587,659,784,880,988,1175,1319];this.tone(P[Math.min(i,9)],.07,'sine',.05)},
- graze(x){if(!this._on()||!this._g('graze',.03))return;this.tone(1350*this._r(.03),.04,'sine',.06,1750,0,this._px(x))},
+ xp(i){if(!this._on()||!this._g('xp',.025))return;const P=[392,440,523,587,659,784,880,988,1175,1319];this.tone(P[Math.min(i,9)],.07,'sine',.085)},
+ graze(x){if(!this._on()||!this._g('graze',.03))return;this.tone(1350*this._r(.03),.04,'sine',.078,1750,0,this._px(x))},
  eshot(x){if(!this._on()||!this._g('eshot',.11))return;if(this._s('eshot',1,this._r(.05),this._px(x)))return;this.tone(430*this._r(.05),.09,'square',.034,230,0,this._px(x),1500)},
  hurt(){if(!this._on())return;if(this._s('hurt'))return;this.tone(95,.24,'sine',.17,48);this.noise(.15,.1,0,1600,'lowpass');this.tone(330,.12,'square',.06,130,0,0,1900)},
- leak(){this.tone(110,.14,'sine',.1,58);this.tone(294,.12,'triangle',.07,165,.02);this.noise(.06,.04,0,900,'bandpass',1.5)},
- heart(){this.tone(62,.12,'sine',.12,44);this.tone(196,.09,'triangle',.06,110);this.tone(58,.14,'sine',.09,40,.17);this.tone(175,.1,'triangle',.045,98,.17)}, // 작은 스피커에서도 들리게 중역을 겹친다
+ leak(){this.tone(110,.14,'sine',.1,58);this.tone(294,.12,'triangle',.1,165,.02);this.tone(784,.16,'square',.14,440,0,0,2600);this.tone(1175,.12,'triangle',.08,660,.02);this.noise(.08,.1,0,1400,'bandpass',1.5)},
+ heart(){this.tone(62,.12,'sine',.035,44);this.tone(196,.09,'triangle',.06,110);this.tone(523,.09,'triangle',.2,294);this.tone(58,.14,'sine',.025,40,.17);this.tone(175,.1,'triangle',.05,98,.17);this.tone(466,.1,'triangle',.16,262,.17)}, // 작은 스피커에서도 들리게 중역을 겹친다
  surge(){this.duck(.25,.7);if(this._s('surge'))return;this.tone(140,.6,'sine',.2,36);this.tone(55,.45,'sine',.13,30,.05);this.noise(.45,.14,0,5200,'lowpass',.7,200);this.tone(2200,.45,'sine',.04,300)},
  ready(){if(!this._on())return;if(this._s('ready'))return;this.tone(880,.3,'sine',.05,1760);this.tone(1320,.3,'sine',.03,2640)},
- warn(){this.tone(233,.2,'square',.055,180,0,0,1700);this.tone(233,.2,'square',.055,180,.28,0,1700)},
- tele(){this.tone(880,.13,'triangle',.06,440)},
+ warn(){this.tone(233,.2,'square',.11,180,0,0,2200);this.tone(699,.2,'square',.1,540,0,0,3000);this.tone(233,.2,'square',.11,180,.28,0,2200);this.tone(699,.2,'square',.1,540,.28,0,3000)},
+ tele(){this.tone(880,.13,'triangle',.12,440)},
  // ── 아이템·강화 ──
  heal(){if(!this._on())return;if(this._s('heal'))return;[523,659,784].forEach((f,i)=>this.tone(f,.11,'sine',.07,null,i*.06));this.tone(1046,.28,'sine',.045,null,.18)},
  magnet(){if(!this._on())return;if(this._s('magnet'))return;this.tone(300,.36,'sine',.07,1250);this.noise(.3,.05,0,800,'bandpass',2,4200)},
@@ -4061,8 +4061,8 @@ const AU={ac:null,muted:false,sysMuted:false,musOff:false,sfxOff:false, // musOf
  dash(){if(!this._on()||!this._g('dash',.12))return;if(this._s('dash'))return;this.noise(.28,.09,0,500,'bandpass',1.2,2800);this.tone(220,.25,'sawtooth',.05,90,0,0,1400)},
  boom(x){if(!this._on()||!this._g('boom',.07))return;const p=this._px(x);if(this._s('boom',1,this._r(.05),p))return;this.tone(78,.32,'sawtooth',.1,44,0,p,1200);this.noise(.22,.09,0,1500,'lowpass',.7,200,p);this.tone(196,.1,'triangle',.05,98,0,p)},
  blastS(x){if(!this._on()||!this._g('blastS',.06))return;const p=this._px(x);if(this._s('blastS',1,this._r(.06),p))return;this.noise(.14,.07,0,2400,'lowpass',.7,400,p);this.tone(165,.12,'triangle',.05,70,0,p)},
- hatch(){if(!this._on()||!this._g('hatch',.1))return;this.tone(220,.2,'square',.05,110,0,0,1500);this.noise(.1,.04,0,1200,'bandpass',2)},
- mine(){if(!this._on()||!this._g('mine',.1))return;this.tone(165,.14,'square',.045,82,0,0,1400)},
+ hatch(){if(!this._on()||!this._g('hatch',.1))return;this.tone(220,.2,'square',.08,110,0,0,2400);this.tone(660,.16,'triangle',.07,330);this.noise(.1,.09,0,1200,'bandpass',2)},
+ mine(){if(!this._on()||!this._g('mine',.1))return;this.tone(165,.14,'square',.09,82,0,0,2000);this.tone(660,.12,'triangle',.13,330)},
  bigKill(x){const p=this._px(x);if(!this._on())return;if(this._s('bigKill',1,1,p))return;this.noise(.4,.13,0,1800,'lowpass',.6,150,p);this.tone(110,.4,'sine',.14,36,0,p);this.tone(330,.2,'sawtooth',.05,82,0,p,2000)},
  ui(){if(!this._on()||!this._g('ui',.06))return;if(this._s('ui'))return;this.tone(1047,.035,'sine',.04)},
  reroll(){if(!this._on())return;if(this._s('reroll'))return;for(let i=0;i<4;i++)this.noise(.035,.1,i*.05,3000+i*500,'bandpass',2.5);this.tone(600,.2,'triangle',.05,950,.02)},
@@ -4071,9 +4071,9 @@ const AU={ac:null,muted:false,sysMuted:false,musOff:false,sfxOff:false, // musOf
  epic(){if(!this._on()||!this._g('epic',.3))return;if(this._s('epic'))return;this.tone(880,.5,'sine',.06,1760);this.tone(884,.5,'sine',.05,1768);this.tone(1320,.4,'triangle',.04,2600,.1);this.noise(.5,.02,.05,7000,'highpass')},
  evolve(){this.duck(.4,.8);if(this._s('evolve'))return;[392,523,659,784,1046,1568].forEach((f,i)=>this.tone(f,.16,'triangle',.06,null,i*.06));this.tone(98,.6,'sine',.12,60);this.noise(.7,.03,.1,6500,'highpass');this.tone(1568,.7,'sine',.035,null,.36)},
  // ── 진행 ──
- wave(){this.tone(392,.12,'triangle',.06);this.tone(587,.22,'triangle',.06,null,.1)},
+ wave(){this.tone(392,.12,'triangle',.11);this.tone(784,.12,'triangle',.06);this.tone(587,.22,'triangle',.12,null,.1);this.tone(1175,.22,'triangle',.06,null,.1)},
  boss(){this.duck(.3,1);this.tone(70,.8,'sine',.18,45);this.noise(.5,.13,0,1200,'lowpass');[392,466,587].forEach((f,i)=>this.tone(f,.3,'sawtooth',.045,null,.15+i*.12,0,2200))},
- bossP2(){this.duck(.3,.9);this.tone(58,.7,'sine',.2,34);this.noise(.5,.12,0,900,'lowpass');[311,370,440].forEach((f,i)=>this.tone(f,.26,'sawtooth',.045,null,.08+i*.1,0,1900))},
+ bossP2(){this.duck(.3,.9);this.tone(58,.7,'sine',.2,34);this.noise(.5,.12,0,900,'lowpass');[311,370,440].forEach((f,i)=>this.tone(f,.26,'sawtooth',.07,null,.08+i*.1,0,2400))},
  bossDown(){this.duck(.25,1.4);if(!this._s('bossDown'))for(let i=0;i<5;i++){this.noise(.32,.12,i*.11,1700-i*220,'lowpass',.6,160);this.tone(120-i*12,.3,'sine',.13,36,i*.11)}
   ;[523,659,784,1046,1319].forEach((f,i)=>this.tone(f,.2,'triangle',.055,null,.62+i*.08));this.tone(1319,.6,'sine',.035,null,1.02)},
  revive(){if(!this._on())return;if(this._s('revive'))return;[392,523,659,880].forEach((f,i)=>this.tone(f,.14,'triangle',.08,null,i*.09))},
@@ -4112,7 +4112,7 @@ const AU={ac:null,muted:false,sysMuted:false,musOff:false,sfxOff:false, // musOf
   if(it>=3&&!boss&&(cyc&1)){const n=this.LEAD[bar][st];if(n)this._mv(t,this._hz(n),sd*2.6,.032,'triangle',3200,.7,true)} // 선율(8마디마다 번갈아)
   if(boss&&st%8===0)this._mv(t,this._hz(ch[0]+12),sd*6,.02,'sawtooth',1300,2,true)},
  // 배경 음악 파일(Suno 제작 · 마디 경계에서 자른 루프). [파일, 44.1kHz 기준 루프 표본 수, 음량]. 못 읽으면 아래 합성 시퀀서가 대신 연주한다
- BGM:{menu:['bgm-title.mp3',2488321,.55],play:['bgm-combat.mp3',2126848,.55],boss:['bgm-boss.mp3',1798144,.48]},
+ BGM:{menu:['bgm-title.mp3',2488321,.55],play:['bgm-combat.mp3',2126848,.32],boss:['bgm-boss.mp3',1798144,.28]},
  _load(k){const B=this._bg||(this._bg={});if(B[k])return B[k].p;const d=this.BGM[k],o=B[k]={}
   return o.p=fetch(d[0]).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>new Promise((ok,no)=>{let dc=this.ac
     try{dc=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(2,1,32000)}catch(e){} // 32kHz 로 풀어 메모리를 줄인다
@@ -6137,6 +6137,7 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  auNames:()=>Object.keys(AU).filter(k=>typeof AU[k]==='function'&&k[0]!=='_'&&!['unlock','tone','noise','duck','frame','laser','beam','flush','drop'].includes(k)),
  auRender:async spec=>{const sr=44100,n=sr*spec.secs|0,off=new OfflineAudioContext(2,n,sr),K=['ac','master','comp','sfx','mus','duckG','musF','dly','nb','lzG','bmG','M','_t','_k','_vw','_vn','muted','sysMuted'],keep={};for(const k of K)keep[k]=AU[k]
   AU._off=true;let buf;try{AU._init(off);AU.muted=AU.sysMuted=false
+   AU._sh=false;if(spec.bgm){const o=AU._bg&&AU._bg[spec.bgm.k];if(o&&o.buf){const s=off.createBufferSource(),g=off.createGain();g.gain.value=AU.BGM[spec.bgm.k][2];s.buffer=o.buf;s.loop=true;s.loopStart=o.st;s.loopEnd=o.en;s.connect(g);g.connect(AU.mus);AU.mus.gain.value=spec.bgm.gain==null?.85:spec.bgm.gain;s.start(0,o.st)}} // 실제 음악 파일을 게임과 같은 경로로(압축기 포함) 렌더
    if(spec.music){AU.M.mode=spec.music.mode;AU.M.int=spec.music.int;AU.M.next=.05;AU.mus.gain.value=spec.music.gain==null?1:spec.music.gain;if(spec.music.cut)AU.musF.frequency.value=spec.music.cut;AU._sched(spec.secs-.1)}
    if(spec.laser){AU.lzG.gain.setValueAtTime(.03,spec.laser[0]);AU.lzG.gain.setValueAtTime(0,spec.laser[1])}
    const by={};for(const e of spec.sfx||[]){const t=Math.max(128/sr,Math.round(e[1]*sr/128)*128/sr);(by[t]=by[t]||[]).push(e)}
