@@ -17,7 +17,7 @@ export type TossSdk = Pick<typeof Ait,
 
 /** 게임(slice/index.html)이 PF.attach 로 넘겨주는 훅. */
 export interface GameHooks {
-  AU: { ac: AudioContext | null; muted: boolean; sysMuted: boolean }
+  AU: { ac: AudioContext | null; muted: boolean; sysMuted: boolean; musOff: boolean; sfxOff: boolean }
   state(): string
   pause(): void
   resume(): void
@@ -27,7 +27,7 @@ export interface GameHooks {
 type Insets = { top: number; bottom: number; left: number; right: number }
 
 /** 영구 저장 키 — 게임 메타(샐비지·기체·강화·난이도) · 최고 점수 · 이름 · 사운드 설정. */
-export const PERSIST_KEYS = ['ns2_meta', 'ns2_best', 'ns2_name', 'ns2_snd'] as const
+export const PERSIST_KEYS = ['ns2_meta', 'ns2_best', 'ns2_name', 'ns2_snd', 'ns2_mus', 'ns2_sfx'] as const
 const OWNER_KEY = 'ns2_toss_owner' // localStorage 미러의 주인(유저 식별키) — 같은 기기에서 토스 계정이 바뀌면 미러를 비운다
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -95,7 +95,9 @@ export class TossPlatform {
   private readonly holds = new Set<string>()
   private hapticAt = 0
   private insets: Insets = { top: 0, bottom: 0, left: 0, right: 0 }
-  private soundOn = true
+  private musicOn = true
+  private sfxOn = true
+  private get soundOn() { return this.musicOn || this.sfxOn }
   private repaintSound: (() => void) | null = null
 
   constructor(private readonly sdk: TossSdk, translate: (s: string) => string, private readonly opts: {
@@ -191,21 +193,26 @@ export class TossPlatform {
   attach(g: GameHooks): void {
     this.game = g
     this.applySound()
-    this.repaintSound = mountSoundToggle(() => this.soundOn, on => this.setSound(on))
+    this.repaintSound = mountSoundToggle(k => (k === 'music' ? this.musicOn : this.sfxOn), (k, on) => this.setSound(k, on))
     this.applyAudio()
   }
 
   private readSoundPref() {
-    try { this.soundOn = localStorage.getItem('ns2_snd') !== '0' } catch { this.soundOn = true }
+    // 예전 단일 스위치(ns2_snd=0)로 꺼 둔 사용자는 둘 다 꺼진 상태로 이어받는다
+    try {
+      const old = localStorage.getItem('ns2_snd') !== '0', m = localStorage.getItem('ns2_mus'), s = localStorage.getItem('ns2_sfx')
+      this.musicOn = m == null ? old : m !== '0'
+      this.sfxOn = s == null ? old : s !== '0'
+    } catch { this.musicOn = this.sfxOn = true }
   }
-  setSound(on: boolean): void {
-    this.soundOn = on
-    try { localStorage.setItem('ns2_snd', on ? '1' : '0') } catch { /* no-op */ }
-    this.persist('ns2_snd', on ? '1' : '0')
+  setSound(k: 'music' | 'sfx', on: boolean): void {
+    if (k === 'music') this.musicOn = on; else this.sfxOn = on
+    const kv: [string, string][] = [['ns2_mus', this.musicOn ? '1' : '0'], ['ns2_sfx', this.sfxOn ? '1' : '0'], ['ns2_snd', this.soundOn ? '1' : '0']]
+    for (const [key, v] of kv) { try { localStorage.setItem(key, v) } catch { /* no-op */ } this.persist(key, v) }
     this.applySound()
     this.repaintSound?.()
   }
-  private applySound() { if (this.game) this.game.AU.sysMuted = !this.soundOn }
+  private applySound() { if (!this.game) return; const au = this.game.AU; au.musOff = !this.musicOn; au.sfxOff = !this.sfxOn; au.sysMuted = !this.soundOn }
 
   /** 오디오 홀드(백그라운드·광고·종료 모달) — 하나라도 있으면 AudioContext 를 즉시 suspend. */
   private hold(r: string) { this.holds.add(r); this.applyAudio() }
@@ -361,7 +368,7 @@ export class TossPlatform {
     return {
       userKey: this.userKey, storageOk: this.storageOk, insets: { ...this.insets },
       ads: { interstitial: this.ads.interstitial.state, rewarded: this.ads.rewarded.state },
-      adShowing: this.adShowing, exitModalOpen: !!this.exitModal?.open, sound: this.soundOn, audio: this.audioState(),
+      adShowing: this.adShowing, exitModalOpen: !!this.exitModal?.open, sound: this.soundOn, music: this.musicOn, sfx: this.sfxOn, audio: this.audioState(),
     }
   }
 }

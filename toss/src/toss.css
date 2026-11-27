@@ -20,12 +20,13 @@ html{font-variant-numeric:tabular-nums}
 body:has(#ui:not(.playing)) #fx{visibility:hidden}
 
 /* ── 사운드 토글(좌상단 — 타이틀·일시정지·결과·기체 화면) ── */
-.ait-snd{position:absolute;top:10px;left:12px;z-index:9;display:flex;align-items:center;gap:6px;pointer-events:auto;cursor:pointer;
+.ait-snds{position:absolute;top:10px;left:12px;z-index:9;display:flex;gap:8px;pointer-events:none}
+.ait-snd{display:flex;align-items:center;gap:6px;pointer-events:auto;cursor:pointer;
   height:36px;padding:0 12px 0 9px;border-radius:10px;background:rgba(10,16,32,.72);border:1px solid rgba(120,150,220,.35);
   color:#c3cde8;font:800 12px ui-monospace,Menlo,NSKR,monospace;-webkit-tap-highlight-color:transparent}
 .ait-snd svg{width:18px;height:18px}
 .ait-snd[aria-pressed="false"]{color:#7a86a8}
-#ui.playing .ait-snd{display:none}
+#ui.playing .ait-snds{display:none}
 
 /* ── 짧은 가로 화면(폰 가로 ≈ 360–430px · 데스크톱 브라우저 창 ≤700px) 압축 레이아웃 — 기체 화면 세로 스택이 넘친다 ── */
 @media (max-height:700px){

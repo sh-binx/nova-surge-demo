@@ -3966,7 +3966,8 @@ const SVG={
 }
 
 /* ============ AUDIO ============ */
-const AU={ac:null,muted:false,sysMuted:false, // muted=광고 중 음소거 · sysMuted=CG 플랫폼 뮤트 버튼(설정이 항상 우선)
+const AU={ac:null,muted:false,sysMuted:false,musOff:false,sfxOff:false, // musOff·sfxOff=플레이어가 음악·효과음을 따로 끈 상태
+  // muted=광고 중 음소거 · sysMuted=CG 플랫폼 뮤트 버튼(설정이 항상 우선)
  _t:{},_vw:0,_vn:0,_k:'',_hb:0,_lz:0,_lzOn:false,_hid:false,
  // 그래프: 효과음·음악 → 마스터 → 리미터 → 출력. 겹쳐도 찢어지지 않게 한곳에서 눌러 준다.
  _init(ac){this.ac=ac
@@ -4014,7 +4015,7 @@ const AU={ac:null,muted:false,sysMuted:false, // muted=광고 중 음소거 · s
   src.connect(g);g.connect(dst||this._out(pan));s.loop=true;s.start(t0,Math.random()*1.4);s.stop(t0+d+.06)}catch(e){}},
  _r(a){return 1+(Math.random()*2-1)*a},
  duck(a,d){if(!this._on())return;const p=this.duckG.gain,t=this.ac.currentTime;if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(t);else{const v=p.value;p.cancelScheduledValues(t);p.setValueAtTime(v,t)}p.setTargetAtTime(a,t,.012);p.setTargetAtTime(1,t+d,.3)},
- flush(){if(!this.ac)return;try{this.sfx.disconnect()}catch(e){}this.sfx=this.ac.createGain();this.sfx.connect(this.master);this._t={}}, // 새 판: 지난 판의 예약음(격추·기록 징글 꼬리)을 끊는다
+ flush(){if(!this.ac)return;try{this.sfx.disconnect()}catch(e){}this.sfx=this.ac.createGain();this.sfx.gain.value=this.sfxOff?0:1;this.sfx.connect(this.master);this._t={}}, // 새 판: 지난 판의 예약음(격추·기록 징글 꼬리)을 끊는다
  // ── 전투 ──
  shot(x){if(!this._on()||!this._g('shot',.05))return;this.tone(820*this._r(.04),.05,'triangle',.03,300,0,this._px(x))},
  rail(x){const p=this._px(x);this.tone(240,.2,'sawtooth',.055,70,0,p,2400);this.noise(.14,.05,0,3200,'bandpass',1,700,p);this.tone(1500,.09,'sine',.03,420,0,p)},
@@ -4130,13 +4131,14 @@ const AU={ac:null,muted:false,sysMuted:false, // muted=광고 중 음소거 · s
   if(mode!==M.mode){M.mode=mode;M.step=0;M.cur=null} // 모드가 바뀌면 진행 첫 마디부터
   M.int=mode==='boss'?3:it
   this._bgm(mode,t)
-  const on=this._on()&&!this._hid,k=[on,mode,dim,slow].join()
+  const on=this._on()&&!this._hid,k=[on,mode,dim,slow,this.musOff,this.sfxOff].join()
   if(k!==this._k){this._k=k
    this.master.gain.setTargetAtTime(on?1:0,t,.03)
-   this.mus.gain.setTargetAtTime((mode==='menu'?1:mode==='over'?.8:.85)*(dim?.55:1),t,.25)
+   this.mus.gain.setTargetAtTime(this.musOff?0:(mode==='menu'?1:mode==='over'?.8:.85)*(dim?.55:1),t,this.musOff?.05:.25)
+   this.sfx.gain.setTargetAtTime(this.sfxOff?0:1,t,.03)
    this.musF.frequency.setTargetAtTime(dim?520:slow?800:mode==='over'?1400:16000,t,slow?.05:.18)}
-  const lz=t<this._lz&&ST==='play';if(lz!==this._lzOn){this._lzOn=lz;this.lzG.gain.setTargetAtTime(lz?.03:0,t,.04)}
-  const bm=t<(this._bm||0)&&ST==='play';if(bm!==this._bmOn){this._bmOn=bm;this.bmG.gain.setTargetAtTime(bm?.1:0,t,.05)}
+  const lz=t<this._lz&&ST==='play'&&!this.sfxOff;if(lz!==this._lzOn){this._lzOn=lz;this.lzG.gain.setTargetAtTime(lz?.03:0,t,.04)}
+  const bm=t<(this._bm||0)&&ST==='play'&&!this.sfxOff;if(bm!==this._bmOn){this._bmOn=bm;this.bmG.gain.setTargetAtTime(bm?.1:0,t,.05)}
   if(ST==='play'&&S.hp>0&&S.hp<=S.maxhp*.3&&t>this._hb){this._hb=t+1.05;this.heart()}
   this._sched()},
 }
@@ -6121,7 +6123,7 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  setSalv:n=>{META.salv=n;saveMeta()},
  spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
  spawnAt:(type,x,z)=>{const f=spawnFoe(type,x,z);return !!f}, feature:w=>waveFeature(w), lineOp:()=>Math.round(defLine.material.opacity*100)/100, // 3차 검증: 위치 지정 스폰·웨이브 특집·방어선 농도
- drop:(k,x,z)=>!!spawnDrop(k,x==null?0:x,z==null?-6:z), dropKinds:()=>drops.map(d=>d.k), b3:()=>({barrier:S.barrier,rerolls:S.rerolls,phoenix:S.phoenix,evo:Object.keys(E).filter(k=>E[k]),mag:performance.now()<S.magUntil,ulv:{...ULV}}), offerNow:()=>offer('LEVEL UP'), auState:()=>({track:AU._tr?AU._tr.k:null,bgm:Object.keys(AU._bg||{}).filter(k=>AU._bg[k].buf).map(k=>k+':'+AU._bg[k].st.toFixed(3)+':'+(AU._bg[k].buf.duration-AU._bg[k].en).toFixed(3)).join(),ctx:AU.ac?AU.ac.state:'none',on:AU._on()&&!AU._hid,mode:AU.M?AU.M.mode:'off',int:AU.M?AU.M.int:0,step:AU.M?AU.M.step:0,master:AU.master?Math.round(AU.master.gain.value*100)/100:null}),
+ drop:(k,x,z)=>!!spawnDrop(k,x==null?0:x,z==null?-6:z), dropKinds:()=>drops.map(d=>d.k), b3:()=>({barrier:S.barrier,rerolls:S.rerolls,phoenix:S.phoenix,evo:Object.keys(E).filter(k=>E[k]),mag:performance.now()<S.magUntil,ulv:{...ULV}}), offerNow:()=>offer('LEVEL UP'), auState:()=>({musOff:AU.musOff,sfxOff:AU.sfxOff,track:AU._tr?AU._tr.k:null,bgm:Object.keys(AU._bg||{}).filter(k=>AU._bg[k].buf).map(k=>k+':'+AU._bg[k].st.toFixed(3)+':'+(AU._bg[k].buf.duration-AU._bg[k].en).toFixed(3)).join(),ctx:AU.ac?AU.ac.state:'none',on:AU._on()&&!AU._hid,mode:AU.M?AU.M.mode:'off',int:AU.M?AU.M.int:0,step:AU.M?AU.M.step:0,master:AU.master?Math.round(AU.master.gain.value*100)/100:null}),
  auNames:()=>Object.keys(AU).filter(k=>typeof AU[k]==='function'&&k[0]!=='_'&&!['unlock','tone','noise','duck','frame','laser','beam','flush','drop'].includes(k)),
  auRender:async spec=>{const sr=44100,n=sr*spec.secs|0,off=new OfflineAudioContext(2,n,sr),K=['ac','master','comp','sfx','mus','duckG','musF','dly','nb','lzG','bmG','M','_t','_k','_vw','_vn','muted','sysMuted'],keep={};for(const k of K)keep[k]=AU[k]
   AU._off=true;let buf;try{AU._init(off);AU.muted=AU.sysMuted=false

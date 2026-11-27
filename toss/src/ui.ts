@@ -53,19 +53,33 @@ export function showExitConfirm(onExit: () => void, onStay: () => void): Confirm
 const ICON_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
 const ICON_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
 
-/** 사운드 켜기/끄기 버튼 — 타이틀·일시정지·결과 화면 좌상단(우상단은 토스 내비게이션 바 자리). */
-export function mountSoundToggle(get: () => boolean, set: (on: boolean) => void): () => void {
-  const b = el('button', 'ait-snd') as HTMLButtonElement
-  b.id = 'aitSnd'
-  b.type = 'button'
-  const paint = () => {
-    const on = get()
-    b.innerHTML = (on ? ICON_ON : ICON_OFF) + `<span>${on ? '사운드 켜짐' : '사운드 꺼짐'}</span>`
-    b.setAttribute('aria-pressed', String(on))
-    b.setAttribute('aria-label', on ? '사운드 끄기' : '사운드 켜기')
-  }
-  b.addEventListener('click', e => { e.stopPropagation(); set(!get()); paint() })
-  document.getElementById('ui')?.appendChild(b)
-  paint()
-  return paint
+const ICON_MUS = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6l10-2v11.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="17.5" r="2.5" fill="currentColor"/><circle cx="16.5" cy="15.5" r="2.5" fill="currentColor"/></svg>'
+const ICON_MUS_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6l10-2v11.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="17.5" r="2.5" fill="currentColor"/><circle cx="16.5" cy="15.5" r="2.5" fill="currentColor"/><path d="M3.5 3.5l17 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+
+export type SoundKind = 'music' | 'sfx'
+/** 음악·효과음을 따로 켜고 끄는 버튼 두 개 — 타이틀·일시정지·결과·기체 화면 좌상단(우상단은 토스 내비게이션 바 자리). */
+export function mountSoundToggle(get: (k: SoundKind) => boolean, set: (k: SoundKind, on: boolean) => void): () => void {
+  const wrap = el('div', 'ait-snds')
+  wrap.id = 'aitSnd'
+  const defs: [SoundKind, string, string, string, string][] = [
+    ['music', 'aitMus', '음악', ICON_MUS, ICON_MUS_OFF],
+    ['sfx', 'aitSfx', '효과음', ICON_ON, ICON_OFF],
+  ]
+  const paints = defs.map(([k, id, nm, on1, off1]) => {
+    const b = el('button', 'ait-snd') as HTMLButtonElement
+    b.id = id
+    b.type = 'button'
+    const paint = () => {
+      const on = get(k)
+      b.innerHTML = (on ? on1 : off1) + `<span>${nm} ${on ? '켜짐' : '꺼짐'}</span>`
+      b.setAttribute('aria-pressed', String(on))
+      b.setAttribute('aria-label', `${nm} ${on ? '끄기' : '켜기'}`)
+    }
+    b.addEventListener('click', e => { e.stopPropagation(); set(k, !get(k)); paint() })
+    wrap.appendChild(b)
+    paint()
+    return paint
+  })
+  document.getElementById('ui')?.appendChild(wrap)
+  return () => paints.forEach(p => p())
 }
