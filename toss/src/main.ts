@@ -12,19 +12,20 @@ import { installMeshopt } from './meshopt'
  * 토스 웹뷰에는 외부 스크립트 주입 수단이 없으므로 운영 영향은 없다(주입 없으면 항상 실제 SDK).
  */
 declare global {
-  interface Window { __TOSS_SDK__?: TossSdk; __NS_PF?: TossPlatform; __NS_GO?: () => void; __toss?: unknown; __bootT?: number }
+  interface Window { __TOSS_SDK__?: TossSdk; __NS_PF?: TossPlatform; __NS_GO?: () => void; __toss?: unknown; __bootT?: number; __nsDiag?: (m: string) => void }
 }
 
 async function boot() {
   const t0 = performance.now()
+  window.__nsDiag?.('boot')
   installDomTranslation()
   installMeshopt()
   const sdk: TossSdk = window.__TOSS_SDK__ ?? ait
   const pf = new TossPlatform(sdk, tr)
-  try { await pf.init() } catch (e) { console.warn('[toss] init 실패 — 폴백 진행', e) }
+  try { await pf.init(); window.__nsDiag?.('init ok') } catch (e) { window.__nsDiag?.('init 실패 ' + String((e as Error)?.message ?? e)); console.warn('[toss] init 실패 — 폴백 진행', e) }
   window.__NS_PF = pf
   window.__toss = { state: () => pf.debugState(), platform: pf }
-  if (typeof window.__NS_GO === 'function') window.__NS_GO()
+  if (typeof window.__NS_GO === 'function') { window.__nsDiag?.('GO'); window.__NS_GO(); const g = (document.getElementById('c') as HTMLCanvasElement | null)?.getContext?.('webgl2'); window.__nsDiag?.('GO done gl=' + (g ? (g.isContextLost() ? 'lost' : 'ok') : 'none')) }
   else console.error('[toss] 게임 부트 훅(__NS_GO)이 없다 — slice/index.html 의 NS_BOOT 마커 확인')
   window.__bootT = Math.round(performance.now() - t0)
 }
