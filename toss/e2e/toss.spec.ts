@@ -545,3 +545,37 @@ test('소리 — 음악 모드 전환 · 효과음 전 종이 들리고 넘치�
   await page.click('#aitMus'); await page.click('#aitSfx')
   expect(errs).toEqual([])
 })
+
+// 2026-11-27 실기기(아이폰 토스 앱)에서 게임을 여러 번 다시 열자 WebGL 컨텍스트가 처음부터 손실된 채로 와서
+// three 렌더러 생성이 예외로 끝나고 제목 화면 버튼이 죽었다. 손실을 흉내 내 자동 복구(다시 열기)를 고정한다.
+test('WebGL 컨텍스트가 손실된 채 시작해도 다시 열어 정상 부트한다', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('nsGlReload')) return // 다시 연 뒤에는 정상 컨텍스트
+    const orig = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      const g = (orig as any).call(this, type, ...rest)
+      if (g && this.id === 'c' && /webgl/.test(type)) g.isContextLost = () => true
+      return g
+    } as any
+  })
+  const { errs } = await open(page)
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('nsGlReload')), { timeout: 8000 }).toBe('1')
+  await expect.poll(async () => { try { return await page.evaluate(() => (window as any).__slice ? (window as any).__slice.state.ST : null) } catch { return null } }, { timeout: 15000 }).toBe('start')
+  await page.locator('#playBtn').click()
+  await expect.poll(async () => (await st(page)).ST).toBe('play')
+  expect(errs, errs.join('\n')).toEqual([])
+})
+
+test('실행 중 WebGL 컨텍스트 손실 → 판을 멈추고, 복구되면 이어서 · 안 돌아오면 다시 연다', async ({ page }) => {
+  await open(page)
+  await page.locator('#playBtn').click()
+  await expect.poll(async () => (await st(page)).ST).toBe('play')
+  await page.evaluate(() => { const g = (document.getElementById('c') as HTMLCanvasElement).getContext('webgl2') as WebGL2RenderingContext; (window as any).__lose = g.getExtension('WEBGL_lose_context'); (window as any).__lose.loseContext() })
+  await expect.poll(async () => (await st(page)).ST).toBe('pause')
+  await page.evaluate(() => (window as any).__lose.restoreContext())
+  await page.waitForTimeout(3200) // 복구됐으면 다시 열지 않는다
+  expect(await page.evaluate(() => sessionStorage.getItem('nsGlReload'))).toBeNull()
+  expect((await st(page)).ST).toBe('pause')
+  await page.evaluate(() => (window as any).__lose.loseContext()) // 이번엔 복구 없음 → 2.5초 뒤 다시 열기
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('nsGlReload')).catch(() => null), { timeout: 8000 }).toBe('1')
+})
