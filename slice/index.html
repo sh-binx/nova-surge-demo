@@ -3938,10 +3938,10 @@ const GLG=window.__nsGl||(window.__nsGl={n:0})
 const glDiag=m=>{if(window.__nsDiag)window.__nsDiag(m)}
 function glMsg(){if(document.getElementById('glfail'))return
  const d=document.createElement('div');d.id='glfail';d.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#070a14;color:#dfe6ff;font:15px NSKR,system-ui,sans-serif;text-align:center;padding:24px'
- const t=document.createElement('div');t.textContent='The display could not start.'
+ const t=document.createElement('div');t.textContent='The display could not start.';const t2=document.createElement('div');t2.style.cssText='font-size:13px;color:#9aa6c8;max-width:420px;line-height:1.5';t2.textContent='If it keeps happening, fully close the app and open it again.'
  const b=document.createElement('button');b.textContent='Reload';b.style.cssText='min-width:160px;min-height:48px;border:0;border-radius:12px;background:#d8f3ff;color:#06121f;font:inherit;font-weight:700'
  b.onclick=()=>{try{sessionStorage.removeItem('nsGlReload')}catch(e){}location.reload()}
- d.appendChild(t);d.appendChild(b);document.body.appendChild(d)}
+ d.appendChild(t);d.appendChild(t2);d.appendChild(b);document.body.appendChild(d)}
 function glReload(why){let k=0;try{k=+sessionStorage.getItem('nsGlReload')||0}catch(e){}
  glDiag('GL reload '+why+' #'+k)
  if(k<2){try{sessionStorage.setItem('nsGlReload',String(k+1))}catch(e){}location.reload();return}

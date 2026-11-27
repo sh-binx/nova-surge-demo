@@ -579,3 +579,23 @@ test('실행 중 WebGL 컨텍스트 손실 → 판을 멈추고, 복구되면 �
   await page.evaluate(() => (window as any).__lose.loseContext()) // 이번엔 복구 없음 → 2.5초 뒤 다시 열기
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('nsGlReload')).catch(() => null), { timeout: 8000 }).toBe('1')
 })
+
+test('WebGL 컨텍스트가 끝내 돌아오지 않으면 안내와 다시 불러오기 버튼을 한국어로 보여 준다', async ({ page }) => {
+  await page.addInitScript(() => {
+    const orig = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      const g = (orig as any).call(this, type, ...rest)
+      if (g && this.id === 'c' && /webgl/.test(type)) g.isContextLost = () => true
+      return g
+    } as any
+  })
+  await page.addInitScript(cfg => { (window as any).__MOCK_CFG__ = cfg }, { insets: INSETS })
+  await page.addInitScript({ path: MOCK })
+  await page.goto(URL_())
+  await expect(page.locator('#glfail')).toBeVisible({ timeout: 15000 })
+  await expect(page.locator('#glfail')).toContainText('화면을 불러오지 못했어요.')
+  await expect(page.locator('#glfail')).toContainText('토스 앱을 완전히 닫았다가 다시 열어 주세요.')
+  await expect(page.locator('#glfail button')).toHaveText('다시 불러오기')
+  const box = await page.locator('#glfail button').boundingBox()
+  expect(box!.height).toBeGreaterThanOrEqual(44)
+})
