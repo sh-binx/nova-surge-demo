@@ -518,10 +518,19 @@ test('소리 — 음악 모드 전환 · 효과음 전 종이 들리고 넘치�
   await expect.poll(async () => (await T<{ bgm: string }>('__test.auState()')).bgm.split(',').length, { timeout: 20000 }).toBe(3)
   for (const e of (await T<{ bgm: string }>('__test.auState()')).bgm.split(',')) { const [k, st, tail] = e.split(':'); expect(+st, k + ' 루프 시작').toBeLessThan(0.03); expect(+tail, k + ' 루프 끝이 파일 안').toBeGreaterThan(-0.0015) }
   await expect.poll(async () => (await T<{ track: string }>('__test.auState()')).track).toBe('play')
+  await expect.poll(async () => (await T<{ smp: boolean }>('__test.auState()')).smp, { timeout: 15000 }).toBe(true) // 제작 효과음 묶음 로드
   const names = await T<string[]>('__test.auNames()')
   expect(names.length, '효과음 종류').toBeGreaterThanOrEqual(30)
+  const n0 = (await T<{ smpN: number }>('__test.auState()')).smpN
   const each = await T<[string, number, number][]>(`(async()=>{const o=[];for(const n of __test.auNames()){const r=await __test.auRender({secs:3.2,sfx:[[n,.1,4,0]]});o.push([n,r.peakDb,r.clip])}return o})()`)
+  expect((await T<{ smpN: number }>('__test.auState()')).smpN - n0, '제작 효과음이 실제로 재생된 종 수').toBeGreaterThanOrEqual(30)
+  console.log('[sfx 피크dB] ' + each.map(e => e[0] + ' ' + e[1]).join(' · '))
   for (const [n, pk, clip] of each) { expect(pk, n + ' 들림').toBeGreaterThan(-40); expect(pk, n + ' 과대').toBeLessThan(-1.5); expect(clip, n + ' 클리핑').toBe(0) }
+  // 파일을 못 읽은 경우의 합성음 폴백도 전 종이 들린다
+  await T('__test.auNoSmp(true)')
+  const fb = await T<[string, number, number][]>(`(async()=>{const o=[];for(const n of __test.auNames()){const r=await __test.auRender({secs:3.2,sfx:[[n,.1,4,0]]});o.push([n,r.peakDb,r.clip])}return o})()`)
+  for (const [n, pk, clip] of fb) { expect(pk, n + ' 합성 폴백 들림').toBeGreaterThan(-40); expect(clip, n + ' 합성 폴백 클리핑').toBe(0) }
+  await T('__test.auNoSmp(false)')
   const storm = await T<{ peakDb: number; clip: number; rmsDb: number }>(`(()=>{const st=[];for(let t=.2;t<3.6;t+=.04){st.push(['kill',t,6,0]);st.push(['hit',t+.01,0,false]);st.push(['shot',t+.02,0]);st.push(['xp',t+.03,5])}st.push(['bomb',1],['surge',1.8],['hurt',2.4],['bossDown',2.6]);return __test.auRender({secs:5,music:{mode:'boss',int:3},sfx:st})})()`)
   expect(storm.clip, '폭주 클리핑').toBe(0); expect(storm.peakDb).toBeLessThan(-0.5)
   for (const m of ['menu', 'play', 'boss', 'over']) {

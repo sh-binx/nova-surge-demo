@@ -65,6 +65,7 @@ for (const name of ['polish.css', 'keyart.webp']) copyFileSync(join(SLICE, name)
 // 메시는 UV 분할 정점 때문에 simplify 가 거의 줄지 않아(실측 146k→124k) 단순화 대신 텍스처 WebP(PNG 1.24MB→~70KB) +
 // 메시 meshopt 압축(정점 품질 유지, 5.2MB→1.9MB)을 쓴다.
 mkdirSync(join(ROOT, 'public'), { recursive: true })
+copyFileSync(join(SLICE, 'sfx.wav'), join(ROOT, 'public', 'sfx.wav')) // 효과음 묶음
 for (const n of ['title', 'combat', 'boss']) copyFileSync(join(SLICE, `bgm-${n}.mp3`), join(ROOT, 'public', `bgm-${n}.mp3`)) // 배경 음악 루프(게임 코드가 상대경로로 읽는다)
 const gt = join(ROOT, 'node_modules', '.bin', 'gltf-transform')
 for (const n of ['ship', 'ship-B', 'ship-C']) {

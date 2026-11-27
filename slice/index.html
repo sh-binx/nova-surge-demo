@@ -4015,59 +4015,69 @@ const AU={ac:null,muted:false,sysMuted:false,musOff:false,sfxOff:false, // musOf
   src.connect(g);g.connect(dst||this._out(pan));s.loop=true;s.start(t0,Math.random()*1.4);s.stop(t0+d+.06)}catch(e){}},
  _r(a){return 1+(Math.random()*2-1)*a},
  duck(a,d){if(!this._on())return;const p=this.duckG.gain,t=this.ac.currentTime;if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(t);else{const v=p.value;p.cancelScheduledValues(t);p.setValueAtTime(v,t)}p.setTargetAtTime(a,t,.012);p.setTargetAtTime(1,t+d,.3)},
- flush(){if(!this.ac)return;try{this.sfx.disconnect()}catch(e){}this.sfx=this.ac.createGain();this.sfx.gain.value=this.sfxOff?0:1;this.sfx.connect(this.master);this._t={}}, // 새 판: 지난 판의 예약음(격추·기록 징글 꼬리)을 끊는다
+ flush(){if(!this.ac)return;if(!this._sb)this._ls();try{this.sfx.disconnect()}catch(e){}this.sfx=this.ac.createGain();this.sfx.gain.value=this.sfxOff?0:1;this.sfx.connect(this.master);this._t={}}, // 새 판: 지난 판의 예약음(격추·기록 징글 꼬리)을 끊는다
  // ── 전투 ──
- shot(x){if(!this._on()||!this._g('shot',.05))return;this.tone(820*this._r(.04),.05,'triangle',.03,300,0,this._px(x))},
- rail(x){const p=this._px(x);this.tone(240,.2,'sawtooth',.055,70,0,p,2400);this.noise(.14,.05,0,3200,'bandpass',1,700,p);this.tone(1500,.09,'sine',.03,420,0,p)},
+ // 제작된 효과음(CC0 재료를 다듬어 한 파일로 묶음 · slice/sfx.wav). 이름:[시작초, 길이초, 음량]. 파일을 못 읽으면 각 함수의 합성음이 대신 난다
+ SMP:{shot:[0.02,0.16,0.0451],shot2:[0.21,0.2,0.0371],rail:[0.44,0.55,0.164],eshot:[1.02,0.22,0.0269],hit:[1.27,0.13,0.0354],kill:[1.43,0.38,0.1072],pop:[1.84,0.22,0.0698],blastS:[2.09,0.42,0.1428],boom:[2.54,0.9,0.202],bigKill:[3.47,1.1,0.26],bomb:[4.6,1.8,0.2984],bossDown:[6.43,1.9,0.3019],death:[8.36,1.7,0.2189],hurt:[10.09,0.42,0.1737],surge:[10.54,1.0,0.2985],block:[11.57,0.45,0.1202],barUp:[12.05,0.3599,0.1272],shieldDown:[12.4399,0.32,0.1699],heal:[12.7899,0.46,0.138],magnet:[13.2799,0.4064,0.1203],pick:[13.7163,0.32,0.1348],coin:[14.0663,0.0995,0.0676],crate:[14.1958,0.6,0.1412],ready:[14.8258,0.476,0.1203],lvl:[15.3319,1.1378,0.1529],epic:[16.4997,1.1262,0.1737],evolve:[17.6558,1.0681,0.2292],buy:[18.754,0.539,0.1347],reroll:[19.323,0.3,0.0989],revive:[19.653,0.7779,0.1759],ui:[20.4609,0.0971,0.0609],dash:[20.588,0.4,0.1012],blink:[21.018,0.37,0.101]},
+ _ls(){if(this._sp)return this._sp;return this._sp=fetch('sfx.wav').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>new Promise((ok,no)=>{let dc=this.ac
+   try{dc=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,1,32000)}catch(e){}
+   const pr=dc.decodeAudioData(a,ok,no);pr&&pr.then&&pr.then(ok,no)})).then(b=>{this._sb=b}).catch(()=>{this._sp=null})}, // 실패하면 다음 기회(첫 터치·새 판)에 다시 받는다
+ _s(k,vm,rate,pan,delay){const b=this._sb,d=this.SMP[k],ac=this.ac;if(!b||!d||this.noSmp)return false;if(!this._on())return true;if(!this._v(delay))return true
+  try{const t=ac.currentTime+(delay||0),src=ac.createBufferSource(),g=ac.createGain();g.gain.value=0;src.buffer=b;if(rate)src.playbackRate.value=rate
+   g.gain.setValueAtTime(d[2]*(vm||1),t);src.connect(g)
+   if(pan&&ac.createStereoPanner){const pn=ac.createStereoPanner();pn.pan.value=Math.max(-.7,Math.min(.7,pan));g.connect(pn);pn.connect(this.sfx)}else g.connect(this.sfx)
+   src.start(t,d[0],d[1]);src.stop(t+d[1]/(rate||1)+.01);this._sn=(this._sn||0)+1;return true}catch(e){return false}},
+ shot(x){if(!this._on()||!this._g('shot',.05))return;if(this._s((this._sh=!this._sh)?'shot':'shot2',1,this._r(.04),this._px(x)))return;this.tone(820*this._r(.04),.05,'triangle',.03,300,0,this._px(x))},
+ rail(x){const p=this._px(x);if(!this._on())return;if(this._s('rail',1,this._r(.03),p))return;this.tone(240,.2,'sawtooth',.055,70,0,p,2400);this.noise(.14,.05,0,3200,'bandpass',1,700,p);this.tone(1500,.09,'sine',.03,420,0,p)},
  laser(){this._lz=this.ac?this.ac.currentTime+.22:0},
  beam(){this._bm=this.ac?this.ac.currentTime+.15:0},
- hit(x,boss){if(!this._on()||!this._g('hit',.045))return;this.tone((boss?310:560)*this._r(.08),.04,'triangle',.04,boss?170:360,0,this._px(x))},
+ hit(x,boss){if(!this._on()||!this._g('hit',.045))return;if(this._s('hit',boss?1.25:1,(boss?.8:1)*this._r(.08),this._px(x)))return;this.tone((boss?310:560)*this._r(.08),.04,'triangle',.04,boss?170:360,0,this._px(x))},
  crit(){if(!this._on()||!this._g('crit',.09))return;this.tone(2100,.06,'sine',.045,3200);this.tone(1400,.05,'triangle',.03)},
- kill(c,x){if(!this._on()||!this._g('kill',.035))return;const p=this._px(x)
+ kill(c,x){if(!this._on()||!this._g('kill',.035))return;const p=this._px(x);if(this._s('kill',1,(1+Math.min(c,16)*.012)*this._r(.05),p))return
   this.tone(150+Math.min(c,16)*14,.16,'sawtooth',.05,48,0,p,2600);this.noise(.17,.085,0,1900,'lowpass',.7,280,p);this.tone(92,.14,'sine',.075,40,0,p)},
- pop(c,x){if(!this._on()||!this._g('pop',.03))return;const p=this._px(x);this.tone(520+Math.min(c,16)*28,.07,'triangle',.04,180,0,p);this.noise(.04,.028,0,5200,'highpass',0,0,p)},
+ pop(c,x){if(!this._on()||!this._g('pop',.03))return;const p=this._px(x);if(this._s('pop',1,(1+Math.min(c,16)*.015)*this._r(.05),p))return;this.tone(520+Math.min(c,16)*28,.07,'triangle',.04,180,0,p);this.noise(.04,.028,0,5200,'highpass',0,0,p)},
  xp(i){if(!this._on()||!this._g('xp',.025))return;const P=[392,440,523,587,659,784,880,988,1175,1319];this.tone(P[Math.min(i,9)],.07,'sine',.05)},
  graze(x){if(!this._on()||!this._g('graze',.03))return;this.tone(1350*this._r(.03),.04,'sine',.06,1750,0,this._px(x))},
- eshot(x){if(!this._on()||!this._g('eshot',.11))return;this.tone(430*this._r(.05),.09,'square',.034,230,0,this._px(x),1500)},
- hurt(){this.tone(95,.24,'sine',.17,48);this.noise(.15,.1,0,1600,'lowpass');this.tone(330,.12,'square',.06,130,0,0,1900)},
+ eshot(x){if(!this._on()||!this._g('eshot',.11))return;if(this._s('eshot',1,this._r(.05),this._px(x)))return;this.tone(430*this._r(.05),.09,'square',.034,230,0,this._px(x),1500)},
+ hurt(){if(!this._on())return;if(this._s('hurt'))return;this.tone(95,.24,'sine',.17,48);this.noise(.15,.1,0,1600,'lowpass');this.tone(330,.12,'square',.06,130,0,0,1900)},
  leak(){this.tone(110,.14,'sine',.1,58);this.tone(294,.12,'triangle',.07,165,.02);this.noise(.06,.04,0,900,'bandpass',1.5)},
  heart(){this.tone(62,.12,'sine',.12,44);this.tone(196,.09,'triangle',.06,110);this.tone(58,.14,'sine',.09,40,.17);this.tone(175,.1,'triangle',.045,98,.17)}, // 작은 스피커에서도 들리게 중역을 겹친다
- surge(){this.duck(.25,.7);this.tone(140,.6,'sine',.2,36);this.tone(55,.45,'sine',.13,30,.05);this.noise(.45,.14,0,5200,'lowpass',.7,200);this.tone(2200,.45,'sine',.04,300)},
- ready(){this.tone(880,.3,'sine',.05,1760);this.tone(1320,.3,'sine',.03,2640)},
+ surge(){this.duck(.25,.7);if(this._s('surge'))return;this.tone(140,.6,'sine',.2,36);this.tone(55,.45,'sine',.13,30,.05);this.noise(.45,.14,0,5200,'lowpass',.7,200);this.tone(2200,.45,'sine',.04,300)},
+ ready(){if(!this._on())return;if(this._s('ready'))return;this.tone(880,.3,'sine',.05,1760);this.tone(1320,.3,'sine',.03,2640)},
  warn(){this.tone(233,.2,'square',.055,180,0,0,1700);this.tone(233,.2,'square',.055,180,.28,0,1700)},
  tele(){this.tone(880,.13,'triangle',.06,440)},
  // ── 아이템·강화 ──
- heal(){[523,659,784].forEach((f,i)=>this.tone(f,.11,'sine',.07,null,i*.06));this.tone(1046,.28,'sine',.045,null,.18)},
- magnet(){this.tone(300,.36,'sine',.07,1250);this.noise(.3,.05,0,800,'bandpass',2,4200)},
- bomb(){this.duck(.2,.9);this.tone(62,.9,'sine',.26,28);this.noise(.75,.19,0,2600,'lowpass',.5,110);this.noise(.12,.09,0,6000,'highpass');this.tone(440,.5,'sawtooth',.03,60,.02,0,1800)},
- barUp(){this.tone(1200,.12,'sine',.06,1800);this.tone(1800,.22,'sine',.04,2400,.06)},
- block(){this.tone(1900,.18,'triangle',.06,900);this.tone(2850,.26,'sine',.03,1400);this.noise(.06,.05,0,4000,'bandpass',3);this.tone(160,.12,'sine',.07,80)},
+ heal(){if(!this._on())return;if(this._s('heal'))return;[523,659,784].forEach((f,i)=>this.tone(f,.11,'sine',.07,null,i*.06));this.tone(1046,.28,'sine',.045,null,.18)},
+ magnet(){if(!this._on())return;if(this._s('magnet'))return;this.tone(300,.36,'sine',.07,1250);this.noise(.3,.05,0,800,'bandpass',2,4200)},
+ bomb(){this.duck(.2,.9);if(this._s('bomb'))return;this.tone(62,.9,'sine',.26,28);this.noise(.75,.19,0,2600,'lowpass',.5,110);this.noise(.12,.09,0,6000,'highpass');this.tone(440,.5,'sawtooth',.03,60,.02,0,1800)},
+ barUp(){if(!this._on())return;if(this._s('barUp'))return;this.tone(1200,.12,'sine',.06,1800);this.tone(1800,.22,'sine',.04,2400,.06)},
+ block(){if(!this._on())return;if(this._s('block'))return;this.tone(1900,.18,'triangle',.06,900);this.tone(2850,.26,'sine',.03,1400);this.noise(.06,.05,0,4000,'bandpass',3);this.tone(160,.12,'sine',.07,80)},
  drop(k){k==='heal'?this.heal():k==='magnet'?this.magnet():k==='bomb'?this.bomb():this.barUp()},
- pick(){this.tone(880,.05,'triangle',.065);this.tone(1319,.08,'sine',.05,null,.04)},
- coin(){if(!this._on()||!this._g('coin',.045))return;this.tone(659,.09,'triangle',.06,988);this.tone(1319,.07,'sine',.04)},
- crate(){this.tone(659,.1,'triangle',.055);this.tone(988,.2,'triangle',.055,null,.09);this.noise(.2,.02,.05,6000,'highpass')},
- shieldDown(){this.noise(.3,.09,0,5200,'bandpass',1.5,1200);this.tone(1760,.35,'triangle',.06,440);this.tone(110,.3,'sine',.1,55)},
- blink(){if(!this._on()||!this._g('blink',.1))return;this.tone(1400,.14,'sine',.055,320);this.noise(.12,.035,0,3000,'bandpass',2,7000)},
- dash(){if(!this._on()||!this._g('dash',.12))return;this.noise(.28,.09,0,500,'bandpass',1.2,2800);this.tone(220,.25,'sawtooth',.05,90,0,0,1400)},
- boom(x){if(!this._on()||!this._g('boom',.07))return;const p=this._px(x);this.tone(78,.32,'sawtooth',.1,44,0,p,1200);this.noise(.22,.09,0,1500,'lowpass',.7,200,p);this.tone(196,.1,'triangle',.05,98,0,p)},
- blastS(x){if(!this._on()||!this._g('blastS',.06))return;const p=this._px(x);this.noise(.14,.07,0,2400,'lowpass',.7,400,p);this.tone(165,.12,'triangle',.05,70,0,p)},
+ pick(){if(!this._on())return;if(this._s('pick'))return;this.tone(880,.05,'triangle',.065);this.tone(1319,.08,'sine',.05,null,.04)},
+ coin(){if(!this._on()||!this._g('coin',.045))return;if(this._s('coin',1,this._r(.04)))return;this.tone(659,.09,'triangle',.06,988);this.tone(1319,.07,'sine',.04)},
+ crate(){if(!this._on())return;if(this._s('crate'))return;this.tone(659,.1,'triangle',.055);this.tone(988,.2,'triangle',.055,null,.09);this.noise(.2,.02,.05,6000,'highpass')},
+ shieldDown(){if(!this._on())return;if(this._s('shieldDown'))return;this.noise(.3,.09,0,5200,'bandpass',1.5,1200);this.tone(1760,.35,'triangle',.06,440);this.tone(110,.3,'sine',.1,55)},
+ blink(){if(!this._on()||!this._g('blink',.1))return;if(this._s('blink'))return;this.tone(1400,.14,'sine',.055,320);this.noise(.12,.035,0,3000,'bandpass',2,7000)},
+ dash(){if(!this._on()||!this._g('dash',.12))return;if(this._s('dash'))return;this.noise(.28,.09,0,500,'bandpass',1.2,2800);this.tone(220,.25,'sawtooth',.05,90,0,0,1400)},
+ boom(x){if(!this._on()||!this._g('boom',.07))return;const p=this._px(x);if(this._s('boom',1,this._r(.05),p))return;this.tone(78,.32,'sawtooth',.1,44,0,p,1200);this.noise(.22,.09,0,1500,'lowpass',.7,200,p);this.tone(196,.1,'triangle',.05,98,0,p)},
+ blastS(x){if(!this._on()||!this._g('blastS',.06))return;const p=this._px(x);if(this._s('blastS',1,this._r(.06),p))return;this.noise(.14,.07,0,2400,'lowpass',.7,400,p);this.tone(165,.12,'triangle',.05,70,0,p)},
  hatch(){if(!this._on()||!this._g('hatch',.1))return;this.tone(220,.2,'square',.05,110,0,0,1500);this.noise(.1,.04,0,1200,'bandpass',2)},
  mine(){if(!this._on()||!this._g('mine',.1))return;this.tone(165,.14,'square',.045,82,0,0,1400)},
- bigKill(x){const p=this._px(x);this.noise(.4,.13,0,1800,'lowpass',.6,150,p);this.tone(110,.4,'sine',.14,36,0,p);this.tone(330,.2,'sawtooth',.05,82,0,p,2000)},
- ui(){if(!this._on()||!this._g('ui',.06))return;this.tone(1047,.035,'sine',.04)},
- reroll(){for(let i=0;i<4;i++)this.noise(.035,.1,i*.05,3000+i*500,'bandpass',2.5);this.tone(600,.2,'triangle',.05,950,.02)},
- buy(){this.tone(1319,.07,'triangle',.06);this.tone(1760,.18,'sine',.06,null,.06);this.tone(2637,.2,'sine',.025,null,.1)},
- lvl(){[523,659,784,1046].forEach((f,i)=>{this.tone(f,.13,'triangle',.06,null,i*.07);this.tone(f*2,.1,'sine',.018,null,i*.07)})},
- epic(){if(!this._on()||!this._g('epic',.3))return;this.tone(880,.5,'sine',.06,1760);this.tone(884,.5,'sine',.05,1768);this.tone(1320,.4,'triangle',.04,2600,.1);this.noise(.5,.02,.05,7000,'highpass')},
- evolve(){this.duck(.4,.8);[392,523,659,784,1046,1568].forEach((f,i)=>this.tone(f,.16,'triangle',.06,null,i*.06));this.tone(98,.6,'sine',.12,60);this.noise(.7,.03,.1,6500,'highpass');this.tone(1568,.7,'sine',.035,null,.36)},
+ bigKill(x){const p=this._px(x);if(!this._on())return;if(this._s('bigKill',1,1,p))return;this.noise(.4,.13,0,1800,'lowpass',.6,150,p);this.tone(110,.4,'sine',.14,36,0,p);this.tone(330,.2,'sawtooth',.05,82,0,p,2000)},
+ ui(){if(!this._on()||!this._g('ui',.06))return;if(this._s('ui'))return;this.tone(1047,.035,'sine',.04)},
+ reroll(){if(!this._on())return;if(this._s('reroll'))return;for(let i=0;i<4;i++)this.noise(.035,.1,i*.05,3000+i*500,'bandpass',2.5);this.tone(600,.2,'triangle',.05,950,.02)},
+ buy(){if(!this._on())return;if(this._s('buy'))return;this.tone(1319,.07,'triangle',.06);this.tone(1760,.18,'sine',.06,null,.06);this.tone(2637,.2,'sine',.025,null,.1)},
+ lvl(){if(!this._on())return;if(this._s('lvl'))return;[523,659,784,1046].forEach((f,i)=>{this.tone(f,.13,'triangle',.06,null,i*.07);this.tone(f*2,.1,'sine',.018,null,i*.07)})},
+ epic(){if(!this._on()||!this._g('epic',.3))return;if(this._s('epic'))return;this.tone(880,.5,'sine',.06,1760);this.tone(884,.5,'sine',.05,1768);this.tone(1320,.4,'triangle',.04,2600,.1);this.noise(.5,.02,.05,7000,'highpass')},
+ evolve(){this.duck(.4,.8);if(this._s('evolve'))return;[392,523,659,784,1046,1568].forEach((f,i)=>this.tone(f,.16,'triangle',.06,null,i*.06));this.tone(98,.6,'sine',.12,60);this.noise(.7,.03,.1,6500,'highpass');this.tone(1568,.7,'sine',.035,null,.36)},
  // ── 진행 ──
  wave(){this.tone(392,.12,'triangle',.06);this.tone(587,.22,'triangle',.06,null,.1)},
  boss(){this.duck(.3,1);this.tone(70,.8,'sine',.18,45);this.noise(.5,.13,0,1200,'lowpass');[392,466,587].forEach((f,i)=>this.tone(f,.3,'sawtooth',.045,null,.15+i*.12,0,2200))},
  bossP2(){this.duck(.3,.9);this.tone(58,.7,'sine',.2,34);this.noise(.5,.12,0,900,'lowpass');[311,370,440].forEach((f,i)=>this.tone(f,.26,'sawtooth',.045,null,.08+i*.1,0,1900))},
- bossDown(){this.duck(.25,1.4);for(let i=0;i<5;i++){this.noise(.32,.12,i*.11,1700-i*220,'lowpass',.6,160);this.tone(120-i*12,.3,'sine',.13,36,i*.11)}
+ bossDown(){this.duck(.25,1.4);if(!this._s('bossDown'))for(let i=0;i<5;i++){this.noise(.32,.12,i*.11,1700-i*220,'lowpass',.6,160);this.tone(120-i*12,.3,'sine',.13,36,i*.11)}
   ;[523,659,784,1046,1319].forEach((f,i)=>this.tone(f,.2,'triangle',.055,null,.62+i*.08));this.tone(1319,.6,'sine',.035,null,1.02)},
- revive(){[392,523,659,880].forEach((f,i)=>this.tone(f,.14,'triangle',.08,null,i*.09))},
- death(){this.tone(220,1.1,'sawtooth',.11,32,0,0,1300);this.noise(.9,.17,0,3000,'lowpass',.6,90);this.tone(55,.8,'sine',.19,26,.05);this.tone(392,.35,'sine',.045,null,.8);this.tone(294,.6,'sine',.045,null,1.1)},
+ revive(){if(!this._on())return;if(this._s('revive'))return;[392,523,659,880].forEach((f,i)=>this.tone(f,.14,'triangle',.08,null,i*.09))},
+ death(){if(!this._on())return;if(this._s('death'))return;this.tone(220,1.1,'sawtooth',.11,32,0,0,1300);this.noise(.9,.17,0,3000,'lowpass',.6,90);this.tone(55,.8,'sine',.19,26,.05);this.tone(392,.35,'sine',.045,null,.8);this.tone(294,.6,'sine',.045,null,1.1)},
  best(){[659,784,988,1319].forEach((f,i)=>this.tone(f,.16,'triangle',.06,null,1.9+i*.09));this.tone(1319,.6,'sine',.04,null,2.26);this.tone(1976,.5,'sine',.02,null,2.3)},
  // ── 배경 음악: 16분음표 시퀀서(112BPM · A단조). 상태에 따라 층을 더하고 뺀다 ──
  SD:60/112/4,
@@ -4835,7 +4845,7 @@ const MET={kills:[],lvls:[],hurts:[],leaks:[],evos:[],surges:[],hp:[],_ht:0}
 function metReset(){MET.kills.length=0;MET.lvls.length=0;MET.hurts.length=0;MET.leaks.length=0;MET.evos.length=0;MET.surges.length=0;MET.hp.length=0;MET._ht=0}
 window.__metrics=()=>({kills:MET.kills,lvls:MET.lvls,hurts:MET.hurts,leaks:MET.leaks,evos:MET.evos,surges:MET.surges,hp:MET.hp})
 let AILVL=0,aiT=0
-setTimeout(()=>{try{AU._load('menu').then(()=>AU._load('play')).then(()=>AU._load('boss'))}catch(e){}},900) // 배경 음악은 첫 터치를 기다리지 않고 미리 푼다(받기·풀기는 제스처가 필요 없다)
+setTimeout(()=>{try{AU._ls();AU._load('menu').then(()=>AU._load('play')).then(()=>AU._load('boss'))}catch(e){}},900) // 배경 음악은 첫 터치를 기다리지 않고 미리 푼다(받기·풀기는 제스처가 필요 없다)
 const DEV=/[?&]dev/.test(location.search) // 측정/치팅 핸들 게이트 — 프로덕션(공개 데모) 노출 방지
 if(DEV)window.__ai=n=>{AILVL=n|0;aiT=0}
 // 측정용 가속기(DEV 전용·prod 무영향): 렌더 스킵 + 합성 performance.now로 프레임 동기 반복 → 전 웨이브 고속 시뮬(정확한 소스텝)
@@ -6123,7 +6133,7 @@ if(DEV)window.__test={ // 하네스 전용 검증 레버 (DEV 게이트 — 공�
  setSalv:n=>{META.salv=n;saveMeta()},
  spawn:(type,x)=>spawnFoe(type,x==null?rnd(-FW,FW):x,TOPZ-2), // 적 즉시 스폰(검증용)
  spawnAt:(type,x,z)=>{const f=spawnFoe(type,x,z);return !!f}, feature:w=>waveFeature(w), lineOp:()=>Math.round(defLine.material.opacity*100)/100, // 3차 검증: 위치 지정 스폰·웨이브 특집·방어선 농도
- drop:(k,x,z)=>!!spawnDrop(k,x==null?0:x,z==null?-6:z), dropKinds:()=>drops.map(d=>d.k), b3:()=>({barrier:S.barrier,rerolls:S.rerolls,phoenix:S.phoenix,evo:Object.keys(E).filter(k=>E[k]),mag:performance.now()<S.magUntil,ulv:{...ULV}}), offerNow:()=>offer('LEVEL UP'), auState:()=>({musOff:AU.musOff,sfxOff:AU.sfxOff,track:AU._tr?AU._tr.k:null,bgm:Object.keys(AU._bg||{}).filter(k=>AU._bg[k].buf).map(k=>k+':'+AU._bg[k].st.toFixed(3)+':'+(AU._bg[k].buf.duration-AU._bg[k].en).toFixed(3)).join(),ctx:AU.ac?AU.ac.state:'none',on:AU._on()&&!AU._hid,mode:AU.M?AU.M.mode:'off',int:AU.M?AU.M.int:0,step:AU.M?AU.M.step:0,master:AU.master?Math.round(AU.master.gain.value*100)/100:null}),
+ drop:(k,x,z)=>!!spawnDrop(k,x==null?0:x,z==null?-6:z), dropKinds:()=>drops.map(d=>d.k), b3:()=>({barrier:S.barrier,rerolls:S.rerolls,phoenix:S.phoenix,evo:Object.keys(E).filter(k=>E[k]),mag:performance.now()<S.magUntil,ulv:{...ULV}}), offerNow:()=>offer('LEVEL UP'), auNoSmp:b=>{AU.noSmp=!!b}, auState:()=>({smp:!!AU._sb,smpN:AU._sn||0,musOff:AU.musOff,sfxOff:AU.sfxOff,track:AU._tr?AU._tr.k:null,bgm:Object.keys(AU._bg||{}).filter(k=>AU._bg[k].buf).map(k=>k+':'+AU._bg[k].st.toFixed(3)+':'+(AU._bg[k].buf.duration-AU._bg[k].en).toFixed(3)).join(),ctx:AU.ac?AU.ac.state:'none',on:AU._on()&&!AU._hid,mode:AU.M?AU.M.mode:'off',int:AU.M?AU.M.int:0,step:AU.M?AU.M.step:0,master:AU.master?Math.round(AU.master.gain.value*100)/100:null}),
  auNames:()=>Object.keys(AU).filter(k=>typeof AU[k]==='function'&&k[0]!=='_'&&!['unlock','tone','noise','duck','frame','laser','beam','flush','drop'].includes(k)),
  auRender:async spec=>{const sr=44100,n=sr*spec.secs|0,off=new OfflineAudioContext(2,n,sr),K=['ac','master','comp','sfx','mus','duckG','musF','dly','nb','lzG','bmG','M','_t','_k','_vw','_vn','muted','sysMuted'],keep={};for(const k of K)keep[k]=AU[k]
   AU._off=true;let buf;try{AU._init(off);AU.muted=AU.sysMuted=false
