@@ -554,7 +554,7 @@ test('WebGL 컨텍스트가 손실된 채 시작해도 다시 열어 정상 부�
     const orig = HTMLCanvasElement.prototype.getContext
     HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
       const g = (orig as any).call(this, type, ...rest)
-      if (g && this.id === 'c' && /webgl/.test(type)) g.isContextLost = () => true
+      if (g && this.id === 'c' && /webgl/.test(type)) { g.isContextLost = () => true; g.getShaderPrecisionFormat = () => null } // 실기기와 같게: 손실된 컨텍스트는 정밀도 조회도 null
       return g
     } as any
   })
@@ -576,7 +576,10 @@ test('실행 중 WebGL 컨텍스트 손실 → 판을 멈추고, 복구되면 �
   await page.waitForTimeout(3200) // 복구됐으면 다시 열지 않는다
   expect(await page.evaluate(() => sessionStorage.getItem('nsGlReload'))).toBeNull()
   expect((await st(page)).ST).toBe('pause')
-  await page.evaluate(() => (window as any).__lose.loseContext()) // 이번엔 복구 없음 → 2.5초 뒤 다시 열기
+  await page.locator('#resumeBtn').click() // 복구 뒤 이어서: 판이 다시 흐른다
+  const t1 = (await st(page)).t
+  await expect.poll(async () => (await st(page)).t, { timeout: 8000 }).toBeGreaterThan(t1)
+  await page.evaluate(() => (window as any).__lose.loseContext()) // 이번엔 복구 없음 → 2.5초 뒤 정산하고 다시 열기
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('nsGlReload')).catch(() => null), { timeout: 8000 }).toBe('1')
 })
 
@@ -585,7 +588,7 @@ test('WebGL 컨텍스트가 끝내 돌아오지 않으면 안내와 다시 불�
     const orig = HTMLCanvasElement.prototype.getContext
     HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
       const g = (orig as any).call(this, type, ...rest)
-      if (g && this.id === 'c' && /webgl/.test(type)) g.isContextLost = () => true
+      if (g && this.id === 'c' && /webgl/.test(type)) { g.isContextLost = () => true; g.getShaderPrecisionFormat = () => null } // 실기기와 같게: 손실된 컨텍스트는 정밀도 조회도 null
       return g
     } as any
   })
@@ -594,8 +597,48 @@ test('WebGL 컨텍스트가 끝내 돌아오지 않으면 안내와 다시 불�
   await page.goto(URL_())
   await expect(page.locator('#glfail')).toBeVisible({ timeout: 15000 })
   await expect(page.locator('#glfail')).toContainText('화면을 불러오지 못했어요.')
-  await expect(page.locator('#glfail')).toContainText('토스 앱을 완전히 닫았다가 다시 열어 주세요.')
+  await expect(page.locator('#glfail')).toContainText('같은 문제가 계속되면 토스 앱을 완전히 닫았다가 다시 열어 주세요.')
   await expect(page.locator('#glfail button')).toHaveText('다시 불러오기')
   const box = await page.locator('#glfail button').boundingBox()
   expect(box!.height).toBeGreaterThanOrEqual(44)
+})
+
+test('sessionStorage 를 못 쓰는 환경에서는 다시 열지 않고 바로 안내한다(무한 새로고침 방지)', async ({ page }) => {
+  await page.addInitScript(() => {
+    ;(window as any).__loads = ((window as any).__loads || 0) + 1
+    const set0 = Storage.prototype.setItem
+    Storage.prototype.setItem = function (this: Storage, k: string, v: string) { if (this === sessionStorage) throw new DOMException('denied', 'SecurityError'); return set0.call(this, k, v) }
+    const orig = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      const g = (orig as any).call(this, type, ...rest)
+      if (g && this.id === 'c' && /webgl/.test(type)) { g.isContextLost = () => true; g.getShaderPrecisionFormat = () => null }
+      return g
+    } as any
+  })
+  await page.addInitScript(cfg => { (window as any).__MOCK_CFG__ = cfg }, { insets: INSETS })
+  await page.addInitScript({ path: MOCK })
+  let navs = 0
+  page.on('framenavigated', f => { if (f === page.mainFrame()) navs++ })
+  await page.goto(URL_())
+  await expect(page.locator('#glfail')).toBeVisible({ timeout: 15000 })
+  await page.waitForTimeout(3000)
+  expect(navs, '다시 열기 없이 첫 로드에서 안내').toBe(1)
+})
+
+test('기체 화면의 그래픽 컨텍스트만 실패하면 게임은 두고 제목으로 돌아가 한국어로 알린다', async ({ page }) => {
+  await page.addInitScript(() => {
+    const orig = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      if (this.id === 'hcv' && /webgl/.test(type)) return null
+      return (orig as any).call(this, type, ...rest)
+    } as any
+  })
+  await open(page)
+  await page.locator('#hangarBtn').click()
+  await expect.poll(async () => (await st(page)).ST).toBe('start')
+  await expect(page.locator('#start')).toBeVisible()
+  await expect(page.locator('body')).toContainText('기체 화면을 열지 못했어요. 다시 눌러 주세요.')
+  expect(await page.evaluate(() => sessionStorage.getItem('nsGlReload'))).toBeNull()
+  await page.locator('#playBtn').click()
+  await expect.poll(async () => (await st(page)).ST).toBe('play')
 })

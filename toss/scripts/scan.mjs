@@ -31,7 +31,7 @@ const FORBID = [
   [/ait-ad-test-(?!interstitial-id|rewarded-id)/, '알 수 없는 광고 ID'],
 ]
 if (CHANNEL === 'test') FORBID.push([/ait\.v2\.live\./, '운영 광고 ID(테스트 번들)'])
-else FORBID.push([/ait-ad-test-/, '테스트 광고 ID(출시 번들)'], [new RegExp(`ait\\.v2\\.live\\.(?!${LIVE_IDS.map(i => i.slice(12)).join('|')})`), '.env.release 에 없는 운영 ID'])
+else FORBID.push([/nsdiag|__nsDiag\s*=/, '테스트 전용 진단 띠(출시 번들)'], [/ait-ad-test-/, '테스트 광고 ID(출시 번들)'], [new RegExp(`ait\\.v2\\.live\\.(?!${LIVE_IDS.map(i => i.slice(12)).join('|')})`), '.env.release 에 없는 운영 ID'])
 let bad = 0
 const hosts = new Map()
 const need = new Set(CHANNEL === 'test' ? TEST_IDS : LIVE_IDS)

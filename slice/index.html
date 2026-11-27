@@ -3933,19 +3933,21 @@ if(window.__NS_DEFER){window.__NS_DEFER=0;window.__NS_GO=NS_BOOT;return}
 if(!window.THREE)return
 /* WebGL 컨텍스트 보호 — iOS 웹뷰는 앱을 여러 번 다시 열면 처음부터 「손실된」 컨텍스트를 줄 때가 있다(2026-11-27 실기기 진단:
    three 가 렌더러 생성 중 예외 → 버튼이 죽은 제목 화면 / 실행 중 손실 → 전투 화면이 검게). 복구를 기다리고, 안 돌아오면 페이지를 다시 연다.
-   다시 열기는 2회까지, 그래도 안 되면 다시 시도 버튼을 보여 준다. 속성은 three r128 이 요청하는 값과 같아야 같은 컨텍스트를 이어 쓴다. */
+   다시 열기는 1회만(실기기에서 다시 열어도 풀리지 않았다), 그래도 안 되면 안내와 다시 불러오기 버튼을 보여 준다. 속성은 three r128 이 요청하는 값과 같아야 같은 컨텍스트를 이어 쓴다. */
 const GLG=window.__nsGl||(window.__nsGl={n:0})
 const glDiag=m=>{if(window.__nsDiag)window.__nsDiag(m)}
 function glMsg(){if(document.getElementById('glfail'))return
  const d=document.createElement('div');d.id='glfail';d.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#070a14;color:#dfe6ff;font:15px NSKR,system-ui,sans-serif;text-align:center;padding:24px'
- const t=document.createElement('div');t.textContent='The display could not start.';const t2=document.createElement('div');t2.style.cssText='font-size:13px;color:#9aa6c8;max-width:420px;line-height:1.5';t2.textContent='If it keeps happening, fully close the app and open it again.'
+ const t=document.createElement('div');t.textContent='The display could not start.';const t2=document.createElement('div');t2.style.cssText='font-size:13px;color:#9aa6c8;max-width:420px;line-height:1.5';t2.textContent='If this keeps happening, close this app completely and open it again.'
  const b=document.createElement('button');b.textContent='Reload';b.style.cssText='min-width:160px;min-height:48px;border:0;border-radius:12px;background:#d8f3ff;color:#06121f;font:inherit;font-weight:700'
  b.onclick=()=>{try{sessionStorage.removeItem('nsGlReload')}catch(e){}location.reload()}
  d.appendChild(t);d.appendChild(t2);d.appendChild(b);document.body.appendChild(d)}
 function glReload(why){let k=0;try{k=+sessionStorage.getItem('nsGlReload')||0}catch(e){}
  glDiag('GL reload '+why+' #'+k)
- if(k<2){try{sessionStorage.setItem('nsGlReload',String(k+1))}catch(e){}location.reload();return}
- glMsg()}
+ let ok=false;if(k<1){try{sessionStorage.setItem('nsGlReload',String(k+1));ok=sessionStorage.getItem('nsGlReload')===String(k+1)}catch(e){}}
+ if(ok){if(GLG.settle)try{GLG.settle()}catch(e){}
+  const go=()=>location.reload();const f=window.__NS_PF&&window.__NS_PF.flushAll;if(f){let done=false;const once=()=>{if(!done){done=true;go()}};try{window.__NS_PF.flushAll(1200).then(once,once)}catch(e){once()}setTimeout(once,1500)}else go();return}
+ glMsg()} // 횟수를 남기지 못하는 환경(sessionStorage 불가)에서는 다시 열지 않고 바로 안내 — 무한 새로고침 방지
 {const c0=document.getElementById('c')
  if(!GLG.h){GLG.h=1
   c0.addEventListener('webglcontextlost',e=>{e.preventDefault();GLG.lost=1;if(GLG.onLost)GLG.onLost()})
@@ -4178,11 +4180,17 @@ const buzz=ms=>{if(PF&&PF.haptic){PF.haptic(ms);return}if(navigator.vibrate)try{
 
 /* ============ RENDERER / SCENE ============ */
 const cv=document.getElementById('c')
-const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true})
+let renderer;try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true})}catch(e){glDiag('GL create throw');glReload('create');return}
 // 실행 중 컨텍스트 손실: 판을 멈추고 복구를 기다린다. 2.5초 안에 안 돌아오면 페이지를 다시 연다(검은 화면으로 두지 않는다).
-GLG.onLost=()=>{glDiag('GL lost live');if(ST==='play')pauseGame();clearTimeout(GLG.t);GLG.t=setTimeout(()=>glReload('live'),2500)}
+// 광고가 떠 있거나 화면이 숨겨진 동안에는 다시 열지 않는다(광고 보상 콜백이 사라진다) — 끝난 뒤에도 손실이면 그때 연다.
+const glBusy=()=>document.hidden||ST==='adplay'||!!(PF&&PF.debugState&&PF.debugState().adShowing)
+const glLiveTick=()=>{if(!GLG.lost)return;if(glBusy()){GLG.t=setTimeout(glLiveTick,1000);return}glReload('live')}
+GLG.onLost=()=>{glDiag('GL lost live');if(ST==='play')pauseGame();clearTimeout(GLG.t);GLG.t=setTimeout(glLiveTick,2500)}
 GLG.onBack=()=>{glDiag('GL restored live')}
-setTimeout(()=>{if(!GLG.lost)try{sessionStorage.removeItem('nsGlReload')}catch(e){}},8000)
+// 다시 열기 직전 정산: 진행 중인 판의 자원·점수를 메인으로 나갈 때와 같게 적립한다(검은 화면으로 판을 잃지 않게).
+GLG.settle=()=>{if(ST==='play'||ST==='pause')quitToMenu()}
+// 다시 열기 횟수는 사용자가 화면을 한 번이라도 누른 뒤에 지운다 — 시간으로 지우면 조작 없이 새로고침이 되풀이될 수 있다.
+addEventListener('pointerdown',()=>{if(!GLG.lost)try{sessionStorage.removeItem('nsGlReload')}catch(e){}},{once:true,capture:true})
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
 renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0
 const scene=new THREE.Scene()
@@ -6058,7 +6066,7 @@ const HG={cur:'A',ready:false,cache:{},r:null,sc:null,cam:null,grp:null}
 function fmt(n){return n.toLocaleString('en-US')}
 function hgInit(){if(HG.r)return
  const cv2=$('hcv')
- try{HG.r=new THREE.WebGLRenderer({canvas:cv2,antialias:true,alpha:true})}catch(e){HG.r=null;glReload('hangar');throw e} // 격납고 컨텍스트 생성 실패도 같은 복구 경로
+ try{HG.r=new THREE.WebGLRenderer({canvas:cv2,antialias:true,alpha:true})}catch(e){HG.r=null;glDiag('GL hangar create throw');return false} // 격납고 컨텍스트만 실패하면 게임은 그대로 두고 제목으로 돌아간다
  HG.r.setPixelRatio(Math.min(devicePixelRatio,2))
  HG.r.outputEncoding=THREE.sRGBEncoding;HG.r.toneMapping=THREE.ACESFilmicToneMapping
  HG.sc=new THREE.Scene()
@@ -6121,7 +6129,7 @@ function hgFit(){const cv=$('hcv'),w=cv.clientWidth,h=cv.clientHeight // 창 크
  if(w&&h&&(w!==HG.fw||h!==HG.fh)){HG.fw=w;HG.fh=h;HG.r.setSize(w,h,false);HG.cam.aspect=w/h;HG.cam.updateProjectionMatrix()}}
 function hgOpen(){AU.unlock();ST='hangar'
  $('start').classList.add('off');$('hangar').classList.remove('off') // 먼저 표시 → 실측 크기 확보
- hgInit()
+ if(hgInit()===false){$('hangar').classList.add('off');$('start').classList.remove('off');ST='start';toast('Hangar could not open. Try again.',2200);return}
  const r2=$('hcv').getBoundingClientRect()
  if(r2.width>0){HG.r.setSize(r2.width,r2.height,false);HG.cam.aspect=r2.width/r2.height;HG.cam.updateProjectionMatrix()}
  hgShow(META.ships.sel||'A');hgRefresh()}

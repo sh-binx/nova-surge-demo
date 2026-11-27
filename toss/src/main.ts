@@ -25,7 +25,14 @@ async function boot() {
   try { await pf.init(); window.__nsDiag?.('init ok') } catch (e) { window.__nsDiag?.('init 실패 ' + String((e as Error)?.message ?? e)); console.warn('[toss] init 실패 — 폴백 진행', e) }
   window.__NS_PF = pf
   window.__toss = { state: () => pf.debugState(), platform: pf }
-  if (typeof window.__NS_GO === 'function') { window.__nsDiag?.('GO'); window.__NS_GO(); const g = (document.getElementById('c') as HTMLCanvasElement | null)?.getContext?.('webgl2'); window.__nsDiag?.('GO done gl=' + (g ? (g.isContextLost() ? 'lost' : 'ok') : 'none')) }
+  if (typeof window.__NS_GO === 'function') {
+    window.__nsDiag?.('GO'); window.__NS_GO()
+    if (window.__nsDiag) { // 진단 띠가 있는 테스트 번들에서만 컨텍스트 상태를 읽는다(운영 번들은 게임 밖에서 getContext 를 부르지 않는다)
+      const c = document.getElementById('c') as HTMLCanvasElement | null
+      const g = (c?.getContext('webgl2') ?? c?.getContext('webgl')) as WebGLRenderingContext | null
+      window.__nsDiag('GO done gl=' + (g ? (g.isContextLost() ? 'lost' : 'ok') : 'none'))
+    }
+  }
   else console.error('[toss] 게임 부트 훅(__NS_GO)이 없다 — slice/index.html 의 NS_BOOT 마커 확인')
   window.__bootT = Math.round(performance.now() - t0)
 }

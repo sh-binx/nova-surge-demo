@@ -21,7 +21,7 @@ const DIAG_SNIPPET = `(function(){if(window.__TOSS_SDK__)return;var L=[],el;func
 window.__nsDiag=function(m){L.push((performance.now()/1000).toFixed(1)+' '+m);show()};
 addEventListener('error',function(e){var t=e.target;window.__nsDiag('ERR '+(e.message||(t&&(t.src||t.href))||'?')+(e.lineno?' @'+e.lineno:''))},true);
 addEventListener('unhandledrejection',function(e){var r=e.reason;window.__nsDiag('REJ '+(r&&r.message||r))});
-addEventListener('DOMContentLoaded',function(){show();['c','hgc'].forEach(function(id){var c=document.getElementById(id);if(!c)return;c.addEventListener('webglcontextlost',function(){window.__nsDiag('GL lost '+id)});c.addEventListener('webglcontextrestored',function(){window.__nsDiag('GL restored '+id)});c.addEventListener('webglcontextcreationerror',function(e){window.__nsDiag('GL createErr '+id+' '+(e.statusMessage||''))})})});
+addEventListener('DOMContentLoaded',function(){show();['c','hcv'].forEach(function(id){var c=document.getElementById(id);if(!c)return;c.addEventListener('webglcontextlost',function(){window.__nsDiag('GL lost '+id)});c.addEventListener('webglcontextrestored',function(){window.__nsDiag('GL restored '+id)});c.addEventListener('webglcontextcreationerror',function(e){window.__nsDiag('GL createErr '+id+' '+(e.statusMessage||''))})})});
 document.addEventListener('visibilitychange',function(){window.__nsDiag('vis '+document.visibilityState)});
 window.__nsDiag('html');})();`
 function diagOverlay(mode: string): Plugin {
